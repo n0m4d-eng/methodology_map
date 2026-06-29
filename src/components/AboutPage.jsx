@@ -4,8 +4,16 @@ export function AboutPage() {
       <div className="about-card">
         <div className="about-handle">n0m4d</div>
         <div className="about-tagline">
-          <span className="logo-dim">// </span>offensive security student
+          <span className="logo-dim">// </span>offensive security enthusiast
         </div>
+        <a
+          className="about-github"
+          href="https://github.com/n0m4d-eng"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          github.com/n0m4d-eng
+        </a>
         <div className="about-divider" />
         <div className="about-section-title">Certifications &amp; Goals</div>
         <div className="about-list">
@@ -21,7 +29,7 @@ export function AboutPage() {
         <p className="about-body">
           A live attack methodology map built from personal playbooks and CTF writeups.
           Each node represents a technique; edges show how techniques chain into full attack paths.
-          Nodes with a green border have been used on real boxes.
+          Click a node to see its connections — green edges are outgoing paths, blue edges are incoming.
         </p>
       </div>
     </div>

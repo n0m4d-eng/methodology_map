@@ -869,7 +869,20 @@ body {
   font-size: var(--text-xs);
   color: var(--text-dim);
   letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.about-github {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--accent);
+  text-decoration: none;
+  letter-spacing: 1px;
   margin-bottom: 24px;
+  opacity: 0.8;
+  transition: opacity 0.15s;
+
+  &:hover { opacity: 1; }
 }
 
 .about-divider {

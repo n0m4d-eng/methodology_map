@@ -30,14 +30,27 @@ const ALL_TAGS    = new Set(MAP_CHIPS.map(c => c.id))
 const MIN_PANEL_W = 290
 const ACID_GREEN  = '#7fff00'
 
-function FlowController({ selected }) {
+function FlowController({ selected, nodesLoaded }) {
   const { fitView } = useReactFlow()
+  const fittedOnLoad = useRef(false)
+
+  // Fit once when nodes arrive from the fetch
+  useEffect(() => {
+    if (nodesLoaded && !fittedOnLoad.current) {
+      fittedOnLoad.current = true
+      const t = setTimeout(() => fitView({ padding: 0.15, duration: 350 }), 100)
+      return () => clearTimeout(t)
+    }
+  }, [nodesLoaded, fitView])
+
+  // Fit again when selection clears
   useEffect(() => {
     if (!selected) {
       const t = setTimeout(() => fitView({ padding: 0.15, duration: 350 }), 60)
       return () => clearTimeout(t)
     }
   }, [selected, fitView])
+
   return null
 }
 
@@ -126,7 +139,6 @@ export default function App() {
   }, [selected])
 
   const onPaneClick = useCallback(() => {
-    setSelected(null)
     setPanelOpen(false)
   }, [])
 
@@ -220,7 +232,7 @@ export default function App() {
               nodesConnectable={false}
               elementsSelectable={true}
             >
-              <FlowController selected={selected} />
+              <FlowController selected={selected} nodesLoaded={techniqueNodes.length > 0} />
               <Background color="#21262d" gap={24} size={1} />
               <Controls showInteractive={false} />
             </ReactFlow>
