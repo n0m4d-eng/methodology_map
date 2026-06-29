@@ -417,6 +417,8 @@ body {
   padding: 1px 5px;
   border-radius: 8px;
   border: 1px solid;
+  color: var(--text-dim);
+  border-color: var(--border);
 
   // OS
   &-windows { color: #58a6ff; border-color: #58a6ff30; background: #58a6ff0e; }
@@ -664,6 +666,12 @@ body {
   overflow-y: auto;
   background: var(--bg);
   animation: fadeIn 0.15s ease;
+
+  .ntag {
+    color: var(--text-dim);
+    border-color: var(--border);
+    background: transparent;
+  }
 }
 
 .writeup-full-inner {
