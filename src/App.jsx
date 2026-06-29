@@ -20,6 +20,7 @@ import { NavDropdown }       from '@/components/NavDropdown'
 import { GlobalSearch }      from '@/components/GlobalSearch'
 import { WriteupsPage }      from '@/components/WriteupsPage'
 import { AboutPage }         from '@/components/AboutPage'
+import { KeyboardHints }     from '@/components/KeyboardHints'
 
 const NODE_TYPES = {
   techniqueNode: TechniqueNode,
@@ -30,7 +31,7 @@ const ALL_TAGS    = new Set(MAP_CHIPS.map(c => c.id))
 const MIN_PANEL_W = 290
 const ACID_GREEN  = '#7fff00'
 
-function FlowController({ selected, nodesLoaded }) {
+function FlowController({ selected, nodesLoaded, keyboardNavCount }) {
   const { fitView } = useReactFlow()
   const fittedOnLoad = useRef(false)
 
@@ -43,7 +44,13 @@ function FlowController({ selected, nodesLoaded }) {
     }
   }, [nodesLoaded, fitView])
 
-  // Fit again when selection clears
+  // Pan to node on keyboard navigation
+  useEffect(() => {
+    if (!keyboardNavCount || !selected) return
+    fitView({ nodes: [{ id: selected.id }], padding: 0.8, maxZoom: 1.2, duration: 220 })
+  }, [keyboardNavCount, fitView]) // eslint-disable-line
+
+  // Fit full view when selection clears
   useEffect(() => {
     if (!selected) {
       const t = setTimeout(() => fitView({ padding: 0.15, duration: 350 }), 60)
@@ -57,14 +64,16 @@ function FlowController({ selected, nodesLoaded }) {
 export default function App() {
   const { techniqueNodes, writeups } = useContent()
 
-  const [page,           setPage]           = useState('map')
-  const [activeTags,     setActiveTags]     = useState(ALL_TAGS)
-  const [selected,       setSelected]       = useState(null)
-  const [panelOpen,      setPanelOpen]      = useState(false)
-  const [pendingWriteup, setPendingWriteup] = useState(null)
-  const [panelWidth,     setPanelWidth]     = useState(() => Math.round(window.innerWidth * 0.5))
-  const [showOutgoing,   setShowOutgoing]   = useState(true)
-  const [showIncoming,   setShowIncoming]   = useState(true)
+  const [page,            setPage]            = useState('map')
+  const [activeTags,      setActiveTags]      = useState(ALL_TAGS)
+  const [selected,        setSelected]        = useState(null)
+  const [panelOpen,       setPanelOpen]       = useState(false)
+  const [pendingWriteup,  setPendingWriteup]  = useState(null)
+  const [panelWidth,      setPanelWidth]      = useState(() => Math.round(window.innerWidth * 0.5))
+  const [showOutgoing,    setShowOutgoing]    = useState(true)
+  const [showIncoming,    setShowIncoming]    = useState(true)
+  const [hintsOpen,       setHintsOpen]       = useState(false)
+  const [keyboardNavCount, setKeyboardNavCount] = useState(0)
   const isResizing = useRef(false)
 
   const graphData = useMemo(
@@ -118,15 +127,102 @@ export default function App() {
   useEffect(() => { setNodes(displayNodes) }, [displayNodes])
   useEffect(() => { setEdges(effectiveEdges)  }, [effectiveEdges])
 
+  // ── Keyboard navigation on the map ─────────────────────────────────────────
+  const navigateMap = useCallback((key) => {
+    const techNodes = displayNodes.filter(n => n.type === 'techniqueNode' && !n.hidden)
+    if (!techNodes.length) return
+
+    if (!selected) {
+      setSelected(techNodes[0])
+      setKeyboardNavCount(c => c + 1)
+      return
+    }
+
+    const current = techNodes.find(n => n.id === selected.id)
+    if (!current) {
+      setSelected(techNodes[0])
+      setKeyboardNavCount(c => c + 1)
+      return
+    }
+
+    const { x: cx, y: cy } = current.position
+    let next = null
+
+    if (key === 'ArrowDown') {
+      const col = techNodes.filter(n => n.position.x === cx).sort((a, b) => a.position.y - b.position.y)
+      const idx = col.findIndex(n => n.id === current.id)
+      if (idx < col.length - 1) next = col[idx + 1]
+    } else if (key === 'ArrowUp') {
+      const col = techNodes.filter(n => n.position.x === cx).sort((a, b) => a.position.y - b.position.y)
+      const idx = col.findIndex(n => n.id === current.id)
+      if (idx > 0) next = col[idx - 1]
+    } else if (key === 'ArrowRight') {
+      const rightNodes = techNodes.filter(n => n.position.x > cx)
+      if (rightNodes.length) {
+        const nextX = Math.min(...rightNodes.map(n => n.position.x))
+        const candidates = rightNodes.filter(n => n.position.x === nextX)
+        next = candidates.reduce((a, b) =>
+          Math.abs(a.position.y - cy) <= Math.abs(b.position.y - cy) ? a : b)
+      }
+    } else if (key === 'ArrowLeft') {
+      const leftNodes = techNodes.filter(n => n.position.x < cx)
+      if (leftNodes.length) {
+        const prevX = Math.max(...leftNodes.map(n => n.position.x))
+        const candidates = leftNodes.filter(n => n.position.x === prevX)
+        next = candidates.reduce((a, b) =>
+          Math.abs(a.position.y - cy) <= Math.abs(b.position.y - cy) ? a : b)
+      }
+    }
+
+    if (next) {
+      setSelected(next)
+      setKeyboardNavCount(c => c + 1)
+    }
+  }, [displayNodes, selected])
+
+  // ── Global keydown handler ──────────────────────────────────────────────────
   useEffect(() => {
     const handler = (e) => {
-      if (e.key !== 'Escape') return
-      if (panelOpen)  { setPanelOpen(false);  return }
-      if (selected)   { setSelected(null);    return }
+      const inInput = document.activeElement?.tagName === 'INPUT'
+
+      // Focus search with /
+      if (e.key === '/' && !inInput) {
+        e.preventDefault()
+        document.querySelector('.nav-search')?.focus()
+        return
+      }
+
+      // Toggle hints with ?
+      if (e.key === '?' && !inInput) {
+        setHintsOpen(h => !h)
+        return
+      }
+
+      // Escape: close things in priority order
+      if (e.key === 'Escape') {
+        if (panelOpen)  { setPanelOpen(false);  return }
+        if (selected)   { setSelected(null);    return }
+        if (hintsOpen)  { setHintsOpen(false);  return }
+        return
+      }
+
+      // Map-only shortcuts — only when on the map page and not typing
+      if (page !== 'map' || inInput) return
+
+      if (e.key === 'Enter' && selected) {
+        setPanelOpen(true)
+        return
+      }
+
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault()
+        navigateMap(e.key)
+      }
     }
+
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [panelOpen, selected])
+  }, [panelOpen, selected, hintsOpen, page, navigateMap])
 
   const onNodeClick = useCallback((_, node) => {
     if (node.type === 'laneHeader') return
@@ -232,7 +328,11 @@ export default function App() {
               nodesConnectable={false}
               elementsSelectable={true}
             >
-              <FlowController selected={selected} nodesLoaded={techniqueNodes.length > 0} />
+              <FlowController
+                selected={selected}
+                nodesLoaded={techniqueNodes.length > 0}
+                keyboardNavCount={keyboardNavCount}
+              />
               <Background color="#21262d" gap={24} size={1} />
               <Controls showInteractive={false} />
             </ReactFlow>
@@ -260,6 +360,8 @@ export default function App() {
       )}
 
       {page === 'about' && <AboutPage />}
+
+      <KeyboardHints open={hintsOpen} onToggle={() => setHintsOpen(h => !h)} />
     </div>
   )
 }

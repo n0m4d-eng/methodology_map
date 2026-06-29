@@ -2,8 +2,9 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import Fuse from 'fuse.js'
 
 export function GlobalSearch({ nodes, writeups, onSelectNode, onSelectWriteup }) {
-  const [query, setQuery] = useState('')
-  const [open,  setOpen]  = useState(false)
+  const [query,       setQuery]       = useState('')
+  const [open,        setOpen]        = useState(false)
+  const [activeIndex, setActiveIndex] = useState(-1)
   const containerRef = useRef(null)
   const inputRef     = useRef(null)
 
@@ -17,13 +18,13 @@ export function GlobalSearch({ nodes, writeups, onSelectNode, onSelectWriteup })
       _raw:     n,
     })),
     ...writeups.map(w => ({
-      type:          'writeup',
-      id:            w.id,
-      title:         w.title,
-      subtitle:      w.platform,
-      tags:          w.tags ?? [],
+      type:           'writeup',
+      id:             w.id,
+      title:          w.title,
+      subtitle:       w.platform,
+      tags:           w.tags ?? [],
       key_techniques: (w.key_techniques ?? []).join(' '),
-      _raw:          w,
+      _raw:           w,
     })),
   ], [nodes, writeups])
 
@@ -47,6 +48,10 @@ export function GlobalSearch({ nodes, writeups, onSelectNode, onSelectWriteup })
 
   const nodeResults    = results.filter(r => r.item.type === 'node')
   const writeupResults = results.filter(r => r.item.type === 'writeup')
+  const allResults     = [...nodeResults, ...writeupResults]
+
+  // Reset keyboard selection when query changes
+  useEffect(() => { setActiveIndex(-1) }, [query])
 
   useEffect(() => {
     function onOutside(e) {
@@ -61,6 +66,7 @@ export function GlobalSearch({ nodes, writeups, onSelectNode, onSelectWriteup })
       if (e.key !== 'Escape') return
       setOpen(false)
       setQuery('')
+      setActiveIndex(-1)
       inputRef.current?.blur()
     }
     document.addEventListener('keydown', onKey)
@@ -70,8 +76,28 @@ export function GlobalSearch({ nodes, writeups, onSelectNode, onSelectWriteup })
   function handleSelect(item) {
     setQuery('')
     setOpen(false)
+    setActiveIndex(-1)
     if (item.type === 'node')    onSelectNode(item.id)
     if (item.type === 'writeup') onSelectWriteup(item._raw)
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setActiveIndex(i => Math.min(i + 1, allResults.length - 1))
+      if (!open) setOpen(true)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setActiveIndex(i => Math.max(i - 1, -1))
+    } else if (e.key === 'Enter') {
+      if (activeIndex >= 0 && allResults[activeIndex]) {
+        handleSelect(allResults[activeIndex].item)
+      } else {
+        setQuery('')
+        setOpen(false)
+        setActiveIndex(-1)
+      }
+    }
   }
 
   const showDropdown = open && results.length > 0
@@ -85,8 +111,8 @@ export function GlobalSearch({ nodes, writeups, onSelectNode, onSelectWriteup })
         placeholder="/ search..."
         value={query}
         onChange={e => { setQuery(e.target.value); setOpen(true) }}
-        onClick={() => { setQuery(''); setOpen(false) }}
-        onKeyDown={e => { if (e.key === 'Enter') { setQuery(''); setOpen(false) } }}
+        onClick={() => { setQuery(''); setOpen(false); setActiveIndex(-1) }}
+        onKeyDown={handleKeyDown}
       />
 
       {showDropdown && (
@@ -94,8 +120,12 @@ export function GlobalSearch({ nodes, writeups, onSelectNode, onSelectWriteup })
           {nodeResults.length > 0 && (
             <div className="search-group">
               <div className="search-group-label">Nodes</div>
-              {nodeResults.map(({ item }) => (
-                <button key={item.id} className="search-result" onClick={() => handleSelect(item)}>
+              {nodeResults.map(({ item }, i) => (
+                <button
+                  key={item.id}
+                  className={`search-result ${activeIndex === i ? 'search-result-active' : ''}`}
+                  onClick={() => handleSelect(item)}
+                >
                   <span className="search-result-title">{item.title}</span>
                   <span className="search-result-meta">{item.subtitle}</span>
                 </button>
@@ -105,8 +135,12 @@ export function GlobalSearch({ nodes, writeups, onSelectNode, onSelectWriteup })
           {writeupResults.length > 0 && (
             <div className="search-group">
               <div className="search-group-label">Writeups</div>
-              {writeupResults.map(({ item }) => (
-                <button key={item.id} className="search-result" onClick={() => handleSelect(item)}>
+              {writeupResults.map(({ item }, i) => (
+                <button
+                  key={item.id}
+                  className={`search-result ${activeIndex === nodeResults.length + i ? 'search-result-active' : ''}`}
+                  onClick={() => handleSelect(item)}
+                >
                   <span className="search-result-title">{item.title}</span>
                   <span className="search-result-meta">{item.subtitle}</span>
                 </button>
