@@ -7,8 +7,8 @@ export function TechniqueNode({ data, selected }) {
   ].filter(Boolean).join(' ')
 
   const dimStyle = data.dimmed
-    ? { width: 210, opacity: 0.15, pointerEvents: 'none' }
-    : { width: 210 }
+    ? { width: 260, opacity: 0.15, pointerEvents: 'none' }
+    : { width: 260 }
 
   return (
     <div className={cls} style={dimStyle}>

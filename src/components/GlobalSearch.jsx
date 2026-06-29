@@ -85,7 +85,8 @@ export function GlobalSearch({ nodes, writeups, onSelectNode, onSelectWriteup })
         placeholder="/ search..."
         value={query}
         onChange={e => { setQuery(e.target.value); setOpen(true) }}
-        onFocus={() => { if (query) setOpen(true) }}
+        onClick={() => { setQuery(''); setOpen(false) }}
+        onKeyDown={e => { if (e.key === 'Enter') { setQuery(''); setOpen(false) } }}
       />
 
       {showDropdown && (

@@ -21,7 +21,7 @@ export function NavDropdown({ currentPage, onNavigate }) {
   return (
     <div className="nav-dropdown" ref={ref}>
       <button className="nav-trigger" onClick={() => setOpen(o => !o)}>
-        METHODOLOGY MAP
+        {NAV_ITEMS.find(i => i.id === currentPage)?.label.toUpperCase() ?? 'METHODOLOGY MAP'}
         <span className="nav-caret">{open ? '▲' : '▼'}</span>
       </button>
       {open && (

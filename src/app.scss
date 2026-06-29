@@ -410,6 +410,7 @@ body {
 }
 
 .node-tags { display: flex; gap: 3px; flex-wrap: wrap; }
+.technique-node .node-tags { flex-wrap: nowrap; overflow: hidden; }
 
 .ntag {
   font-size: var(--text-sm);
@@ -530,7 +531,7 @@ body {
 }
 
 .detail-section-title {
-  font-size: var(--text-xxs);
+  font-size: var(--text-xs);
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--text-dim);
@@ -1012,7 +1013,7 @@ body {
     display: block;
   }
 
-  h1 { font-size: var(--text-xl); color: var(--text); margin: 14px 0 6px; }
+  h1 { font-size: 1.4rem; color: var(--text); margin: 14px 0 6px; }
   h4 { font-size: var(--text-sm); color: var(--text-dim); margin: 6px 0 2px; }
 
   em { color: var(--text-dim); font-style: italic; }

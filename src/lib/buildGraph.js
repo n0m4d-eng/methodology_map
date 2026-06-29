@@ -19,7 +19,7 @@ export const STAGE_LABELS = {
   'objective':      'Objective',
 }
 
-const COL_WIDTH  = 210
+const COL_WIDTH  = 260
 const COL_GAP    = 100
 const NODE_H     = 88
 const NODE_GAP   = 14
