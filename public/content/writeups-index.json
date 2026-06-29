@@ -1,0 +1,29 @@
+[
+  {
+    "id": "htb-forest",
+    "title": "HTB - Forest",
+    "platform": "HackTheBox",
+    "os": "Windows",
+    "difficulty": "Easy",
+    "date": "2024-01-10",
+    "tags": [
+      "windows",
+      "ad",
+      "asreproast",
+      "dcsync",
+      "acl-abuse"
+    ],
+    "key_techniques": [],
+    "attack_path": [
+      "nmap-scan",
+      "ldap-enum",
+      "asreproast",
+      "winrm",
+      "acl-abuse",
+      "dcsync",
+      "domain-admin"
+    ],
+    "summary": "",
+    "filePath": "writeups/htb-forest.md"
+  }
+]
