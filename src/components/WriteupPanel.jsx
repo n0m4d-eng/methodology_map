@@ -59,13 +59,6 @@ export function WriteupPanel({ writeup, onClose, onNavigateToNode }) {
           <button className="detail-close wp-back" onClick={onClose}>← back</button>
         </div>
 
-        {/* Summary */}
-        {writeup.summary && (
-          <div className="writeup-panel-section">
-            <div className="wu-summary">{writeup.summary}</div>
-          </div>
-        )}
-
         {/* Key techniques */}
         {writeup.key_techniques?.length > 0 && (
           <div className="writeup-panel-section">

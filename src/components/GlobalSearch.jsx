@@ -13,26 +13,29 @@ export function GlobalSearch({ nodes, writeups, onSelectNode, onSelectWriteup })
       id:       n.id,
       title:    n.title,
       subtitle: n.stage,
-      tags:     (n.tags ?? []).join(' '),
+      tags:     n.tags ?? [],
       _raw:     n,
     })),
     ...writeups.map(w => ({
-      type:     'writeup',
-      id:       w.id,
-      title:    w.title,
-      subtitle: w.platform,
-      tags:     (w.tags ?? []).join(' '),
-      _raw:     w,
+      type:          'writeup',
+      id:            w.id,
+      title:         w.title,
+      subtitle:      w.platform,
+      tags:          w.tags ?? [],
+      key_techniques: (w.key_techniques ?? []).join(' '),
+      _raw:          w,
     })),
   ], [nodes, writeups])
 
   const fuse = useMemo(() => new Fuse(corpus, {
     keys: [
-      { name: 'title',    weight: 0.6 },
-      { name: 'tags',     weight: 0.25 },
-      { name: 'subtitle', weight: 0.15 },
+      { name: 'title',          weight: 0.55 },
+      { name: 'tags',           weight: 0.30 },
+      { name: 'key_techniques', weight: 0.10 },
+      { name: 'subtitle',       weight: 0.05 },
     ],
-    threshold: 0.4,
+    threshold: 0.35,
+    minMatchCharLength: 2,
     includeScore: true,
   }), [corpus])
 
