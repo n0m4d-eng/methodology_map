@@ -21,9 +21,11 @@ export function WriteupPanel({ writeup, onClose, onNavigateToNode }) {
       .then(r => r.text())
       .then(md => {
         const rawBody = parseFrontmatter(md).body
+        // Netlify blocks dot-prefixed directories, so normalise .images/ → images/
+        const normalised = rawBody.replace(/\.images\//g, 'images/')
         // Rewrite relative image paths to absolute /content/... paths
         const dir = writeup.filePath.substring(0, writeup.filePath.lastIndexOf('/') + 1)
-        const processed = rawBody.replace(
+        const processed = normalised.replace(
           /!\[([^\]]*)\]\((?!https?:\/\/|\/)(.*?)\)/g,
           (_, alt, src) => `![${alt}](/content/${dir}${src})`
         )
