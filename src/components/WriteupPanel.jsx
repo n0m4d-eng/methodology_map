@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { marked } from 'marked'
 import { parseFrontmatter } from '@/lib/parseFrontmatter'
-
-marked.setOptions({ breaks: true })
+import { WriteupToc } from '@/components/WriteupToc'
 
 const DIFF_COLOR = {
   easy:   'var(--success)',
@@ -11,19 +10,37 @@ const DIFF_COLOR = {
   insane: 'var(--purple)',
 }
 
+function slugify(text) {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+}
+
+marked.setOptions({ breaks: true })
+
+function injectHeadingIds(html) {
+  const seen = {}
+  return html.replace(/<h([1-3])>([\s\S]*?)<\/h\1>/g, (_, level, inner) => {
+    const plain = inner.replace(/<[^>]*>/g, '')
+    let id = slugify(plain)
+    seen[id] = (seen[id] ?? 0) + 1
+    if (seen[id] > 1) id = `${id}-${seen[id]}`
+    return `<h${level} id="${id}">${inner}</h${level}>`
+  })
+}
+
 export function WriteupPanel({ writeup, onClose, onNavigateToNode }) {
-  const [body, setBody] = useState(null)
+  const [body,     setBody]     = useState(null)
+  const [activeId, setActiveId] = useState('')
+  const bodyRef = useRef(null)
 
   useEffect(() => {
     if (!writeup?.filePath) { setBody(''); return }
     setBody(null)
+    setActiveId('')
     fetch(`/content/${writeup.filePath}`)
       .then(r => r.text())
       .then(md => {
         const rawBody = parseFrontmatter(md).body
-        // Netlify blocks dot-prefixed directories, so normalise .images/ → images/
         const normalised = rawBody.replace(/\.images\//g, 'images/')
-        // Rewrite relative image paths to absolute /content/... paths
         const dir = writeup.filePath.substring(0, writeup.filePath.lastIndexOf('/') + 1)
         const processed = normalised.replace(
           /!\[([^\]]*)\]\((?!https?:\/\/|\/)(.*?)\)/g,
@@ -34,13 +51,49 @@ export function WriteupPanel({ writeup, onClose, onNavigateToNode }) {
       .catch(() => setBody(''))
   }, [writeup?.id])
 
+  const headings = useMemo(() => {
+    if (!body) return []
+    const seen = {}
+    return body.split('\n').reduce((acc, line) => {
+      const m = line.match(/^(#{1,3})\s+(.+)/)
+      if (m) {
+        const text = m[2].trim()
+        let id = slugify(text.replace(/<[^>]*>/g, ''))
+        seen[id] = (seen[id] ?? 0) + 1
+        if (seen[id] > 1) id = `${id}-${seen[id]}`
+        acc.push({ level: m[1].length, text, id })
+      }
+      return acc
+    }, [])
+  }, [body])
+
+  useEffect(() => {
+    if (!bodyRef.current || !headings.length) return
+    const obs = new IntersectionObserver(
+      entries => {
+        for (const e of entries) {
+          if (e.isIntersecting) setActiveId(e.target.id)
+        }
+      },
+      { rootMargin: '-8% 0px -80% 0px', threshold: 0 }
+    )
+    bodyRef.current.querySelectorAll('h1, h2, h3').forEach(el => obs.observe(el))
+    return () => obs.disconnect()
+  }, [body, headings.length])
+
   if (!writeup) return null
 
-  const bodyHtml  = body ? marked.parse(body) : ''
+  const bodyHtml  = body ? injectHeadingIds(marked.parse(body)) : ''
   const diffColor = DIFF_COLOR[writeup.difficulty?.toLowerCase()] ?? 'var(--text-dim)'
+
+  function handleTocSelect(id) {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   return (
     <div className="writeup-full-page">
+      <WriteupToc headings={headings} activeId={activeId} onSelect={handleTocSelect} />
+
       <div className="writeup-full-inner">
 
         {/* Header */}
@@ -115,6 +168,7 @@ export function WriteupPanel({ writeup, onClose, onNavigateToNode }) {
             <div className="body-loading">loading...</div>
           ) : bodyHtml ? (
             <div
+              ref={bodyRef}
               className="body-html"
               dangerouslySetInnerHTML={{ __html: bodyHtml }}
             />

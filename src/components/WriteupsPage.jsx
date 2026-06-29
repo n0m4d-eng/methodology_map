@@ -23,20 +23,25 @@ const PLATFORM_LABEL = {
   'hack-smarter': 'Hack Smarter',
 }
 
-export function WriteupsPage({ writeups, initialWriteup = null, onNavigateToNode }) {
+export function WriteupsPage({ writeups, initialWriteup = null, onNavigateToNode, onSelect }) {
   const [selected,       setSelected]       = useState(initialWriteup)
   const [activePlatform, setActivePlatform] = useState('htb')
 
   useEffect(() => {
-    if (initialWriteup) setSelected(initialWriteup)
+    setSelected(initialWriteup)
   }, [initialWriteup])
+
+  function pick(w) {
+    setSelected(w)
+    onSelect?.(w)
+  }
 
   // Full-page writeup view
   if (selected) {
     return (
       <WriteupPanel
         writeup={selected}
-        onClose={() => setSelected(null)}
+        onClose={() => pick(null)}
         onNavigateToNode={onNavigateToNode}
       />
     )
@@ -70,7 +75,7 @@ export function WriteupsPage({ writeups, initialWriteup = null, onNavigateToNode
                 <div
                   key={w.id}
                   className="writeup-list-card"
-                  onClick={() => setSelected(w)}
+                  onClick={() => pick(w)}
                 >
                   <div className="wu-card-title">{w.title}</div>
                   <div className="wu-card-meta">

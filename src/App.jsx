@@ -27,6 +27,19 @@ const NODE_TYPES = {
   laneHeader:    LaneHeader,
 }
 
+function parseHash() {
+  const h = window.location.hash.replace(/^#\/?/, '')
+  if (h.startsWith('writeups/')) return { page: 'writeups', writeupId: h.slice(9) }
+  if (h === 'writeups') return { page: 'writeups', writeupId: null }
+  if (h === 'about')    return { page: 'about',    writeupId: null }
+  return { page: 'map', writeupId: null }
+}
+
+function setHash(pg, writeupId = null) {
+  const h = writeupId ? `writeups/${writeupId}` : pg === 'map' ? '' : pg
+  history.replaceState(null, '', h ? `#${h}` : window.location.pathname)
+}
+
 const ALL_TAGS    = new Set(MAP_CHIPS.map(c => c.id))
 const MIN_PANEL_W = 290
 const ACID_GREEN  = '#7fff00'
@@ -64,11 +77,12 @@ function FlowController({ selected, nodesLoaded, keyboardNavCount }) {
 export default function App() {
   const { techniqueNodes, writeups } = useContent()
 
-  const [page,            setPage]            = useState('map')
+  const [page,            setPage]            = useState(() => parseHash().page)
   const [activeTags,      setActiveTags]      = useState(ALL_TAGS)
   const [selected,        setSelected]        = useState(null)
   const [panelOpen,       setPanelOpen]       = useState(false)
   const [pendingWriteup,  setPendingWriteup]  = useState(null)
+  const [pendingWriteupId, setPendingWriteupId] = useState(() => parseHash().writeupId)
   const [panelWidth,      setPanelWidth]      = useState(() => Math.round(window.innerWidth * 0.5))
   const [showOutgoing,    setShowOutgoing]    = useState(true)
   const [showIncoming,    setShowIncoming]    = useState(true)
@@ -126,6 +140,13 @@ export default function App() {
 
   useEffect(() => { setNodes(displayNodes) }, [displayNodes])
   useEffect(() => { setEdges(effectiveEdges)  }, [effectiveEdges])
+
+  // Resolve writeup ID from hash once writeups have loaded
+  useEffect(() => {
+    if (!pendingWriteupId || !writeups.length) return
+    const found = writeups.find(w => w.id === pendingWriteupId)
+    if (found) { setPendingWriteup(found); setPendingWriteupId(null) }
+  }, [writeups, pendingWriteupId])
 
   // ── Keyboard navigation on the map ─────────────────────────────────────────
   const navigateMap = useCallback((key) => {
@@ -266,6 +287,7 @@ export default function App() {
   function handleOpenWriteup(writeup) {
     setPendingWriteup(writeup)
     setPage('writeups')
+    setHash('writeups', writeup.id)
   }
 
   function handleNavigateToNode(nodeId) {
@@ -275,11 +297,18 @@ export default function App() {
       setPanelOpen(true)
     }
     setPage('map')
+    setHash('map')
   }
 
   function handleNavigate(newPage) {
-    if (newPage !== 'writeups') setPendingWriteup(null)
+    setPendingWriteup(null)
     setPage(newPage)
+    setHash(newPage)
+  }
+
+  function handleWriteupSelect(writeup) {
+    if (writeup) setHash('writeups', writeup.id)
+    else         setHash('writeups')
   }
 
   return (
@@ -356,6 +385,7 @@ export default function App() {
           writeups={writeups}
           initialWriteup={pendingWriteup}
           onNavigateToNode={handleNavigateToNode}
+          onSelect={handleWriteupSelect}
         />
       )}
 
