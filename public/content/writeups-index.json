@@ -2,18 +2,28 @@
   {
     "id": "htb-forest",
     "title": "HTB - Forest",
-    "platform": "HackTheBox",
-    "os": "Windows",
-    "difficulty": "Easy",
+    "platform": "HTB",
+    "os": "windows",
+    "difficulty": "easy",
     "date": "2024-01-10",
     "tags": [
+      "ctf",
       "windows",
-      "ad",
-      "asreproast",
+      "htb",
+      "active-directory",
+      "ldap-enumeration",
+      "as-rep-roasting",
+      "acl-abuse",
       "dcsync",
-      "acl-abuse"
+      "winrm",
+      "pass-the-hash"
     ],
-    "key_techniques": [],
+    "key_techniques": [
+      "AS-REP Roasting (Kerberos pre-auth disabled)",
+      "BloodHound ACL chain discovery",
+      "WriteDACL abuse to grant DCSync rights",
+      "Pass-the-Hash as Administrator"
+    ],
     "attack_path": [
       "nmap-scan",
       "ldap-enum",
@@ -23,7 +33,60 @@
       "dcsync",
       "domain-admin"
     ],
-    "summary": "",
+    "summary": "LDAP null auth exposed all users → AS-REP roasted svc-alfresco → BloodHound WriteDACL chain → DCSync → domain admin",
     "filePath": "writeups/htb-forest.md"
+  },
+  {
+    "id": "htb-sendai",
+    "title": "HTB - Sendai",
+    "platform": "HTB",
+    "os": "windows",
+    "difficulty": "medium",
+    "date": "2026-06-27",
+    "tags": [
+      "ctf",
+      "windows",
+      "htb",
+      "active-directory",
+      "smb-guest-access",
+      "smb-enumeration",
+      "rid-brute-force",
+      "as-rep-roasting",
+      "ldap-enumeration",
+      "password-spraying",
+      "password-must-change",
+      "bloodhound",
+      "acl-abuse",
+      "gmsa",
+      "adcs",
+      "esc4",
+      "kerberos",
+      "pass-the-hash",
+      "credential-hunting",
+      "adminsdholder",
+      "winrm"
+    ],
+    "key_techniques": [
+      "SMB guest access + RID brute force",
+      "Blank password spray (STATUS_PASSWORD_MUST_CHANGE)",
+      "gMSA hash read via LDAP after ACL abuse",
+      "Credential hunting in service ImagePath registry values",
+      "ADCS ESC4 template write → ESC1 certificate request",
+      "PKINIT with SID extension to retrieve Administrator NTLM"
+    ],
+    "attack_path": [
+      "nmap-scan",
+      "smb-enum",
+      "password-spray",
+      "bloodhound",
+      "acl-abuse",
+      "winrm",
+      "windows-stored-creds",
+      "adcs-esc4",
+      "pass-the-hash",
+      "domain-admin"
+    ],
+    "summary": "SMB guest → RID brute → blank-password spray → BloodHound ACL chain → gMSA hash → service ImagePath creds → ADCS ESC4 → domain admin",
+    "filePath": "writeups/htb-sendai/sendai.md"
   }
 ]

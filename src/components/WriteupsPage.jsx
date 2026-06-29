@@ -24,12 +24,23 @@ const PLATFORM_LABEL = {
 }
 
 export function WriteupsPage({ writeups, initialWriteup = null, onNavigateToNode }) {
-  const [selected,        setSelected]        = useState(initialWriteup)
-  const [activePlatform,  setActivePlatform]  = useState('htb')
+  const [selected,       setSelected]       = useState(initialWriteup)
+  const [activePlatform, setActivePlatform] = useState('htb')
 
   useEffect(() => {
     if (initialWriteup) setSelected(initialWriteup)
   }, [initialWriteup])
+
+  // Full-page writeup view
+  if (selected) {
+    return (
+      <WriteupPanel
+        writeup={selected}
+        onClose={() => setSelected(null)}
+        onNavigateToNode={onNavigateToNode}
+      />
+    )
+  }
 
   const filteredWriteups = writeups.filter(w => matchesPlatform(w, activePlatform))
 
@@ -58,7 +69,7 @@ export function WriteupsPage({ writeups, initialWriteup = null, onNavigateToNode
               return (
                 <div
                   key={w.id}
-                  className={`writeup-list-card ${selected?.id === w.id ? 'wu-card-selected' : ''}`}
+                  className="writeup-list-card"
                   onClick={() => setSelected(w)}
                 >
                   <div className="wu-card-title">{w.title}</div>
@@ -82,12 +93,6 @@ export function WriteupsPage({ writeups, initialWriteup = null, onNavigateToNode
           </div>
         </div>
       </div>
-
-      <WriteupPanel
-        writeup={selected}
-        onClose={() => setSelected(null)}
-        onNavigateToNode={onNavigateToNode}
-      />
     </div>
   )
 }

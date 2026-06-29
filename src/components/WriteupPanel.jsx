@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react'
 import { marked } from 'marked'
+import { parseFrontmatter } from '@/lib/parseFrontmatter'
 
 marked.setOptions({ breaks: true })
 
@@ -10,14 +12,34 @@ const DIFF_COLOR = {
 }
 
 export function WriteupPanel({ writeup, onClose, onNavigateToNode }) {
+  const [body, setBody] = useState(null)
+
+  useEffect(() => {
+    if (!writeup?.filePath) { setBody(''); return }
+    setBody(null)
+    fetch(`/content/${writeup.filePath}`)
+      .then(r => r.text())
+      .then(md => {
+        const rawBody = parseFrontmatter(md).body
+        // Rewrite relative image paths to absolute /content/... paths
+        const dir = writeup.filePath.substring(0, writeup.filePath.lastIndexOf('/') + 1)
+        const processed = rawBody.replace(
+          /!\[([^\]]*)\]\((?!https?:\/\/|\/)(.*?)\)/g,
+          (_, alt, src) => `![${alt}](/content/${dir}${src})`
+        )
+        setBody(processed)
+      })
+      .catch(() => setBody(''))
+  }, [writeup?.id])
+
   if (!writeup) return null
 
-  const bodyHtml = writeup.body ? marked.parse(writeup.body) : ''
+  const bodyHtml  = body ? marked.parse(body) : ''
   const diffColor = DIFF_COLOR[writeup.difficulty?.toLowerCase()] ?? 'var(--text-dim)'
 
   return (
-    <div className="writeup-panel-overlay" onClick={onClose}>
-      <div className="writeup-panel" onClick={e => e.stopPropagation()}>
+    <div className="writeup-full-page">
+      <div className="writeup-full-inner">
 
         {/* Header */}
         <div className="writeup-panel-head">
@@ -34,17 +56,17 @@ export function WriteupPanel({ writeup, onClose, onNavigateToNode }) {
               {writeup.date && <span className="wp-date">{writeup.date}</span>}
             </div>
           </div>
-          <button className="detail-close" onClick={onClose}>×</button>
+          <button className="detail-close wp-back" onClick={onClose}>← back</button>
         </div>
 
-        {/* Summary — resume-quality one-liner */}
+        {/* Summary */}
         {writeup.summary && (
           <div className="writeup-panel-section">
             <div className="wu-summary">{writeup.summary}</div>
           </div>
         )}
 
-        {/* Key techniques — highlighted for portfolio */}
+        {/* Key techniques */}
         {writeup.key_techniques?.length > 0 && (
           <div className="writeup-panel-section">
             <div className="detail-section-title">Key Techniques</div>
@@ -92,15 +114,19 @@ export function WriteupPanel({ writeup, onClose, onNavigateToNode }) {
         )}
 
         {/* Full writeup body */}
-        {bodyHtml && (
-          <div className="writeup-panel-section writeup-panel-body">
-            <div className="detail-section-title">Writeup</div>
+        <div className="writeup-panel-section writeup-panel-body">
+          <div className="detail-section-title">Writeup</div>
+          {body === null ? (
+            <div className="body-loading">loading...</div>
+          ) : bodyHtml ? (
             <div
               className="body-html"
               dangerouslySetInnerHTML={{ __html: bodyHtml }}
             />
-          </div>
-        )}
+          ) : (
+            <div className="body-loading">no writeup body</div>
+          )}
+        </div>
 
       </div>
     </div>

@@ -658,39 +658,41 @@ body {
 }
 
 /* ── Writeup panel (slideout) ────────────────────────────────────────────── */
-.writeup-panel-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 500;
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  justify-content: flex-end;
+.writeup-full-page {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--bg);
+  animation: fadeIn 0.15s ease;
 }
 
-.writeup-panel {
-  width: 520px;
-  max-width: 92vw;
-  height: 100%;
-  background: var(--surface);
-  border-left: 1px solid var(--border);
-  overflow-y: auto;
+.writeup-full-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 24px 48px;
   display: flex;
   flex-direction: column;
-  animation: slideInRight 0.2s ease;
 }
 
-@keyframes slideInRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to   { transform: translateX(0);    opacity: 1; }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 .writeup-panel-head {
-  padding: 18px 20px;
+  padding: 24px 0 18px;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: flex-start;
   gap: 12px;
   flex-shrink: 0;
+}
+
+.wp-back {
+  font-size: var(--text-xs);
+  letter-spacing: 0.5px;
+  width: auto;
+  padding: 0 10px;
+  white-space: nowrap;
 }
 
 .writeup-panel-meta {
@@ -704,10 +706,10 @@ body {
 .wp-date { font-size: var(--text-xs); color: var(--text-dim); }
 
 .writeup-panel-section {
-  padding: 14px 20px;
+  padding: 16px 0;
   border-bottom: 1px solid var(--border);
 
-  &.writeup-panel-body { flex: 1; }
+  &.writeup-panel-body { flex: 1; border-bottom: none; }
 }
 
 /* ── Writeup panel extras ────────────────────────────────────────────────── */
@@ -1001,4 +1003,26 @@ body {
       &:hover { opacity: 0.75; }
     }
   }
+
+  img {
+    max-width: 100%;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    margin: 8px 0;
+    display: block;
+  }
+
+  h1 { font-size: var(--text-xl); color: var(--text); margin: 14px 0 6px; }
+  h4 { font-size: var(--text-sm); color: var(--text-dim); margin: 6px 0 2px; }
+
+  em { color: var(--text-dim); font-style: italic; }
+
+  blockquote {
+    border-left: 2px solid var(--border);
+    margin: 6px 0;
+    padding-left: 10px;
+    color: var(--text-dim);
+  }
+
+  ol { padding-left: 16px; margin-bottom: 6px; }
 }

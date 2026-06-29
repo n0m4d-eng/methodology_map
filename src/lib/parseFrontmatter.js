@@ -27,11 +27,11 @@ export function parseFrontmatter(raw) {
       continue
     }
 
-    // Key: value
-    const kvMatch = line.match(/^([\w-]+):\s*(.*)$/)
+    // Key: value (supports space-in-key YAML like "date started:")
+    const kvMatch = line.match(/^([\w][\w -]*):\s*(.*)$/)
     if (!kvMatch) continue
 
-    currentKey = kvMatch[1]
+    currentKey = kvMatch[1].replace(/ /g, '_')
     const val = kvMatch[2].trim()
 
     if (!val) {

@@ -37,10 +37,11 @@ function parseFrontmatter(raw) {
       continue
     }
 
-    const kvMatch = line.match(/^([\w-]+):\s*(.*)$/)
+    // Supports space-in-key YAML like "date started:"
+    const kvMatch = line.match(/^([\w][\w -]*):\s*(.*)$/)
     if (!kvMatch) continue
 
-    const key = kvMatch[1]
+    const key = kvMatch[1].replace(/ /g, '_')
     const val = kvMatch[2].trim()
 
     if (!val) {
@@ -115,7 +116,7 @@ function buildWriteupsIndex() {
       platform:       data.platform       ?? '',
       os:             data.os             ?? '',
       difficulty:     data.difficulty     ?? '',
-      date:           data.date           ?? '',
+      date:           data.date_started   ?? data.date ?? '',
       tags:           data.tags           ?? [],
       key_techniques: data.key_techniques ?? [],
       attack_path:    data.attack_path    ?? [],
