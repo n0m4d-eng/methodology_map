@@ -54,7 +54,7 @@ export function NavDropdown({ currentPage, onNavigate }) {
     <div className="nav-dropdown" ref={ref}>
       <button
         className="nav-trigger"
-        onClick={() => { setOpen(o => !o); setFocusIndex(o => o ? -1 : 0) }}
+        onClick={() => { const next = !open; setOpen(next); setFocusIndex(next ? 0 : -1) }}
         onKeyDown={handleTriggerKeyDown}
       >
         {NAV_ITEMS.find(i => i.id === currentPage)?.label.toUpperCase() ?? 'METHODOLOGY MAP'}

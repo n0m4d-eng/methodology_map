@@ -30,7 +30,10 @@ function injectHeadingIds(html) {
 export function WriteupPanel({ writeup, onClose, onNavigateToNode }) {
   const [body,     setBody]     = useState(null)
   const [activeId, setActiveId] = useState('')
-  const bodyRef = useRef(null)
+  const [tocOpen,  setTocOpen]  = useState(false)
+  const bodyRef   = useRef(null)
+  const tocBtnRef = useRef(null)
+  const tocPopRef = useRef(null)
 
   useEffect(() => {
     if (!writeup?.filePath) { setBody(''); return }
@@ -66,6 +69,19 @@ export function WriteupPanel({ writeup, onClose, onNavigateToNode }) {
       return acc
     }, [])
   }, [body])
+
+  // Close TOC popover when clicking outside
+  useEffect(() => {
+    if (!tocOpen) return
+    function onOutside(e) {
+      if (
+        tocPopRef.current && !tocPopRef.current.contains(e.target) &&
+        tocBtnRef.current && !tocBtnRef.current.contains(e.target)
+      ) setTocOpen(false)
+    }
+    document.addEventListener('mousedown', onOutside)
+    return () => document.removeEventListener('mousedown', onOutside)
+  }, [tocOpen])
 
   useEffect(() => {
     if (!bodyRef.current || !headings.length) return
@@ -111,8 +127,29 @@ export function WriteupPanel({ writeup, onClose, onNavigateToNode }) {
               {writeup.date && <span className="wp-date">{writeup.date}</span>}
             </div>
           </div>
+          {headings.length > 0 && (
+            <button
+              ref={tocBtnRef}
+              className="toc-toggle-btn"
+              onClick={() => setTocOpen(o => !o)}
+              aria-label="Toggle table of contents"
+            >
+              ≡ Sections
+            </button>
+          )}
           <button className="detail-close wp-back" onClick={onClose}>← back</button>
         </div>
+
+        {/* TOC popover — shown when button is tapped on sub-1300px screens */}
+        {tocOpen && (
+          <div className="toc-popover" ref={tocPopRef}>
+            <WriteupToc
+              headings={headings}
+              activeId={activeId}
+              onSelect={(id) => { handleTocSelect(id); setTocOpen(false) }}
+            />
+          </div>
+        )}
 
         {/* Key techniques */}
         {writeup.key_techniques?.length > 0 && (

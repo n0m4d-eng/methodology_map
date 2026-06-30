@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 export function useContent() {
   const [techniqueNodes, setTechniqueNodes] = useState([])
   const [writeups,       setWriteups]       = useState([])
+  const [error,          setError]          = useState(null)
 
   useEffect(() => {
     Promise.all([
@@ -13,8 +14,9 @@ export function useContent() {
       setWriteups(writeups)
     }).catch(err => {
       console.error('Failed to load content indices:', err)
+      setError('Failed to load content. Try refreshing.')
     })
   }, [])
 
-  return { techniqueNodes, writeups }
+  return { techniqueNodes, writeups, error }
 }

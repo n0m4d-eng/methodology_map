@@ -10,6 +10,7 @@ import {
 import '@xyflow/react/dist/style.css'
 
 import { useContent }        from '@/hooks/useContent'
+import { useMediaQuery }     from '@/hooks/useMediaQuery'
 import { buildGraph }        from '@/lib/buildGraph'
 import { TechniqueNode }     from '@/components/TechniqueNode'
 import { LaneHeader }        from '@/components/LaneHeader'
@@ -44,9 +45,14 @@ const ALL_TAGS    = new Set(MAP_CHIPS.map(c => c.id))
 const MIN_PANEL_W = 290
 const ACID_GREEN  = '#7fff00'
 
-function FlowController({ selected, nodesLoaded, keyboardNavCount }) {
+function FlowController({ selected, nodesLoaded, keyboardNavCount, fitViewRef }) {
   const { fitView } = useReactFlow()
   const fittedOnLoad = useRef(false)
+  const selectedRef  = useRef(selected)
+  useEffect(() => { selectedRef.current = selected }, [selected])
+
+  // Expose fitView so the external fit-view button can call it
+  fitViewRef.current = fitView
 
   // Fit once when nodes arrive from the fetch
   useEffect(() => {
@@ -57,11 +63,12 @@ function FlowController({ selected, nodesLoaded, keyboardNavCount }) {
     }
   }, [nodesLoaded, fitView])
 
-  // Pan to node on keyboard navigation
+  // Pan to node on keyboard navigation — read selected via ref so this effect
+  // only fires on nav events, not on every selection change (e.g. mouse click)
   useEffect(() => {
-    if (!keyboardNavCount || !selected) return
-    fitView({ nodes: [{ id: selected.id }], padding: 0.8, maxZoom: 1.2, duration: 220 })
-  }, [keyboardNavCount, fitView]) // eslint-disable-line
+    if (!keyboardNavCount || !selectedRef.current) return
+    fitView({ nodes: [{ id: selectedRef.current.id }], padding: 0.8, maxZoom: 1.2, duration: 220 })
+  }, [keyboardNavCount, fitView])
 
   // Fit full view when selection clears
   useEffect(() => {
@@ -75,7 +82,9 @@ function FlowController({ selected, nodesLoaded, keyboardNavCount }) {
 }
 
 export default function App() {
-  const { techniqueNodes, writeups } = useContent()
+  const { techniqueNodes, writeups, error } = useContent()
+  const isCompact = useMediaQuery('(max-width: 1100px)')
+  const fitViewRef = useRef(null)
 
   const [page,            setPage]            = useState(() => parseHash().page)
   const [activeTags,      setActiveTags]      = useState(ALL_TAGS)
@@ -311,6 +320,7 @@ export default function App() {
 
   return (
     <div className="app-root">
+      {error && <div className="content-error">{error}</div>}
       <header className="app-header">
         <button className="nav-logo" onClick={() => handleNavigate('map')}>
           N<span className="logo-dim">0</span>M4D
@@ -328,17 +338,37 @@ export default function App() {
       {page === 'map' && (
         <div className="app-body">
           <div className="flow-wrap">
-            <FilterBar
-              chips={MAP_CHIPS}
-              active={activeTags}
-              onToggle={toggleTag}
-            />
-            <GraphOptions
-              showOutgoing={showOutgoing}
-              showIncoming={showIncoming}
-              onToggleOutgoing={() => setShowOutgoing(v => !v)}
-              onToggleIncoming={() => setShowIncoming(v => !v)}
-            />
+            {isCompact ? (
+              <div className="compact-controls-stack">
+                <FilterBar
+                  chips={MAP_CHIPS}
+                  active={activeTags}
+                  onToggle={toggleTag}
+                  vertical
+                />
+                <GraphOptions
+                  showOutgoing={showOutgoing}
+                  showIncoming={showIncoming}
+                  onToggleOutgoing={() => setShowOutgoing(v => !v)}
+                  onToggleIncoming={() => setShowIncoming(v => !v)}
+                  vertical
+                />
+              </div>
+            ) : (
+              <>
+                <FilterBar
+                  chips={MAP_CHIPS}
+                  active={activeTags}
+                  onToggle={toggleTag}
+                />
+                <GraphOptions
+                  showOutgoing={showOutgoing}
+                  showIncoming={showIncoming}
+                  onToggleOutgoing={() => setShowOutgoing(v => !v)}
+                  onToggleIncoming={() => setShowIncoming(v => !v)}
+                />
+              </>
+            )}
             <ReactFlow
               nodes={nodes}
               edges={edges}
@@ -359,13 +389,36 @@ export default function App() {
                 selected={selected}
                 nodesLoaded={techniqueNodes.length > 0}
                 keyboardNavCount={keyboardNavCount}
+                fitViewRef={fitViewRef}
               />
               <Background color="#21262d" gap={24} size={1} />
               <Controls showInteractive={false} />
             </ReactFlow>
+
+            {/* Fit-to-view button — touch affordance, hidden on desktop via CSS */}
+            <button
+              className="fitview-btn"
+              onClick={() => fitViewRef.current?.({ padding: 0.15, duration: 350 })}
+              aria-label="Fit graph to view"
+            >⊡</button>
+
+            {/* Bottom sheet + dim overlay (compact screens ≤1100px) */}
+            {isCompact && selected && panelOpen && (
+              <>
+                <div className="dim-overlay" onClick={() => setPanelOpen(false)} />
+                <DetailPanel
+                  node={selected}
+                  onClose={() => setPanelOpen(false)}
+                  onOpenWriteup={handleOpenWriteup}
+                  onNavigateToNode={handleNavigateToNode}
+                  sheet
+                />
+              </>
+            )}
           </div>
 
-          {selected && panelOpen && (
+          {/* Desktop side panel (wide screens >1100px) */}
+          {!isCompact && selected && panelOpen && (
             <DetailPanel
               node={selected}
               width={panelWidth}
@@ -389,7 +442,7 @@ export default function App() {
 
       {page === 'about' && <AboutPage />}
 
-      <KeyboardHints open={hintsOpen} onToggle={() => setHintsOpen(h => !h)} />
+      {!isCompact && <KeyboardHints open={hintsOpen} onToggle={() => setHintsOpen(h => !h)} />}
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { WriteupPanel }             from './WriteupPanel'
 import { FilterBar, WRITEUP_CHIPS } from './FilterBar'
+import { useMediaQuery }            from '@/hooks/useMediaQuery'
 
 function matchesPlatform(writeup, platformId) {
   const p = (writeup.platform ?? '').toLowerCase()
@@ -27,6 +28,7 @@ export function WriteupsPage({ writeups, initialWriteup = null, onNavigateToNode
   const [selected,       setSelected]       = useState(initialWriteup)
   const [activePlatform, setActivePlatform] = useState('htb')
   const activePlatformSet = useMemo(() => new Set([activePlatform]), [activePlatform])
+  const isCompact = useMediaQuery('(max-width: 1100px)')
 
   useEffect(() => {
     if (initialWriteup) setSelected(initialWriteup)
@@ -53,17 +55,33 @@ export function WriteupsPage({ writeups, initialWriteup = null, onNavigateToNode
   return (
     <div className="writeups-page">
       <div className="writeups-header">
-        <div className="writeups-title">
-          <span className="logo-dim">// </span>WRITEUPS
+        <div className="writeups-header-top">
+          <div className="writeups-title">
+            <span className="logo-dim">// </span>WRITEUPS
+          </div>
+          <span className="writeups-count">{filteredWriteups.length} boxes</span>
         </div>
-        <span className="writeups-count">{filteredWriteups.length} boxes</span>
 
-        <FilterBar
-          chips={WRITEUP_CHIPS}
-          active={activePlatformSet}
-          onToggle={setActivePlatform}
-          className="filter-bar-writeups"
-        />
+        {isCompact ? (
+          <div className="writeups-chips-inline">
+            {WRITEUP_CHIPS.map(({ id, label }) => (
+              <button
+                key={id}
+                className={`chip chip-${id} ${activePlatformSet.has(id) ? 'on' : 'off'}`}
+                onClick={() => setActivePlatform(id)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <FilterBar
+            chips={WRITEUP_CHIPS}
+            active={activePlatformSet}
+            onToggle={setActivePlatform}
+            className="filter-bar-writeups"
+          />
+        )}
       </div>
 
       <div className="writeups-body">
