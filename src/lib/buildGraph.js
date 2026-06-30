@@ -29,7 +29,7 @@ const HEADER_Y   = 12
 
 // Builds the full node/edge list for React Flow from parsed content + active filters.
 // Nodes that don't match are hidden (not removed) so React Flow keeps their positions stable.
-export function buildGraph(techniqueNodes, writeups, activeTags, search) {
+export function buildGraph(techniqueNodes, writeups, activeTags) {
   // visit count per technique node id
   const visitCounts = {}
   writeups.forEach(w => {
@@ -54,24 +54,18 @@ export function buildGraph(techniqueNodes, writeups, activeTags, search) {
   })
 
   function isVisible(n) {
-    let tagOk = activeTags.size === 0
-    if (!tagOk) {
-      const nodeTags = n.tags ?? []
-      if (activeTags.has('windows') && nodeTags.includes('windows')) tagOk = true
-      if (activeTags.has('linux')   && nodeTags.includes('linux'))   tagOk = true
-      if (activeTags.has('ad')      && nodeTags.includes('ad'))      tagOk = true
-      if (activeTags.has('recon')   && n.stage === 'recon')          tagOk = true
-      if (activeTags.has('misc')) {
-        const isCategorized = nodeTags.includes('windows') || nodeTags.includes('linux') ||
-                              nodeTags.includes('ad') || n.stage === 'recon'
-        if (!isCategorized) tagOk = true
-      }
+    if (activeTags.size === 0) return true
+    const nodeTags = n.tags ?? []
+    if (activeTags.has('windows') && nodeTags.includes('windows')) return true
+    if (activeTags.has('linux')   && nodeTags.includes('linux'))   return true
+    if (activeTags.has('ad')      && nodeTags.includes('ad'))      return true
+    if (activeTags.has('recon')   && n.stage === 'recon')          return true
+    if (activeTags.has('misc')) {
+      const isCategorized = nodeTags.includes('windows') || nodeTags.includes('linux') ||
+                            nodeTags.includes('ad') || n.stage === 'recon'
+      if (!isCategorized) return true
     }
-    const q = search.toLowerCase().trim()
-    const searchOk = !q ||
-      n.title.toLowerCase().includes(q) ||
-      (n.tags ?? []).some(t => t.toLowerCase().includes(q))
-    return tagOk && searchOk
+    return false
   }
 
   const rfNodes = []

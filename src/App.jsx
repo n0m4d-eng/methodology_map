@@ -91,7 +91,7 @@ export default function App() {
   const isResizing = useRef(false)
 
   const graphData = useMemo(
-    () => buildGraph(techniqueNodes, writeups, activeTags, ''),
+    () => buildGraph(techniqueNodes, writeups, activeTags),
     [techniqueNodes, writeups, activeTags]
   )
 
@@ -124,7 +124,7 @@ export default function App() {
       if (showIncoming && e.target === selected.id) ids.add(e.source)
     })
     return ids
-  }, [selected, graphData.edges])
+  }, [selected, graphData.edges, showOutgoing, showIncoming])
 
   const displayNodes = useMemo(() => {
     if (!connectedNodeIds) return graphData.nodes
@@ -169,14 +169,11 @@ export default function App() {
     const { x: cx, y: cy } = current.position
     let next = null
 
-    if (key === 'ArrowDown') {
+    if (key === 'ArrowDown' || key === 'ArrowUp') {
       const col = techNodes.filter(n => n.position.x === cx).sort((a, b) => a.position.y - b.position.y)
       const idx = col.findIndex(n => n.id === current.id)
-      if (idx < col.length - 1) next = col[idx + 1]
-    } else if (key === 'ArrowUp') {
-      const col = techNodes.filter(n => n.position.x === cx).sort((a, b) => a.position.y - b.position.y)
-      const idx = col.findIndex(n => n.id === current.id)
-      if (idx > 0) next = col[idx - 1]
+      if (key === 'ArrowDown' && idx < col.length - 1) next = col[idx + 1]
+      if (key === 'ArrowUp'   && idx > 0)              next = col[idx - 1]
     } else if (key === 'ArrowRight') {
       const rightNodes = techNodes.filter(n => n.position.x > cx)
       if (rightNodes.length) {
@@ -219,8 +216,9 @@ export default function App() {
         return
       }
 
-      // Escape: close things in priority order
+      // Escape: close things in priority order (skip if search input has focus — GlobalSearch handles it)
       if (e.key === 'Escape') {
+        if (inInput)    return
         if (panelOpen)  { setPanelOpen(false);  return }
         if (selected)   { setSelected(null);    return }
         if (hintsOpen)  { setHintsOpen(false);  return }
@@ -308,13 +306,13 @@ export default function App() {
 
   function handleWriteupSelect(writeup) {
     if (writeup) setHash('writeups', writeup.id)
-    else         setHash('writeups')
+    else { setPendingWriteup(null); setHash('writeups') }
   }
 
   return (
     <div className="app-root">
       <header className="app-header">
-        <button className="nav-logo" onClick={() => handleNavigate('about')}>
+        <button className="nav-logo" onClick={() => handleNavigate('map')}>
           N<span className="logo-dim">0</span>M4D
         </button>
         <NavDropdown currentPage={page} onNavigate={handleNavigate} />

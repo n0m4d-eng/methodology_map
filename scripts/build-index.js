@@ -10,57 +10,13 @@
 import { readFileSync, writeFileSync, readdirSync, statSync, mkdirSync } from 'fs'
 import { join, relative } from 'path'
 import { fileURLToPath } from 'url'
+import { parseFrontmatter } from '../src/lib/parseFrontmatter.js'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 const ROOT        = join(__dirname, '..')
 const CONTENT_DIR = join(ROOT, 'public', 'content')
 const NODES_DIR   = join(CONTENT_DIR, 'nodes')
 const WRITEUPS_DIR = join(CONTENT_DIR, 'writeups')
-
-// ── Frontmatter parser (mirrors src/lib/parseFrontmatter.js) ─────────────────
-
-function parseFrontmatter(raw) {
-  if (!raw.startsWith('---')) return { data: {}, body: raw }
-  const end = raw.indexOf('\n---', 3)
-  if (end === -1) return { data: {}, body: raw }
-
-  const yaml = raw.slice(4, end).trim()
-  const body = raw.slice(end + 4).trim()
-  const data = {}
-
-  let currentList = null
-
-  for (const line of yaml.split('\n')) {
-    const listMatch = line.match(/^\s+-\s+(.+)$/)
-    if (listMatch && currentList !== null) {
-      currentList.push(strip(listMatch[1]))
-      continue
-    }
-
-    // Supports space-in-key YAML like "date started:"
-    const kvMatch = line.match(/^([\w][\w -]*):\s*(.*)$/)
-    if (!kvMatch) continue
-
-    const key = kvMatch[1].replace(/ /g, '_')
-    const val = kvMatch[2].trim()
-
-    if (!val) {
-      currentList = []
-      data[key] = currentList
-    } else if (val.startsWith('[')) {
-      data[key] = val.slice(1, val.lastIndexOf(']'))
-        .split(',').map(s => strip(s.trim())).filter(Boolean)
-      currentList = null
-    } else {
-      data[key] = strip(val)
-      currentList = null
-    }
-  }
-
-  return { data, body }
-}
-
-function strip(s) { return s.replace(/^['"]|['"]$/g, '').trim() }
 
 // ── File walker ───────────────────────────────────────────────────────────────
 

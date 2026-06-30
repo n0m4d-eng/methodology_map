@@ -63,7 +63,7 @@ export function GlobalSearch({ nodes, writeups, onSelectNode, onSelectWriteup })
 
   useEffect(() => {
     function onKey(e) {
-      if (e.key !== 'Escape') return
+      if (e.key !== 'Escape' || document.activeElement !== inputRef.current) return
       setOpen(false)
       setQuery('')
       setActiveIndex(-1)
@@ -111,7 +111,7 @@ export function GlobalSearch({ nodes, writeups, onSelectNode, onSelectWriteup })
         placeholder="/ search..."
         value={query}
         onChange={e => { setQuery(e.target.value); setOpen(true) }}
-        onClick={() => { setQuery(''); setOpen(false); setActiveIndex(-1) }}
+        onClick={() => { if (query) setOpen(true) }}
         onKeyDown={handleKeyDown}
       />
 

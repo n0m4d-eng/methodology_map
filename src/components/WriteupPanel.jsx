@@ -58,7 +58,7 @@ export function WriteupPanel({ writeup, onClose, onNavigateToNode }) {
       const m = line.match(/^(#{1,3})\s+(.+)/)
       if (m) {
         const text = m[2].trim()
-        let id = slugify(text.replace(/<[^>]*>/g, ''))
+        let id = slugify(text.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/<[^>]*>/g, ''))
         seen[id] = (seen[id] ?? 0) + 1
         if (seen[id] > 1) id = `${id}-${seen[id]}`
         acc.push({ level: m[1].length, text, id })
@@ -149,7 +149,7 @@ export function WriteupPanel({ writeup, onClose, onNavigateToNode }) {
                 <div
                   key={step}
                   className="attack-path-step attack-path-step-link"
-                  onClick={() => { onNavigateToNode?.(step); onClose() }}
+                  onClick={() => { onClose(); onNavigateToNode?.(step) }}
                   title={`View ${step} on methodology map`}
                 >
                   <span className="attack-step-num">{String(i + 1).padStart(2, '0')}</span>

@@ -11,6 +11,8 @@ export function useContent() {
     ]).then(([nodes, writeups]) => {
       setTechniqueNodes(nodes)
       setWriteups(writeups)
+    }).catch(err => {
+      console.error('Failed to load content indices:', err)
     })
   }, [])
 

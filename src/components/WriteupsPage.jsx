@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { WriteupPanel }             from './WriteupPanel'
 import { FilterBar, WRITEUP_CHIPS } from './FilterBar'
 
@@ -26,9 +26,10 @@ const PLATFORM_LABEL = {
 export function WriteupsPage({ writeups, initialWriteup = null, onNavigateToNode, onSelect }) {
   const [selected,       setSelected]       = useState(initialWriteup)
   const [activePlatform, setActivePlatform] = useState('htb')
+  const activePlatformSet = useMemo(() => new Set([activePlatform]), [activePlatform])
 
   useEffect(() => {
-    setSelected(initialWriteup)
+    if (initialWriteup) setSelected(initialWriteup)
   }, [initialWriteup])
 
   function pick(w) {
@@ -59,7 +60,7 @@ export function WriteupsPage({ writeups, initialWriteup = null, onNavigateToNode
 
         <FilterBar
           chips={WRITEUP_CHIPS}
-          active={new Set([activePlatform])}
+          active={activePlatformSet}
           onToggle={setActivePlatform}
           className="filter-bar-writeups"
         />
