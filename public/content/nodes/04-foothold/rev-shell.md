@@ -14,6 +14,7 @@ leads_to:
   - linux-cron
   - linux-kernel
   - linux-cred-hunting
+  - linux-pam-polkit
   - token-impersonation
   - windows-service-misconfig
   - windows-stored-creds

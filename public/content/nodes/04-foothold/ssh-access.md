@@ -13,6 +13,7 @@ leads_to:
   - linux-cron
   - linux-kernel
   - linux-cred-hunting
+  - linux-pam-polkit
   - linux-path-hijack
 ---
 

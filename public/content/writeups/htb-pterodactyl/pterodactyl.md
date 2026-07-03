@@ -6,30 +6,30 @@ os: Linux
 difficulty: Medium
 date: 2026-07-02
 tags:
-  [
-    linux,
-    web,
-    mysql,
-    mariadb,
-    exploit,
-    privesc,
-    cve-2025-49132,
-    cve-2025-6018,
-    cve-2025-6019,
-    htb,
-    pam,
-    suid-injection,
-    mount,
-    dbus,
-  ]
+  - linux
+  - web
+  - mysql
+  - mariadb
+  - exploit
+  - privesc
+  - cve-2025-49132
+  - cve-2025-6018
+  - cve-2025-6019
+  - htb
+  - pam
+  - suid-injection
+  - mount
+  - dbus
 key_techniques: [path traversal, file inclusion, command injection]
 attack_path:
-  [
-    unvalidated path traversal to PEAR installation directory,
-    write PHP code to tmp folder,
-    Execute malicious PHP file,
-    Foothold with RCE,
-  ]
+  - nmap-scan
+  - web-enum
+  - public-exploit
+  - rev-shell
+  - linux-cred-hunting
+  - ssh-access
+  - linux-pam-polkit
+  - root-linux
 summary: "Unauthenticated RCE via a Pterodactyl Panel path traversal bug (CVE-2025-49132), chained with a PAM allow_active trick and a udisks XFS-resize race for a SUID-root shell."
 ---
 

