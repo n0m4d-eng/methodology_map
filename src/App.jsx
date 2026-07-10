@@ -10,6 +10,7 @@ import {
 import '@xyflow/react/dist/style.css'
 
 import { useContent }        from '@/hooks/useContent'
+import { useEngagement }     from '@/hooks/useEngagement'
 import { useMediaQuery }     from '@/hooks/useMediaQuery'
 import { buildGraph }        from '@/lib/buildGraph'
 import { TechniqueNode }     from '@/components/TechniqueNode'
@@ -22,6 +23,7 @@ import { GlobalSearch }      from '@/components/GlobalSearch'
 import { WriteupsPage }      from '@/components/WriteupsPage'
 import { AboutPage }         from '@/components/AboutPage'
 import { KeyboardHints }     from '@/components/KeyboardHints'
+import { EngagementPanel }   from '@/components/EngagementPanel'
 
 const NODE_TYPES = {
   techniqueNode: TechniqueNode,
@@ -98,10 +100,14 @@ export default function App() {
   const [hintsOpen,       setHintsOpen]       = useState(false)
   const [keyboardNavCount, setKeyboardNavCount] = useState(0)
   const isResizing = useRef(false)
+  const engagement = useEngagement()
 
   const graphData = useMemo(
-    () => buildGraph(techniqueNodes, writeups, activeTags),
-    [techniqueNodes, writeups, activeTags]
+    () => buildGraph(techniqueNodes, writeups, activeTags, {
+      discovered: engagement.discovered,
+      dismissed:  engagement.dismissed,
+    }),
+    [techniqueNodes, writeups, activeTags, engagement.discovered, engagement.dismissed]
   )
 
   const effectiveEdges = useMemo(() => {
@@ -292,6 +298,7 @@ export default function App() {
   }, [])
 
   function handleOpenWriteup(writeup) {
+    if (writeup.tags?.includes('active')) return
     setPendingWriteup(writeup)
     setPage('writeups')
     setHash('writeups', writeup.id)
@@ -394,6 +401,18 @@ export default function App() {
               <Background color="#21262d" gap={24} size={1} />
               <Controls showInteractive={false} />
             </ReactFlow>
+
+            <EngagementPanel
+              discovered={engagement.discovered}
+              dismissed={engagement.dismissed}
+              discoveredArray={engagement.discoveredArray}
+              addService={engagement.addService}
+              removeService={engagement.removeService}
+              dismissService={engagement.dismissService}
+              undismissService={engagement.undismissService}
+              clearSession={engagement.clearSession}
+              isActive={engagement.isActive}
+            />
 
             {/* Fit-to-view button — touch affordance, hidden on desktop via CSS */}
             <button

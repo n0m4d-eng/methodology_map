@@ -89,14 +89,16 @@ export function WriteupsPage({ writeups, initialWriteup = null, onNavigateToNode
           <div className="writeup-group-title">{PLATFORM_LABEL[activePlatform]}</div>
           <div className="writeup-grid">
             {filteredWriteups.map(w => {
-              const diffKey = w.difficulty?.toLowerCase()
+              const diffKey  = w.difficulty?.toLowerCase()
+              const isLocked = w.tags?.includes('active')
               return (
                 <div
                   key={w.id}
-                  className="writeup-list-card"
-                  onClick={() => pick(w)}
+                  className={`writeup-list-card${isLocked ? ' wu-locked' : ''}`}
+                  onClick={isLocked ? undefined : () => pick(w)}
                 >
                   <div className="wu-card-title">{w.title}</div>
+                  {isLocked && <div className="wu-lock-badge">Machine Active</div>}
                   <div className="wu-card-meta">
                     {w.os && <span className="wu-os">{w.os}</span>}
                     {w.difficulty && (
@@ -106,7 +108,7 @@ export function WriteupsPage({ writeups, initialWriteup = null, onNavigateToNode
                     )}
                   </div>
                   {w.attack_path?.length > 0 && (
-                    <div className="wu-card-path">
+                    <div className={`wu-card-path${isLocked ? ' wu-card-path-locked' : ''}`}>
                       {w.attack_path.slice(0, 5).join(' → ')}
                       {w.attack_path.length > 5 && ` +${w.attack_path.length - 5} more`}
                     </div>

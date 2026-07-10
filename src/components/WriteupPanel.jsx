@@ -36,7 +36,7 @@ export function WriteupPanel({ writeup, onClose, onNavigateToNode }) {
   const tocPopRef = useRef(null)
 
   useEffect(() => {
-    if (!writeup?.filePath) { setBody(''); return }
+    if (!writeup?.filePath || writeup.tags?.includes('active')) { setBody(''); return }
     setBody(null)
     setActiveId('')
     fetch(`/content/${writeup.filePath}`)
@@ -101,6 +101,35 @@ export function WriteupPanel({ writeup, onClose, onNavigateToNode }) {
 
   const bodyHtml  = body ? injectHeadingIds(marked.parse(body)) : ''
   const diffColor = DIFF_COLOR[writeup.difficulty?.toLowerCase()] ?? 'var(--text-dim)'
+
+  if (writeup.tags?.includes('active')) {
+    return (
+      <div className="writeup-full-page">
+        <div className="writeup-full-inner">
+          <div className="writeup-panel-head">
+            <div style={{ flex: 1 }}>
+              <div className="detail-stage">{writeup.platform}</div>
+              <div className="detail-title">{writeup.title}</div>
+              <div className="writeup-panel-meta">
+                {writeup.os && <span className="wp-os">{writeup.os}</span>}
+                {writeup.difficulty && (
+                  <span className="wp-diff" style={{ color: diffColor }}>{writeup.difficulty}</span>
+                )}
+              </div>
+            </div>
+            <button className="detail-close wp-back" onClick={onClose}>← back</button>
+          </div>
+          <div className="writeup-locked-body">
+            <div className="writeup-locked-icon">🔒</div>
+            <div className="writeup-locked-title">Machine Active</div>
+            <div className="writeup-locked-msg">
+              This machine is currently live on HackTheBox. The writeup will be published after retirement.
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   function handleTocSelect(id) {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })

@@ -1,5 +1,14 @@
 import { MarkerType } from '@xyflow/react'
 
+export const ALL_SERVICE_TAGS = new Set([
+  'ssh', 'rdp', 'winrm',
+  'smb', 'ftp', 'nfs',
+  'web', 'smtp',
+  'mssql', 'mysql', 'redis',
+  'dns', 'snmp',
+  'ldap', 'ad', 'kerberos', 'adcs',
+])
+
 // Stage order → column index
 export const STAGES = {
   'recon':          0,
@@ -29,7 +38,7 @@ const HEADER_Y   = 12
 
 // Builds the full node/edge list for React Flow from parsed content + active filters.
 // Nodes that don't match are hidden (not removed) so React Flow keeps their positions stable.
-export function buildGraph(techniqueNodes, writeups, activeTags) {
+export function buildGraph(techniqueNodes, writeups, activeTags, engagement = null) {
   // visit count per technique node id
   const visitCounts = {}
   writeups.forEach(w => {
@@ -53,7 +62,7 @@ export function buildGraph(techniqueNodes, writeups, activeTags) {
     ;(byStage[n.stage] ??= []).push(n)
   })
 
-  function isVisible(n) {
+  function passesChipFilter(n) {
     if (activeTags.size === 0) return true
     const nodeTags = n.tags ?? []
     if (activeTags.has('windows') && nodeTags.includes('windows')) return true
@@ -66,6 +75,15 @@ export function buildGraph(techniqueNodes, writeups, activeTags) {
       if (!isCategorized) return true
     }
     return false
+  }
+
+  function isVisible(n) {
+    if (!passesChipFilter(n)) return false
+    if (!engagement || engagement.discovered.size === 0) return true
+    const nodeTags = n.tags ?? []
+    const svcTags  = nodeTags.filter(t => ALL_SERVICE_TAGS.has(t))
+    if (svcTags.length === 0) return true
+    return svcTags.some(t => engagement.discovered.has(t))
   }
 
   const rfNodes = []
@@ -97,6 +115,17 @@ export function buildGraph(techniqueNodes, writeups, activeTags) {
 
     if (!hidden) visible.add(node.id)
 
+    let engDismissed = false
+    if (engagement && engagement.discovered.size > 0) {
+      const nodeTags = node.tags ?? []
+      const discoveredSvcTags = nodeTags.filter(
+        t => ALL_SERVICE_TAGS.has(t) && engagement.discovered.has(t)
+      )
+      if (discoveredSvcTags.length > 0) {
+        engDismissed = discoveredSvcTags.every(t => engagement.dismissed.has(t))
+      }
+    }
+
     rfNodes.push({
       id:     node.id,
       type:   'techniqueNode',
@@ -107,6 +136,7 @@ export function buildGraph(techniqueNodes, writeups, activeTags) {
         visited:    (visitCounts[node.id] ?? 0) > 0,
         visitCount: visitCounts[node.id] ?? 0,
         relatedWriteups: writeupsByNode[node.id] ?? [],
+        dismissed: engDismissed,
       },
     })
   })
