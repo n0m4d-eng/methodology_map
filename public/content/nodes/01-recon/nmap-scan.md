@@ -20,6 +20,13 @@ leads_to:
   - redis-enum
   - dns-enum
   - snmp-enum
+  - ssh-enum
+  - rdp-enum
+  - kerberos-enum
+  - ipmi-enum
+  - postgresql-enum
+  - rsync-enum
+  - vnc-enum
 ---
 
 ## Before Touching Any Service

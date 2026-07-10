@@ -2,7 +2,7 @@
 id: ldap-enum
 title: LDAP Enumeration
 stage: enumeration
-tags: [windows, ad]
+tags: [windows, ad, ldap]
 tools:
   - ldapsearch -H ldap://$TARGET -x -b "" -s base namingContexts
   - ldapsearch -H ldap://$TARGET -x -b "DC=domain,DC=local" -s sub "(objectClass=*)" | grep -iE "sAMAccountName|description|mail|memberOf"

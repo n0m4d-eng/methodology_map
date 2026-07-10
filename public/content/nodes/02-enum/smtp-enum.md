@@ -2,7 +2,7 @@
 id: smtp-enum
 title: SMTP Enumeration
 stage: enumeration
-tags: [windows, linux]
+tags: [windows, linux, smtp]
 tools:
   - smtp-user-enum -M VRFY -U /usr/share/metasploit-framework/data/wordlists/unix_users.txt -t $TARGET
   - nmap -Pn -p 25 --script smtp-enum-users,smtp-commands $TARGET

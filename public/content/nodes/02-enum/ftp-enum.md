@@ -2,7 +2,7 @@
 id: ftp-enum
 title: FTP Enumeration
 stage: enumeration
-tags: [windows, linux]
+tags: [windows, linux, ftp]
 tools:
   - nmap -Pn -sV -p 21 --script="ftp*" $TARGET
   - ftp $TARGET

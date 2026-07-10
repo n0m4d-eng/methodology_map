@@ -2,7 +2,7 @@
 id: nfs-enum
 title: NFS Enumeration
 stage: enumeration
-tags: [linux]
+tags: [linux, nfs]
 tools:
   - showmount -e $TARGET
   - sudo mount -o rw,vers=2 $TARGET:/share /mnt/nfs

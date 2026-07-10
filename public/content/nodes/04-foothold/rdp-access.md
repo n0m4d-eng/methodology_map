@@ -2,7 +2,7 @@
 id: rdp-access
 title: RDP Access
 stage: foothold
-tags: [windows]
+tags: [windows, rdp]
 tools:
   - xfreerdp /u:user /p:password /v:$TARGET
   - xfreerdp /u:Administrator /pth:NTLM_HASH /v:$TARGET
@@ -10,6 +10,9 @@ tools:
 leads_to:
   - token-impersonation
   - windows-stored-creds
+  - windows-dll-hijack
+  - windows-uac-bypass
+  - windows-gpp-creds
   - bloodhound
 ---
 

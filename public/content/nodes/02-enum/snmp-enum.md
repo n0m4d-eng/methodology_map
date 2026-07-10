@@ -2,7 +2,7 @@
 id: snmp-enum
 title: SNMP Enumeration
 stage: enumeration
-tags: [windows, linux]
+tags: [windows, linux, snmp]
 tools:
   - onesixtyone -c /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt $TARGET
   - snmpwalk -c public -v2c $TARGET

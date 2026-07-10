@@ -2,7 +2,7 @@
 id: redis-enum
 title: Redis Enumeration
 stage: enumeration
-tags: [linux]
+tags: [linux, redis]
 tools:
   - redis-cli -h $TARGET ping
   - redis-cli -h $TARGET info

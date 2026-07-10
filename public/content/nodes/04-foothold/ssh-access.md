@@ -2,7 +2,7 @@
 id: ssh-access
 title: SSH Access
 stage: foothold
-tags: [linux]
+tags: [linux, ssh]
 tools:
   - ssh user@$TARGET
   - ssh -i id_rsa user@$TARGET
@@ -15,6 +15,8 @@ leads_to:
   - linux-cred-hunting
   - linux-pam-polkit
   - linux-path-hijack
+  - linux-docker-escape
+  - linux-shared-lib
 ---
 
 ## Connect

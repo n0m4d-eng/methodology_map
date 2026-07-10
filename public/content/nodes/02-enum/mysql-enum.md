@@ -2,7 +2,7 @@
 id: mysql-enum
 title: MySQL Enumeration
 stage: enumeration
-tags: [windows, linux]
+tags: [windows, linux, mysql]
 tools:
   - mysql -h $TARGET -u root
   - mysql -h $TARGET -u root -p''

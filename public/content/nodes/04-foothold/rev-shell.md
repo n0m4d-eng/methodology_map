@@ -18,6 +18,11 @@ leads_to:
   - token-impersonation
   - windows-service-misconfig
   - windows-stored-creds
+  - windows-dll-hijack
+  - windows-uac-bypass
+  - windows-gpp-creds
+  - linux-docker-escape
+  - linux-shared-lib
   - bloodhound
 ---
 

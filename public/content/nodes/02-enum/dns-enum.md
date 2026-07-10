@@ -2,7 +2,7 @@
 id: dns-enum
 title: DNS Enumeration
 stage: enumeration
-tags: [windows, linux, web]
+tags: [windows, linux, web, dns]
 tools:
   - dig axfr @$TARGET $DOMAIN
   - dnsrecon -d $DOMAIN -t axfr

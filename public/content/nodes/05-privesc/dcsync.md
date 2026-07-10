@@ -9,6 +9,7 @@ tools:
 leads_to:
   - domain-admin
   - golden-ticket
+  - silver-ticket
 ---
 
 ## Requirements

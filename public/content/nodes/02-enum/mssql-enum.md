@@ -2,7 +2,7 @@
 id: mssql-enum
 title: MSSQL Enumeration
 stage: enumeration
-tags: [windows]
+tags: [windows, mssql]
 tools:
   - nmap -Pn -p 1433 --script ms-sql-info,ms-sql-config,ms-sql-ntlm-info $TARGET
   - mssqlclient.py -db msdb 'DOMAIN/user:password@$TARGET'

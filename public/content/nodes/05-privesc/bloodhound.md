@@ -12,6 +12,8 @@ leads_to:
   - adcs-esc4
   - dcsync
   - kerberoast
+  - kerberos-delegation
+  - laps-abuse
 ---
 
 ## Collect (from Linux — no agent needed)

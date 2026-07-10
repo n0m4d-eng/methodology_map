@@ -8,6 +8,7 @@ tools:
   - "impacket-lookupsid $DOMAIN/user:password@$DC_IP 0"
 leads_to:
   - domain-admin
+  - silver-ticket
 ---
 
 ## Requirements

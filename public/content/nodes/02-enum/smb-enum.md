@@ -14,6 +14,7 @@ leads_to:
   - null-session
   - password-spray
   - public-exploit
+  - printnightmare
 ---
 
 ## Enumeration Chain

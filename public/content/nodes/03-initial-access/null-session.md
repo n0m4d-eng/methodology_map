@@ -10,6 +10,7 @@ tools:
 leads_to:
   - rev-shell
   - password-spray
+  - windows-gpp-creds
 ---
 
 ## Null Session Access

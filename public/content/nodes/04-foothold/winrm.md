@@ -2,7 +2,7 @@
 id: winrm
 title: WinRM Access
 stage: foothold
-tags: [windows, ad]
+tags: [windows, ad, winrm]
 tools:
   - evil-winrm -i $IP -u $USER -p $PASS
   - evil-winrm -i $IP -u $USER -H $NTLM_HASH
@@ -13,6 +13,10 @@ leads_to:
   - windows-sebackup
   - acl-abuse
   - dcsync
+  - kerberos-delegation
+  - laps-abuse
+  - windows-gpp-creds
+  - windows-uac-bypass
   - bloodhound
 ---
 
