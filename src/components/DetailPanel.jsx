@@ -6,11 +6,12 @@ marked.setOptions({ breaks: true })
 
 export function DetailPanel({ node, width, onClose, onOpenWriteup, onResizeStart, onNavigateToNode, sheet = false }) {
   const d = node.data
-  const [body,      setBody]      = useState(null)
-  const [activeTab, setActiveTab] = useState('tools')
+  const [body,          setBody]          = useState(null)
+  const [activeTab,     setActiveTab]     = useState('notes')
+  const [leadsToOpen,   setLeadsToOpen]   = useState(false)
 
-  // Reset to first tab whenever the selected node changes
-  useEffect(() => { setActiveTab('tools') }, [node.id])
+  // Reset tabs and accordion whenever the selected node changes
+  useEffect(() => { setActiveTab('notes'); setLeadsToOpen(false) }, [node.id])
 
   useEffect(() => {
     if (!d.filePath) { setBody(''); return }
@@ -62,32 +63,13 @@ export function DetailPanel({ node, width, onClose, onOpenWriteup, onResizeStart
         </div>
 
         <div className="sheet-tabs">
-          <button className={`stab${activeTab === 'tools' ? ' stab-active' : ''}`} onClick={() => setActiveTab('tools')}>Tools</button>
-          <button className={`stab${activeTab === 'links' ? ' stab-active' : ''}`} onClick={() => setActiveTab('links')}>Links</button>
           <button className={`stab${activeTab === 'notes' ? ' stab-active' : ''}`} onClick={() => setActiveTab('notes')}>Notes</button>
+          <button className={`stab${activeTab === 'links' ? ' stab-active' : ''}`} onClick={() => setActiveTab('links')}>Links</button>
         </div>
 
         <div className="sheet-body">
-          {activeTab === 'tools' && (
-            d.tools?.length > 0
-              ? d.tools.map((t, i) => (
-                  <div key={i} className="tool-line">
-                    <span className="tool-prompt">$</span> {t}
-                  </div>
-                ))
-              : <div className="body-loading">no tools listed</div>
-          )}
-
           {activeTab === 'links' && (
             <div className="sheet-links">
-              {d.leads_to?.length > 0 && (
-                <div className="sheet-group">
-                  <div className="detail-section-title">Leads To ({d.leads_to.length})</div>
-                  {d.leads_to.map(id => (
-                    <div key={id} className="leads-item leads-item-link" onClick={() => onNavigateToNode?.(id)}>→ {id}</div>
-                  ))}
-                </div>
-              )}
               {d.references?.length > 0 && (
                 <div className="sheet-group">
                   <div className="detail-section-title">References</div>
@@ -116,7 +98,7 @@ export function DetailPanel({ node, width, onClose, onOpenWriteup, onResizeStart
                   </div>
                 </div>
               )}
-              {!d.leads_to?.length && !d.references?.length && !d.relatedWriteups?.length && (
+              {!d.references?.length && !d.relatedWriteups?.length && (
                 <div className="body-loading">no links</div>
               )}
             </div>
@@ -125,15 +107,27 @@ export function DetailPanel({ node, width, onClose, onOpenWriteup, onResizeStart
           {activeTab === 'notes' && (
             body === null ? (
               <div className="body-loading">loading...</div>
-            ) : bodyHtml ? (
-              <div
-                ref={bodyRef}
-                className="body-html"
-                dangerouslySetInnerHTML={{ __html: bodyHtml }}
-                onClick={handleBodyClick}
-              />
             ) : (
-              <div className="body-loading">no notes</div>
+              <>
+                {bodyHtml ? (
+                  <div
+                    ref={bodyRef}
+                    className="body-html"
+                    dangerouslySetInnerHTML={{ __html: bodyHtml }}
+                    onClick={handleBodyClick}
+                  />
+                ) : (
+                  <div className="body-loading">no notes</div>
+                )}
+                {d.leads_to?.length > 0 && (
+                  <LeadsToAccordion
+                    ids={d.leads_to}
+                    open={leadsToOpen}
+                    onToggle={() => setLeadsToOpen(o => !o)}
+                    onNavigate={onNavigateToNode}
+                  />
+                )}
+              </>
             )
           )}
         </div>
@@ -154,24 +148,6 @@ export function DetailPanel({ node, width, onClose, onOpenWriteup, onResizeStart
         </div>
         <button className="detail-close" onClick={onClose}>×</button>
       </div>
-
-      {d.tools?.length > 0 && (
-        <Section title="Commands / Tools">
-          {d.tools.map((t, i) => (
-            <div key={i} className="tool-line">
-              <span className="tool-prompt">$</span> {t}
-            </div>
-          ))}
-        </Section>
-      )}
-
-      {d.leads_to?.length > 0 && (
-        <Section title={`Leads To (${d.leads_to.length})`}>
-          {d.leads_to.map(id => (
-            <div key={id} className="leads-item leads-item-link" onClick={() => onNavigateToNode?.(id)}>→ {id}</div>
-          ))}
-        </Section>
-      )}
 
       {d.references?.length > 0 && (
         <Section title="References">
@@ -219,6 +195,15 @@ export function DetailPanel({ node, width, onClose, onOpenWriteup, onResizeStart
           <div className="body-loading">no notes</div>
         )}
       </Section>
+
+      {d.leads_to?.length > 0 && (
+        <LeadsToAccordion
+          ids={d.leads_to}
+          open={leadsToOpen}
+          onToggle={() => setLeadsToOpen(o => !o)}
+          onNavigate={onNavigateToNode}
+        />
+      )}
     </div>
   )
 }
@@ -228,6 +213,24 @@ function Section({ title, children }) {
     <div className="detail-section">
       <div className="detail-section-title">{title}</div>
       {children}
+    </div>
+  )
+}
+
+function LeadsToAccordion({ ids, open, onToggle, onNavigate }) {
+  return (
+    <div className="leads-to-accordion">
+      <button className="leads-to-accordion-header" onClick={onToggle}>
+        <span>LEADS TO ({ids.length})</span>
+        <span className={`leads-to-chevron${open ? ' open' : ''}`}>▾</span>
+      </button>
+      {open && (
+        <div className="leads-to-accordion-body">
+          {ids.map(id => (
+            <div key={id} className="leads-item leads-item-link" onClick={() => onNavigate?.(id)}>→ {id}</div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

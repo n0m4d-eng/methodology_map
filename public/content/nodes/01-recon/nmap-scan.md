@@ -3,11 +3,7 @@ id: nmap-scan
 title: Nmap / RustScan
 stage: recon
 tags: [windows, linux]
-tools:
-  - rustscan -a $TARGET --ulimit 5000 -b 500 -- -Pn 2>/dev/null | tee recon/rustscan.out
-  - PORTS=$(grep -oP '\d+(?=/tcp)' recon/rustscan.out | tr '\n' ',' | sed 's/,$//'); sudo nmap -Pn -sC -sV -p $PORTS -oN recon/tcp.out $TARGET
-  - sudo nmap -Pn -sU --top-ports 20 -oN recon/udp.out $TARGET &
-  - sudo nmap -Pn -sC -sV -p- --open -oN recon/tcp.out $TARGET
+summary: Fast port discovery followed by targeted service scanning — the first thing you run on every target.
 leads_to:
   - smb-enum
   - ldap-enum
@@ -29,24 +25,34 @@ leads_to:
   - vnc-enum
 ---
 
-## Before Touching Any Service
+## Prerequisites
 
-Write two sentences: *What do I think this system is and what is it doing?* and *What would have to be misconfigured for it to be exploitable?* Form the hypothesis first — enumerate to test it.
+Network access to the target (direct or via proxychains through a pivot).
 
-## Workflow
+Before touching any service, write two sentences: *What do I think this system is and what is it doing?* and *What would have to be misconfigured for it to be exploitable?* Form the hypothesis first — enumerate to test it. RustScan finds open ports in seconds; Nmap then probes only those ports for service banners and default scripts.
 
-**Step 1 — RustScan (fast, all 65535 ports in seconds):**
+## Quick Win
+
+> Fast full-port sweep — finish in under 30 seconds, then pipe into Nmap.
+
 ```bash
 rustscan -a $TARGET --ulimit 5000 -b 500 -- -Pn 2>/dev/null | tee recon/rustscan.out
 PORTS=$(grep -oP '\d+(?=/tcp)' recon/rustscan.out | tr '\n' ',' | sed 's/,$//')
-```
-
-**Step 2 — Nmap deep scan on discovered ports only:**
-```bash
 sudo nmap -Pn -sC -sV -p $PORTS -oN recon/tcp.out $TARGET
 ```
 
-**Step 3 — UDP always in background:**
+## Targeted Nmap (when RustScan isn't available)
+
+> Full-port TCP scan with scripts and versions — slower but self-contained.
+
+```bash
+sudo nmap -Pn -sC -sV -p- --open -oN recon/tcp.out $TARGET
+```
+
+## UDP (always run in background)
+
+> UDP often missed — reveals SNMP (161), IPMI (623), DNS (53), TFTP (69).
+
 ```bash
 sudo nmap -Pn -sU --top-ports 20 -oN recon/udp.out $TARGET &
 ```
@@ -57,15 +63,21 @@ sudo nmap -Pn -sU --top-ports 20 -oN recon/udp.out $TARGET &
 |------|-----------|
 | 80 / 443 | → web-enum |
 | 139 / 445 | → smb-enum |
-| 88 / 389 / 3268 | DC found → ldap-enum |
+| 88 / 389 / 3268 | DC found → ldap-enum, kerberos-enum |
 | 21 | → ftp-enum |
+| 22 | → ssh-enum |
 | 25 | → smtp-enum |
 | 161 UDP | → snmp-enum |
-| 2049 | → nfs-enum |
+| 623 UDP | → ipmi-enum |
+| 873 | → rsync-enum |
 | 1433 | → mssql-enum |
+| 2049 | → nfs-enum |
 | 3306 | → mysql-enum |
-| 6379 | → redis-enum |
+| 3389 | → rdp-enum |
+| 5432 | → postgresql-enum |
+| 5900–5910 | → vnc-enum |
 | 5985 / 5986 | → winrm (try found creds) |
+| 6379 | → redis-enum |
 
 ## Key Flags
 
@@ -78,3 +90,7 @@ sudo nmap -Pn -sU --top-ports 20 -oN recon/udp.out $TARGET &
 | `-sV` | Version detection |
 | `-oN` | Normal output to file |
 | `--min-rate 5000` | Speed up (can miss ports on unstable links) |
+
+## Leads To
+
+Every open port maps to an enumeration node. Work the port table above — don't skip UDP (SNMP and IPMI are frequently the fastest path to credentials). Once services are identified, branch into the relevant enum nodes simultaneously.

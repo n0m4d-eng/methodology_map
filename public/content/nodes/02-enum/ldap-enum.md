@@ -3,35 +3,43 @@ id: ldap-enum
 title: LDAP Enumeration
 stage: enumeration
 tags: [windows, ad, ldap]
-tools:
-  - ldapsearch -H ldap://$TARGET -x -b "" -s base namingContexts
-  - ldapsearch -H ldap://$TARGET -x -b "DC=domain,DC=local" -s sub "(objectClass=*)" | grep -iE "sAMAccountName|description|mail|memberOf"
-  - ldapdomaindump -u '' $TARGET
-  - nxc ldap $TARGET -u '' -p ''
+summary: Extract the full AD object tree — users, groups, descriptions, and pre-auth flags — often without credentials.
 leads_to:
   - asreproast
   - kerberoast
   - password-spray
 ---
 
-## Anonymous Bind
+## Prerequisites
+
+Port 389 (LDAP) or 636 (LDAPS) open. Anonymous bind frequently works on domain controllers in lab environments — try it first.
+
+LDAP is the AD phone book. Even without credentials, an anonymous bind can dump every user, group, computer, and description in the domain. Description fields routinely contain plaintext passwords in CTF and exam environments. The `userAccountControl` attribute tells you which accounts have no Kerberos pre-auth required — that's your AS-REP roast list.
+
+## Quick Win
+
+> Anonymous bind — get full user list without credentials.
 
 ```bash
-# Confirm anonymous bind works + get naming context
+nxc ldap $TARGET -u '' -p '' --users
 ldapsearch -H ldap://$TARGET -x -b "" -s base namingContexts
+```
 
-# Dump everything (replace DC= values)
+## Full Anonymous Dump
+
+> Dump every object — pipe through grep to extract usernames and descriptions.
+
+```bash
 ldapsearch -H ldap://$TARGET -x -b "DC=domain,DC=local" -s sub "(objectClass=*)" \
   | grep -iE "sAMAccountName|description|mail|memberOf|userAccountControl"
 
-# Dump to HTML/JSON (great for reading offline)
+# Structured HTML/JSON dump for offline reading
 ldapdomaindump -u '' $TARGET
-
-# Quick user list via nxc
-nxc ldap $TARGET -u '' -p '' --users
 ```
 
-## With Credentials
+## Authenticated Enumeration
+
+> With credentials — more complete data including ACLs, group memberships, and gMSA accounts.
 
 ```bash
 ldapsearch -H ldap://$TARGET -x -D "cn=user,dc=domain,dc=local" -w password -b "dc=domain,dc=local"
@@ -39,20 +47,23 @@ nxc ldap $TARGET -u user -p password --users
 nxc ldap $TARGET -u user -p password --gmsa
 ```
 
-## Key Flags to Hunt
+## Hunt AS-REP Roastable Accounts
+
+> Accounts with DONT_REQ_PREAUTH set — no credential needed to request their hash.
 
 ```bash
-# Find AS-REP roastable accounts (DONT_REQ_PREAUTH = 4194304 in decimal)
 ldapsearch -H ldap://$TARGET -x -b "DC=domain,DC=local" \
   "(&(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=4194304))" sAMAccountName
-
-# All accounts + descriptions (descriptions often contain passwords)
-ldapsearch -H ldap://$TARGET -x -b "DC=domain,DC=local" \
-  "(objectClass=user)" sAMAccountName description
 ```
 
-## Notes
+## Hunt Descriptions for Credentials
 
-Anonymous binds frequently work on HTB/OSCP DCs. Pull the user list into a file and immediately run AS-REP roasting against it — you don't need passwords yet.
+> Admins frequently store passwords in description fields — check every account.
 
-Description fields on user accounts regularly contain plaintext credentials in exam environments.
+```bash
+ldapsearch -H ldap://$TARGET -x -b "DC=domain,DC=local" "(objectClass=user)" sAMAccountName description
+```
+
+## Leads To
+
+User list obtained → immediately test with asreproast (no creds needed). Description field password found → password-spray across all protocols. AS-REP roastable accounts found → asreproast → crack → authenticate. With user list and domain name → kerberoast if you get credentials.

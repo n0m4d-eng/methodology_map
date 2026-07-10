@@ -48,7 +48,6 @@ function buildNodesIndex() {
       title:      data.title      ?? slug,
       stage:      data.stage      ?? 'recon',
       tags:       data.tags       ?? [],
-      tools:      data.tools      ?? [],
       leads_to:   data.leads_to   ?? [],
       summary:    data.summary    ?? '',
       references: data.references ?? [],

