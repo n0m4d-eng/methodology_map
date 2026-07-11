@@ -2,11 +2,14 @@ import { Handle, Position } from '@xyflow/react'
 
 export function TechniqueNode({ data, selected }) {
   const isDismissed = data.dismissed === true
+  const techStatus  = data.techStatus ?? 'untried'
 
   const cls = [
     'technique-node',
-    selected     ? 'selected'   : '',
-    isDismissed  ? 'dismissed'  : '',
+    selected                          ? 'selected'        : '',
+    isDismissed                       ? 'dismissed'       : '',
+    techStatus === 'succeeded'        ? 'node-succeeded'  : '',
+    techStatus === 'tried-failed'     ? 'node-failed'     : '',
   ].filter(Boolean).join(' ')
 
   const style = {

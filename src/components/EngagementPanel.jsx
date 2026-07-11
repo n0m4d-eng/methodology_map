@@ -19,6 +19,8 @@ export function EngagementPanel({
   undismissService,
   clearSession,
   isActive,
+  suggestedNext = [],
+  onSelectNode,
 }) {
   const [open,          setOpen]          = useState(false)
   const [dismissTarget, setDismissTarget] = useState(null)
@@ -55,6 +57,25 @@ export function EngagementPanel({
             <span className="ep-title">LIVE SESSION</span>
             <button className="ep-close" onClick={() => setOpen(false)}>×</button>
           </div>
+
+          {suggestedNext.length > 0 && (
+            <div className="ep-section ep-section--suggested">
+              <div className="ep-section-label">SUGGESTED NEXT</div>
+              <div className="ep-suggest-list">
+                {suggestedNext.map(node => (
+                  <button
+                    key={node.id}
+                    className="ep-suggest-chip"
+                    onClick={() => { onSelectNode?.(node.id); setOpen(false) }}
+                  >
+                    <span className="ep-suggest-stage">{node.stage}</span>
+                    <span className="ep-suggest-name">{node.title}</span>
+                    <span className="ep-suggest-arrow">→</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="ep-section">
             <div className="ep-section-label">DISCOVERED SERVICES</div>

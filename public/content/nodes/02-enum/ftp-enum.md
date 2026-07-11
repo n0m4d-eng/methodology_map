@@ -7,6 +7,8 @@ summary: Check for anonymous access, enumerate files, and identify version-speci
 leads_to:
   - public-exploit
   - file-upload-shell
+  - ssh-access
+  - linux-cred-hunting
 ---
 
 ## Prerequisites

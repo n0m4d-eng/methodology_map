@@ -11,6 +11,7 @@ leads_to:
   - linux-kernel
   - linux-cred-hunting
   - linux-pam-polkit
+  - linux-path-hijack
   - token-impersonation
   - windows-service-misconfig
   - windows-stored-creds

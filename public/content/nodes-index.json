@@ -90,7 +90,9 @@
     ],
     "leads_to": [
       "public-exploit",
-      "file-upload-shell"
+      "file-upload-shell",
+      "ssh-access",
+      "linux-cred-hunting"
     ],
     "summary": "Check for anonymous access, enumerate files, and identify version-specific exploits on FTP services.",
     "references": [],
@@ -160,7 +162,8 @@
     "leads_to": [
       "public-exploit",
       "sqli-rce",
-      "rev-shell"
+      "rev-shell",
+      "password-spray"
     ],
     "summary": "Connect to MSSQL, escalate to sysadmin via impersonation, and execute OS commands — SQL Server service accounts almost always have SeImpersonatePrivilege.",
     "references": [],
@@ -177,7 +180,9 @@
     ],
     "leads_to": [
       "sqli-rce",
-      "rev-shell"
+      "rev-shell",
+      "ssh-access",
+      "password-spray"
     ],
     "summary": "Connect to MySQL, read sensitive files, and write web shells — root with no password is common in lab environments.",
     "references": [],
@@ -193,7 +198,8 @@
     ],
     "leads_to": [
       "ssh-access",
-      "linux-suid-caps"
+      "linux-suid-caps",
+      "rev-shell"
     ],
     "summary": "List and mount NFS exports — no_root_squash and UID spoofing are both direct paths to reading restricted files or planting SUID binaries.",
     "references": [],
@@ -243,7 +249,8 @@
     ],
     "leads_to": [
       "rev-shell",
-      "ssh-access"
+      "ssh-access",
+      "linux-cron"
     ],
     "summary": "Unauthenticated Redis running as root can have an SSH key written directly into authorized_keys — instant foothold.",
     "references": [],
@@ -276,7 +283,8 @@
       "null-session",
       "password-spray",
       "public-exploit",
-      "printnightmare"
+      "printnightmare",
+      "responder"
     ],
     "summary": "Enumerate shares, users, and vulnerabilities over SMB — the most common Windows foothold service.",
     "references": [],
@@ -308,7 +316,9 @@
       "snmp"
     ],
     "leads_to": [
-      "password-spray"
+      "password-spray",
+      "linux-cred-hunting",
+      "web-enum"
     ],
     "summary": "Read running processes, users, installed software, and open ports from SNMP — often unauthenticated with default community string 'public'.",
     "references": [],
@@ -360,7 +370,9 @@
       "lfi-rce",
       "file-upload-shell",
       "ssti-rce",
-      "public-exploit"
+      "public-exploit",
+      "responder",
+      "password-spray"
     ],
     "summary": "Identify web stack, discover hidden paths, and find attack surface before touching any functionality.",
     "references": [],
@@ -377,7 +389,8 @@
     "leads_to": [
       "winrm",
       "rev-shell",
-      "rdp-access"
+      "rdp-access",
+      "bloodhound"
     ],
     "summary": "Request AS-REP hashes for accounts that don't require Kerberos pre-authentication — no credentials needed, just a username list.",
     "references": [],
@@ -411,7 +424,9 @@
     "leads_to": [
       "winrm",
       "rev-shell",
-      "rdp-access"
+      "rdp-access",
+      "bloodhound",
+      "pass-the-hash"
     ],
     "summary": "Request TGS tickets for service accounts with SPNs and crack them offline — service accounts often have weak passwords set years ago and never rotated.",
     "references": [],
@@ -426,7 +441,9 @@
       "web"
     ],
     "leads_to": [
-      "rev-shell"
+      "rev-shell",
+      "ssh-access",
+      "linux-cred-hunting"
     ],
     "summary": "Read arbitrary files through a vulnerable include parameter — then escalate to RCE by poisoning log files or abusing PHP wrappers.",
     "references": [],
@@ -444,7 +461,9 @@
     "leads_to": [
       "rev-shell",
       "pass-the-hash",
-      "domain-admin"
+      "domain-admin",
+      "dcsync",
+      "adcs-esc1"
     ],
     "summary": "Intercept and relay NTLM authentication to a target you control — SMB signing disabled is the prerequisite, and relaying to ADCS can yield a domain admin certificate.",
     "references": [],
@@ -461,7 +480,9 @@
     "leads_to": [
       "rev-shell",
       "password-spray",
-      "windows-gpp-creds"
+      "windows-gpp-creds",
+      "kerberoast",
+      "asreproast"
     ],
     "summary": "Access SMB shares and RPC endpoints without any credentials — leaks users, groups, password policies, and SYSVOL contents.",
     "references": [],
@@ -532,7 +553,8 @@
     ],
     "leads_to": [
       "ntlm-relay",
-      "password-spray"
+      "password-spray",
+      "kerberoast"
     ],
     "summary": "Poison LLMNR/NBT-NS queries to capture NTLMv2 hashes or relay them to unsigned SMB targets — run immediately on joining any Windows network.",
     "references": [],
@@ -547,7 +569,9 @@
     ],
     "leads_to": [
       "rev-shell",
-      "web-shell"
+      "web-shell",
+      "responder",
+      "password-spray"
     ],
     "summary": "Exploit SQL injection to read credentials, write web shells, or execute OS commands — the path from SQLi to shell depends on the database engine.",
     "references": [],
@@ -578,7 +602,9 @@
     "leads_to": [
       "token-impersonation",
       "bloodhound",
-      "dcsync"
+      "dcsync",
+      "winrm",
+      "rdp-access"
     ],
     "summary": "Authenticate with an NTLM hash or Kerberos ticket instead of a plaintext password — every hash you dump should be sprayed across the subnet immediately.",
     "references": [],
@@ -619,6 +645,7 @@
       "linux-kernel",
       "linux-cred-hunting",
       "linux-pam-polkit",
+      "linux-path-hijack",
       "token-impersonation",
       "windows-service-misconfig",
       "windows-stored-creds",
@@ -669,7 +696,9 @@
       "linux-suid-caps",
       "linux-sudo",
       "token-impersonation",
-      "rev-shell"
+      "rev-shell",
+      "linux-cred-hunting",
+      "linux-cron"
     ],
     "summary": "Plant a minimal script on the server to execute OS commands via HTTP — a stepping stone to a full reverse shell, not a final destination.",
     "references": [],
@@ -694,7 +723,9 @@
       "laps-abuse",
       "windows-gpp-creds",
       "windows-uac-bypass",
-      "bloodhound"
+      "bloodhound",
+      "windows-service-misconfig",
+      "windows-dll-hijack"
     ],
     "summary": "Get a PowerShell session over WinRM with evil-winrm — supports password and hash auth, and is the fastest path to an interactive Windows shell without needing a GUI.",
     "references": [],
@@ -711,7 +742,9 @@
     "leads_to": [
       "dcsync",
       "winrm",
-      "domain-admin"
+      "domain-admin",
+      "kerberoast",
+      "pass-the-hash"
     ],
     "summary": "Exploit Active Directory ACL misconfigurations — GenericAll, WriteDACL, ForceChangePassword, and similar edges identified by BloodHound translate directly into account takeover or DCSync.",
     "references": [],
@@ -782,7 +815,8 @@
     "leads_to": [
       "domain-admin",
       "golden-ticket",
-      "silver-ticket"
+      "silver-ticket",
+      "pass-the-hash"
     ],
     "summary": "Replicate password hashes from a domain controller using DRSUAPI — requires DCSync rights (DA, DC, or explicit delegation) and gives you every account hash in the domain.",
     "references": [],
@@ -799,7 +833,8 @@
     ],
     "leads_to": [
       "domain-admin",
-      "system-shell"
+      "system-shell",
+      "pass-the-hash"
     ],
     "summary": "Abuse Unconstrained, Constrained, or Resource-Based Constrained Delegation to impersonate privileged users — BloodHound shows all three types as delegation edges.",
     "references": [],
@@ -815,7 +850,8 @@
     ],
     "leads_to": [
       "system-shell",
-      "domain-admin"
+      "domain-admin",
+      "pass-the-hash"
     ],
     "summary": "Read LAPS local admin passwords or gMSA service account NTLM hashes from AD if your account has ReadProperty access — BloodHound shows both as explicit edges.",
     "references": [],
@@ -831,7 +867,8 @@
     "leads_to": [
       "linux-sudo",
       "root-linux",
-      "ssh-access"
+      "ssh-access",
+      "password-spray"
     ],
     "summary": "Search config files, shell history, and SSH keys for credentials — database passwords in web configs are frequently reused as system passwords.",
     "references": [],
@@ -1070,7 +1107,8 @@
     ],
     "leads_to": [
       "golden-ticket",
-      "pivot"
+      "pivot",
+      "dcsync"
     ],
     "summary": "You have Domain Admin — dump all hashes, screenshot proof, grab krbtgt for persistence, and enumerate additional forests before finishing.",
     "references": [],
@@ -1117,7 +1155,8 @@
       "linux"
     ],
     "leads_to": [
-      "pivot"
+      "pivot",
+      "linux-cred-hunting"
     ],
     "summary": "You have root — grab the proof file, dump /etc/shadow for password reuse, plant SSH key persistence, and check for additional network segments to pivot into.",
     "references": [],
@@ -1150,7 +1189,8 @@
     "leads_to": [
       "pass-the-hash",
       "domain-admin",
-      "pivot"
+      "pivot",
+      "bloodhound"
     ],
     "summary": "You have SYSTEM — grab proof, dump LSASS and SAM for credentials, spray hashes laterally, and check for additional subnets before finishing.",
     "references": [],

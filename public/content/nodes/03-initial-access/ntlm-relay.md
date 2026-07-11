@@ -8,6 +8,8 @@ leads_to:
   - rev-shell
   - pass-the-hash
   - domain-admin
+  - dcsync
+  - adcs-esc1
 ---
 
 ## Prerequisites

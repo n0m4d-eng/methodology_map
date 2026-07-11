@@ -8,6 +8,8 @@ leads_to:
   - rev-shell
   - password-spray
   - windows-gpp-creds
+  - kerberoast
+  - asreproast
 ---
 
 ## Prerequisites

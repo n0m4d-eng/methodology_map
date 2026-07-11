@@ -8,6 +8,8 @@ leads_to:
   - token-impersonation
   - bloodhound
   - dcsync
+  - winrm
+  - rdp-access
 ---
 
 ## Prerequisites

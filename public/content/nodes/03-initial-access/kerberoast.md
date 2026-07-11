@@ -8,6 +8,8 @@ leads_to:
   - winrm
   - rev-shell
   - rdp-access
+  - bloodhound
+  - pass-the-hash
 ---
 
 ## Prerequisites

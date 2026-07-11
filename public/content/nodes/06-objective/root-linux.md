@@ -6,6 +6,7 @@ tags: [linux]
 summary: You have root — grab the proof file, dump /etc/shadow for password reuse, plant SSH key persistence, and check for additional network segments to pivot into.
 leads_to:
   - pivot
+  - linux-cred-hunting
 ---
 
 ## Prerequisites

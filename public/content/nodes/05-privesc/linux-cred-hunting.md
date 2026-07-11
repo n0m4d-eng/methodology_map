@@ -8,6 +8,7 @@ leads_to:
   - linux-sudo
   - root-linux
   - ssh-access
+  - password-spray
 ---
 
 ## Prerequisites

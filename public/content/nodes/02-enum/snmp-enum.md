@@ -6,6 +6,8 @@ tags: [windows, linux, snmp]
 summary: Read running processes, users, installed software, and open ports from SNMP — often unauthenticated with default community string 'public'.
 leads_to:
   - password-spray
+  - linux-cred-hunting
+  - web-enum
 ---
 
 ## Prerequisites

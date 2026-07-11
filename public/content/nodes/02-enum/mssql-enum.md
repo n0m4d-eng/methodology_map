@@ -8,6 +8,7 @@ leads_to:
   - public-exploit
   - sqli-rce
   - rev-shell
+  - password-spray
 ---
 
 ## Prerequisites

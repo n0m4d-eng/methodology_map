@@ -8,6 +8,7 @@ leads_to:
   - domain-admin
   - golden-ticket
   - silver-ticket
+  - pass-the-hash
 ---
 
 ## Prerequisites

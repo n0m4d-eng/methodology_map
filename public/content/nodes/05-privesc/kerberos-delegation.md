@@ -7,6 +7,7 @@ summary: Abuse Unconstrained, Constrained, or Resource-Based Constrained Delegat
 leads_to:
   - domain-admin
   - system-shell
+  - pass-the-hash
 ---
 
 ## Prerequisites

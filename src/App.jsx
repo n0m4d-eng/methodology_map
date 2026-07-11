@@ -24,6 +24,7 @@ import { WriteupsPage }      from '@/components/WriteupsPage'
 import { AboutPage }         from '@/components/AboutPage'
 import { KeyboardHints }     from '@/components/KeyboardHints'
 import { EngagementPanel }   from '@/components/EngagementPanel'
+import { NodeContextMenu }   from '@/components/NodeContextMenu'
 
 const NODE_TYPES = {
   techniqueNode: TechniqueNode,
@@ -99,6 +100,7 @@ export default function App() {
   const [showIncoming,    setShowIncoming]    = useState(true)
   const [hintsOpen,       setHintsOpen]       = useState(false)
   const [keyboardNavCount, setKeyboardNavCount] = useState(0)
+  const [contextMenu,     setContextMenu]     = useState(null) // { node, x, y }
   const isResizing = useRef(false)
   const engagement = useEngagement()
 
@@ -106,9 +108,31 @@ export default function App() {
     () => buildGraph(techniqueNodes, writeups, activeTags, {
       discovered: engagement.discovered,
       dismissed:  engagement.dismissed,
+      techStatus: engagement.techStatus,
     }),
-    [techniqueNodes, writeups, activeTags, engagement.discovered, engagement.dismissed]
+    [techniqueNodes, writeups, activeTags, engagement.discovered, engagement.dismissed, engagement.techStatus]
   )
+
+  const suggestedNext = useMemo(() => {
+    const succeededIds = Object.entries(engagement.techniques)
+      .filter(([, v]) => v.status === 'succeeded')
+      .map(([id]) => id)
+    if (succeededIds.length === 0) return []
+    const candidates = new Map()
+    for (const id of succeededIds) {
+      const node = techniqueNodes.find(n => n.id === id)
+      for (const nextId of (node?.leads_to ?? [])) {
+        if (!engagement.techniques[nextId]) {
+          candidates.set(nextId, (candidates.get(nextId) || 0) + 1)
+        }
+      }
+    }
+    return [...candidates.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([id]) => techniqueNodes.find(n => n.id === id))
+      .filter(Boolean)
+  }, [techniqueNodes, engagement.techniques])
 
   const effectiveEdges = useMemo(() => {
     if (!selected) return graphData.edges.map(e => ({ ...e, hidden: true }))
@@ -270,6 +294,13 @@ export default function App() {
 
   const onPaneClick = useCallback(() => {
     setPanelOpen(false)
+    setContextMenu(null)
+  }, [])
+
+  const onNodeContextMenu = useCallback((e, node) => {
+    if (node.type === 'laneHeader') return
+    e.preventDefault()
+    setContextMenu({ node, x: e.clientX, y: e.clientY })
   }, [])
 
   function toggleTag(tag) {
@@ -383,6 +414,7 @@ export default function App() {
               onEdgesChange={onEdgesChange}
               onNodeClick={onNodeClick}
               onPaneClick={onPaneClick}
+              onNodeContextMenu={onNodeContextMenu}
               nodeTypes={NODE_TYPES}
               fitView
               fitViewOptions={{ padding: 0.15 }}
@@ -412,7 +444,21 @@ export default function App() {
               undismissService={engagement.undismissService}
               clearSession={engagement.clearSession}
               isActive={engagement.isActive}
+              suggestedNext={suggestedNext}
+              onSelectNode={handleNavigateToNode}
             />
+
+            {contextMenu && (
+              <NodeContextMenu
+                node={contextMenu.node}
+                x={contextMenu.x}
+                y={contextMenu.y}
+                techStatus={engagement.techStatus}
+                onSetStatus={engagement.setNodeStatus}
+                onClearStatus={engagement.clearNodeStatus}
+                onClose={() => setContextMenu(null)}
+              />
+            )}
 
             {/* Fit-to-view button — touch affordance, hidden on desktop via CSS */}
             <button
@@ -430,6 +476,9 @@ export default function App() {
                   onClose={() => setPanelOpen(false)}
                   onOpenWriteup={handleOpenWriteup}
                   onNavigateToNode={handleNavigateToNode}
+                  onSetStatus={engagement.setNodeStatus}
+                  onClearStatus={engagement.clearNodeStatus}
+                  currentStatus={engagement.techStatus.get(selected.id)?.status ?? 'untried'}
                   sheet
                 />
               </>
@@ -445,6 +494,9 @@ export default function App() {
               onOpenWriteup={handleOpenWriteup}
               onResizeStart={startResize}
               onNavigateToNode={handleNavigateToNode}
+              onSetStatus={engagement.setNodeStatus}
+              onClearStatus={engagement.clearNodeStatus}
+              currentStatus={engagement.techStatus.get(selected.id)?.status ?? 'untried'}
             />
           )}
         </div>

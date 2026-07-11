@@ -7,6 +7,7 @@ summary: Read LAPS local admin passwords or gMSA service account NTLM hashes fro
 leads_to:
   - system-shell
   - domain-admin
+  - pass-the-hash
 ---
 
 ## Prerequisites

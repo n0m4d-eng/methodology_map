@@ -8,6 +8,8 @@ leads_to:
   - dcsync
   - winrm
   - domain-admin
+  - kerberoast
+  - pass-the-hash
 ---
 
 ## Prerequisites

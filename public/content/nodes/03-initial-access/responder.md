@@ -7,6 +7,7 @@ summary: Poison LLMNR/NBT-NS queries to capture NTLMv2 hashes or relay them to u
 leads_to:
   - ntlm-relay
   - password-spray
+  - kerberoast
 ---
 
 ## Prerequisites

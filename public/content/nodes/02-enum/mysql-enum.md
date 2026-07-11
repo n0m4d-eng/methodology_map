@@ -7,6 +7,8 @@ summary: Connect to MySQL, read sensitive files, and write web shells — root w
 leads_to:
   - sqli-rce
   - rev-shell
+  - ssh-access
+  - password-spray
 ---
 
 ## Prerequisites

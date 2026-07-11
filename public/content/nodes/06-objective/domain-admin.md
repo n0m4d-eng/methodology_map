@@ -7,6 +7,7 @@ summary: You have Domain Admin — dump all hashes, screenshot proof, grab krbtg
 leads_to:
   - golden-ticket
   - pivot
+  - dcsync
 ---
 
 ## Prerequisites

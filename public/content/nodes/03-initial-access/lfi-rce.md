@@ -6,6 +6,8 @@ tags: [linux, web]
 summary: Read arbitrary files through a vulnerable include parameter — then escalate to RCE by poisoning log files or abusing PHP wrappers.
 leads_to:
   - rev-shell
+  - ssh-access
+  - linux-cred-hunting
 ---
 
 ## Prerequisites

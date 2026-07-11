@@ -7,6 +7,8 @@ summary: Exploit SQL injection to read credentials, write web shells, or execute
 leads_to:
   - rev-shell
   - web-shell
+  - responder
+  - password-spray
 ---
 
 ## Prerequisites

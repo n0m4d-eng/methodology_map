@@ -10,6 +10,8 @@ leads_to:
   - file-upload-shell
   - ssti-rce
   - public-exploit
+  - responder
+  - password-spray
 ---
 
 ## Prerequisites

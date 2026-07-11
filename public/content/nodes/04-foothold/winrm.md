@@ -15,6 +15,8 @@ leads_to:
   - windows-gpp-creds
   - windows-uac-bypass
   - bloodhound
+  - windows-service-misconfig
+  - windows-dll-hijack
 ---
 
 ## Prerequisites

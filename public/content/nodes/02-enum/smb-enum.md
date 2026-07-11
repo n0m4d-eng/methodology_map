@@ -9,6 +9,7 @@ leads_to:
   - password-spray
   - public-exploit
   - printnightmare
+  - responder
 ---
 
 ## Prerequisites

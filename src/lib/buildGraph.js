@@ -136,7 +136,8 @@ export function buildGraph(techniqueNodes, writeups, activeTags, engagement = nu
         visited:    (visitCounts[node.id] ?? 0) > 0,
         visitCount: visitCounts[node.id] ?? 0,
         relatedWriteups: writeupsByNode[node.id] ?? [],
-        dismissed: engDismissed,
+        dismissed:  engDismissed,
+        techStatus: engagement?.techStatus?.get(node.id)?.status ?? 'untried',
       },
     })
   })

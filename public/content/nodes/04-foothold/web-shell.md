@@ -9,6 +9,8 @@ leads_to:
   - linux-sudo
   - token-impersonation
   - rev-shell
+  - linux-cred-hunting
+  - linux-cron
 ---
 
 ## Prerequisites

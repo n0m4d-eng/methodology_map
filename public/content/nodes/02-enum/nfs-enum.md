@@ -7,6 +7,7 @@ summary: List and mount NFS exports — no_root_squash and UID spoofing are both
 leads_to:
   - ssh-access
   - linux-suid-caps
+  - rev-shell
 ---
 
 ## Prerequisites

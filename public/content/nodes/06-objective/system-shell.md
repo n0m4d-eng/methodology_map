@@ -8,6 +8,7 @@ leads_to:
   - pass-the-hash
   - domain-admin
   - pivot
+  - bloodhound
 ---
 
 ## Prerequisites

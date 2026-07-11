@@ -7,6 +7,7 @@ summary: Unauthenticated Redis running as root can have an SSH key written direc
 leads_to:
   - rev-shell
   - ssh-access
+  - linux-cron
 ---
 
 ## Prerequisites

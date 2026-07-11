@@ -4,7 +4,7 @@ import { parseFrontmatter } from '@/lib/parseFrontmatter'
 
 marked.setOptions({ breaks: true })
 
-export function DetailPanel({ node, width, onClose, onOpenWriteup, onResizeStart, onNavigateToNode, sheet = false }) {
+export function DetailPanel({ node, width, onClose, onOpenWriteup, onResizeStart, onNavigateToNode, onSetStatus, onClearStatus, currentStatus = 'untried', sheet = false }) {
   const d = node.data
   const [body,          setBody]          = useState(null)
   const [activeTab,     setActiveTab]     = useState('notes')
@@ -131,11 +131,12 @@ export function DetailPanel({ node, width, onClose, onOpenWriteup, onResizeStart
             )
           )}
         </div>
+        <NodeStatusBar status={currentStatus} onSetStatus={s => onSetStatus?.(node.id, s)} onClear={() => onClearStatus?.(node.id)} />
       </div>
     )
   }
 
-  // ── Desktop panel (unchanged) ───────────────────────────────────────────────
+  // ── Desktop panel ───────────────────────────────────────────────────────────
   return (
     <div className="detail-panel" style={{ width, minWidth: width }}>
       {/* Drag handle — grab to resize panel width */}
@@ -203,6 +204,25 @@ export function DetailPanel({ node, width, onClose, onOpenWriteup, onResizeStart
           onToggle={() => setLeadsToOpen(o => !o)}
           onNavigate={onNavigateToNode}
         />
+      )}
+      <NodeStatusBar status={currentStatus} onSetStatus={s => onSetStatus?.(node.id, s)} onClear={() => onClearStatus?.(node.id)} />
+    </div>
+  )
+}
+
+function NodeStatusBar({ status, onSetStatus, onClear }) {
+  return (
+    <div className="detail-status-bar">
+      <button
+        className={`dsb-btn dsb-btn--success${status === 'succeeded' ? ' dsb-btn--active' : ''}`}
+        onClick={() => status === 'succeeded' ? onClear() : onSetStatus('succeeded')}
+      >✓ Succeeded</button>
+      <button
+        className={`dsb-btn dsb-btn--fail${status === 'tried-failed' ? ' dsb-btn--active' : ''}`}
+        onClick={() => status === 'tried-failed' ? onClear() : onSetStatus('tried-failed')}
+      >✗ Failed</button>
+      {status !== 'untried' && (
+        <button className="dsb-btn dsb-btn--clear" onClick={onClear}>↩</button>
       )}
     </div>
   )

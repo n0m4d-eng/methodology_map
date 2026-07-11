@@ -8,6 +8,7 @@ leads_to:
   - winrm
   - rev-shell
   - rdp-access
+  - bloodhound
 ---
 
 ## Prerequisites
