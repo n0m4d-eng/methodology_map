@@ -10,6 +10,7 @@ leads_to:
   - rdp-access
   - ssh-access
   - bloodhound
+  - smb-lateral-movement
 ---
 
 ## Prerequisites

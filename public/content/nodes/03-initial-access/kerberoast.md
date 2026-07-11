@@ -10,6 +10,7 @@ leads_to:
   - rdp-access
   - bloodhound
   - pass-the-hash
+  - password-cracking
 ---
 
 ## Prerequisites

@@ -10,6 +10,7 @@ leads_to:
   - domain-admin
   - dcsync
   - adcs-esc1
+  - print-spooler-coercion
 ---
 
 ## Prerequisites

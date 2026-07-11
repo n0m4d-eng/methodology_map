@@ -8,6 +8,7 @@ leads_to:
   - ssh-access
   - linux-suid-caps
   - rev-shell
+  - linux-nfs-privesc
 ---
 
 ## Prerequisites

@@ -17,6 +17,7 @@ leads_to:
   - bloodhound
   - windows-service-misconfig
   - windows-dll-hijack
+  - windows-registry-privesc
 ---
 
 ## Prerequisites

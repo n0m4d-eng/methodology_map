@@ -12,6 +12,10 @@ leads_to:
   - kerberoast
   - kerberos-delegation
   - laps-abuse
+  - shadow-credentials
+  - adcs-esc6
+  - adcs-esc8
+  - domain-trust-abuse
 ---
 
 ## Prerequisites

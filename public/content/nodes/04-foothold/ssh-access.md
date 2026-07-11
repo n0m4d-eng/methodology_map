@@ -14,6 +14,7 @@ leads_to:
   - linux-path-hijack
   - linux-docker-escape
   - linux-shared-lib
+  - linux-writable-files
 ---
 
 ## Prerequisites

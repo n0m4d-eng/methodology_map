@@ -9,6 +9,7 @@ leads_to:
   - sqli-rce
   - rev-shell
   - password-spray
+  - mssql-privesc
 ---
 
 ## Prerequisites

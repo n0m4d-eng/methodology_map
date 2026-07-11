@@ -10,6 +10,7 @@ leads_to:
   - dcsync
   - winrm
   - rdp-access
+  - smb-lateral-movement
 ---
 
 ## Prerequisites

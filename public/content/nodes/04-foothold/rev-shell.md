@@ -21,6 +21,8 @@ leads_to:
   - linux-docker-escape
   - linux-shared-lib
   - bloodhound
+  - linux-writable-files
+  - windows-registry-privesc
 ---
 
 ## Prerequisites

@@ -12,6 +12,11 @@ leads_to:
   - public-exploit
   - responder
   - password-spray
+  - command-injection
+  - ssrf
+  - xxe-injection
+  - jwt-attack
+  - xss-csrf
 ---
 
 ## Prerequisites

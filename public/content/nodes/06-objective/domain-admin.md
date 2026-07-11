@@ -8,6 +8,7 @@ leads_to:
   - golden-ticket
   - pivot
   - dcsync
+  - domain-trust-abuse
 ---
 
 ## Prerequisites

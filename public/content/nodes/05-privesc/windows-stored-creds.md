@@ -8,6 +8,7 @@ leads_to:
   - winrm
   - pass-the-hash
   - system-shell
+  - smb-lateral-movement
 ---
 
 ## Prerequisites

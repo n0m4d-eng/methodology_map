@@ -8,6 +8,7 @@ leads_to:
   - ntlm-relay
   - password-spray
   - kerberoast
+  - password-cracking
 ---
 
 ## Prerequisites

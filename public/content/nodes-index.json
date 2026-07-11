@@ -163,7 +163,8 @@
       "public-exploit",
       "sqli-rce",
       "rev-shell",
-      "password-spray"
+      "password-spray",
+      "mssql-privesc"
     ],
     "summary": "Connect to MSSQL, escalate to sysadmin via impersonation, and execute OS commands — SQL Server service accounts almost always have SeImpersonatePrivilege.",
     "references": [],
@@ -199,7 +200,8 @@
     "leads_to": [
       "ssh-access",
       "linux-suid-caps",
-      "rev-shell"
+      "rev-shell",
+      "linux-nfs-privesc"
     ],
     "summary": "List and mount NFS exports — no_root_squash and UID spoofing are both direct paths to reading restricted files or planting SUID binaries.",
     "references": [],
@@ -284,7 +286,8 @@
       "password-spray",
       "public-exploit",
       "printnightmare",
-      "responder"
+      "responder",
+      "print-spooler-coercion"
     ],
     "summary": "Enumerate shares, users, and vulnerabilities over SMB — the most common Windows foothold service.",
     "references": [],
@@ -372,7 +375,12 @@
       "ssti-rce",
       "public-exploit",
       "responder",
-      "password-spray"
+      "password-spray",
+      "command-injection",
+      "ssrf",
+      "xxe-injection",
+      "jwt-attack",
+      "xss-csrf"
     ],
     "summary": "Identify web stack, discover hidden paths, and find attack surface before touching any functionality.",
     "references": [],
@@ -390,11 +398,29 @@
       "winrm",
       "rev-shell",
       "rdp-access",
-      "bloodhound"
+      "bloodhound",
+      "password-cracking"
     ],
     "summary": "Request AS-REP hashes for accounts that don't require Kerberos pre-authentication — no credentials needed, just a username list.",
     "references": [],
     "filePath": "nodes/03-initial-access/asreproast.md"
+  },
+  {
+    "id": "command-injection",
+    "title": "Command Injection",
+    "stage": "initial-access",
+    "tags": [
+      "web",
+      "linux",
+      "windows"
+    ],
+    "leads_to": [
+      "rev-shell",
+      "web-shell"
+    ],
+    "summary": "Inject OS commands into a web application that passes user input to a shell — distinct from SQLi and SSTI, with its own bypass patterns for spaces, special characters, and WAFs.",
+    "references": [],
+    "filePath": "nodes/03-initial-access/command-injection.md"
   },
   {
     "id": "file-upload-shell",
@@ -414,6 +440,22 @@
     "filePath": "nodes/03-initial-access/file-upload-shell.md"
   },
   {
+    "id": "jwt-attack",
+    "title": "JWT Attacks",
+    "stage": "initial-access",
+    "tags": [
+      "web"
+    ],
+    "leads_to": [
+      "file-upload-shell",
+      "sqli-rce",
+      "web-enum"
+    ],
+    "summary": "Forge or manipulate JSON Web Tokens to escalate privileges or impersonate other users — algorithm confusion and weak secrets are the two most common paths.",
+    "references": [],
+    "filePath": "nodes/03-initial-access/jwt-attack.md"
+  },
+  {
     "id": "kerberoast",
     "title": "Kerberoasting",
     "stage": "initial-access",
@@ -426,7 +468,8 @@
       "rev-shell",
       "rdp-access",
       "bloodhound",
-      "pass-the-hash"
+      "pass-the-hash",
+      "password-cracking"
     ],
     "summary": "Request TGS tickets for service accounts with SPNs and crack them offline — service accounts often have weak passwords set years ago and never rotated.",
     "references": [],
@@ -463,7 +506,8 @@
       "pass-the-hash",
       "domain-admin",
       "dcsync",
-      "adcs-esc1"
+      "adcs-esc1",
+      "print-spooler-coercion"
     ],
     "summary": "Intercept and relay NTLM authentication to a target you control — SMB signing disabled is the prerequisite, and relaying to ADCS can yield a domain admin certificate.",
     "references": [],
@@ -489,6 +533,24 @@
     "filePath": "nodes/03-initial-access/null-session.md"
   },
   {
+    "id": "password-cracking",
+    "title": "Password Cracking",
+    "stage": "initial-access",
+    "tags": [
+      "windows",
+      "linux"
+    ],
+    "leads_to": [
+      "password-spray",
+      "ssh-access",
+      "winrm",
+      "rev-shell"
+    ],
+    "summary": "Crack captured hashes offline with hashcat or john — NTLMv2 from Responder, AS-REP and TGS blobs from Kerberos attacks, and /etc/shadow from file read all land here before becoming usable credentials.",
+    "references": [],
+    "filePath": "nodes/03-initial-access/password-cracking.md"
+  },
+  {
     "id": "password-spray",
     "title": "Password Spraying",
     "stage": "initial-access",
@@ -503,11 +565,28 @@
       "rev-shell",
       "rdp-access",
       "ssh-access",
-      "bloodhound"
+      "bloodhound",
+      "smb-lateral-movement"
     ],
     "summary": "Test one password against all known users — the safest way to turn a username list into a credential without triggering lockouts.",
     "references": [],
     "filePath": "nodes/03-initial-access/password-spray.md"
+  },
+  {
+    "id": "print-spooler-coercion",
+    "title": "Print Spooler / Coercion Attacks",
+    "stage": "initial-access",
+    "tags": [
+      "windows",
+      "ad"
+    ],
+    "leads_to": [
+      "ntlm-relay",
+      "kerberos-delegation"
+    ],
+    "summary": "Force a privileged machine (domain controller, exchange server) to authenticate to an attacker-controlled host — feeds directly into NTLM relay or unconstrained delegation TGT harvesting.",
+    "references": [],
+    "filePath": "nodes/03-initial-access/print-spooler-coercion.md"
   },
   {
     "id": "printnightmare",
@@ -554,7 +633,8 @@
     "leads_to": [
       "ntlm-relay",
       "password-spray",
-      "kerberoast"
+      "kerberoast",
+      "password-cracking"
     ],
     "summary": "Poison LLMNR/NBT-NS queries to capture NTLMv2 hashes or relay them to unsigned SMB targets — run immediately on joining any Windows network.",
     "references": [],
@@ -578,6 +658,23 @@
     "filePath": "nodes/03-initial-access/sqli-rce.md"
   },
   {
+    "id": "ssrf",
+    "title": "SSRF (Server-Side Request Forgery)",
+    "stage": "initial-access",
+    "tags": [
+      "web",
+      "linux"
+    ],
+    "leads_to": [
+      "redis-enum",
+      "rev-shell",
+      "linux-cred-hunting"
+    ],
+    "summary": "Force the server to make HTTP requests on your behalf — reach internal services, cloud metadata endpoints, and unexposed admin panels that aren't directly reachable from your IP.",
+    "references": [],
+    "filePath": "nodes/03-initial-access/ssrf.md"
+  },
+  {
     "id": "ssti-rce",
     "title": "SSTI → RCE",
     "stage": "initial-access",
@@ -592,6 +689,38 @@
     "filePath": "nodes/03-initial-access/ssti-rce.md"
   },
   {
+    "id": "xss-csrf",
+    "title": "XSS / CSRF",
+    "stage": "initial-access",
+    "tags": [
+      "web"
+    ],
+    "leads_to": [
+      "file-upload-shell",
+      "sqli-rce"
+    ],
+    "summary": "Steal admin session cookies via reflected or stored XSS, or forge authenticated requests via CSRF — used to pivot from a low-priv web account to an admin context with additional attack surface.",
+    "references": [],
+    "filePath": "nodes/03-initial-access/xss-csrf.md"
+  },
+  {
+    "id": "xxe-injection",
+    "title": "XXE Injection",
+    "stage": "initial-access",
+    "tags": [
+      "web",
+      "linux"
+    ],
+    "leads_to": [
+      "rev-shell",
+      "ssrf",
+      "linux-cred-hunting"
+    ],
+    "summary": "Inject a malicious XML entity to read local files or trigger SSRF — any endpoint that parses XML without disabling external entities is vulnerable.",
+    "references": [],
+    "filePath": "nodes/03-initial-access/xxe-injection.md"
+  },
+  {
     "id": "pass-the-hash",
     "title": "Pass the Hash / Ticket",
     "stage": "foothold",
@@ -604,7 +733,8 @@
       "bloodhound",
       "dcsync",
       "winrm",
-      "rdp-access"
+      "rdp-access",
+      "smb-lateral-movement"
     ],
     "summary": "Authenticate with an NTLM hash or Kerberos ticket instead of a plaintext password — every hash you dump should be sprayed across the subnet immediately.",
     "references": [],
@@ -654,11 +784,31 @@
       "windows-gpp-creds",
       "linux-docker-escape",
       "linux-shared-lib",
-      "bloodhound"
+      "bloodhound",
+      "linux-writable-files",
+      "windows-registry-privesc"
     ],
     "summary": "Convert code execution into an interactive session by connecting the target back to your listener — the universal handoff from exploit to shell.",
     "references": [],
     "filePath": "nodes/04-foothold/rev-shell.md"
+  },
+  {
+    "id": "smb-lateral-movement",
+    "title": "SMB Lateral Movement",
+    "stage": "foothold",
+    "tags": [
+      "windows",
+      "smb",
+      "ad"
+    ],
+    "leads_to": [
+      "token-impersonation",
+      "windows-stored-creds",
+      "bloodhound"
+    ],
+    "summary": "Move laterally using plaintext credentials or hashes over SMB, WMI, or DCOM — choose the tool based on noise level and what ports are open on the target.",
+    "references": [],
+    "filePath": "nodes/04-foothold/smb-lateral-movement.md"
   },
   {
     "id": "ssh-access",
@@ -677,7 +827,8 @@
       "linux-pam-polkit",
       "linux-path-hijack",
       "linux-docker-escape",
-      "linux-shared-lib"
+      "linux-shared-lib",
+      "linux-writable-files"
     ],
     "summary": "Authenticate to SSH with a password, private key, or brute-forced credential — the most stable and interactive Linux foothold available.",
     "references": [],
@@ -725,7 +876,8 @@
       "windows-uac-bypass",
       "bloodhound",
       "windows-service-misconfig",
-      "windows-dll-hijack"
+      "windows-dll-hijack",
+      "windows-registry-privesc"
     ],
     "summary": "Get a PowerShell session over WinRM with evil-winrm — supports password and hash auth, and is the fastest path to an interactive Windows shell without needing a GUI.",
     "references": [],
@@ -784,6 +936,38 @@
     "filePath": "nodes/05-privesc/adcs-esc4.md"
   },
   {
+    "id": "adcs-esc6",
+    "title": "ADCS ESC6 — EDITF_ATTRIBUTESUBJECTALTNAME2",
+    "stage": "privesc",
+    "tags": [
+      "windows",
+      "ad"
+    ],
+    "leads_to": [
+      "domain-admin",
+      "dcsync"
+    ],
+    "summary": "A CA-level flag that makes every Client Authentication template enrollable with an arbitrary Subject Alternative Name — certipy finds it, and exploitation is identical to ESC1.",
+    "references": [],
+    "filePath": "nodes/05-privesc/adcs-esc6.md"
+  },
+  {
+    "id": "adcs-esc8",
+    "title": "ADCS ESC8 — NTLM Relay to Web Enrollment",
+    "stage": "privesc",
+    "tags": [
+      "windows",
+      "ad"
+    ],
+    "leads_to": [
+      "domain-admin",
+      "dcsync"
+    ],
+    "summary": "Relay a domain controller's NTLM authentication to the ADCS Web Enrollment endpoint to obtain a DC certificate — then use it for DCSync without needing any DA credentials.",
+    "references": [],
+    "filePath": "nodes/05-privesc/adcs-esc8.md"
+  },
+  {
     "id": "bloodhound",
     "title": "BloodHound Enumeration",
     "stage": "privesc",
@@ -798,7 +982,11 @@
       "dcsync",
       "kerberoast",
       "kerberos-delegation",
-      "laps-abuse"
+      "laps-abuse",
+      "shadow-credentials",
+      "adcs-esc6",
+      "adcs-esc8",
+      "domain-trust-abuse"
     ],
     "summary": "Map all attack paths from your current account to Domain Admin — run BloodHound before Kerberoasting, before Certipy, before anything else once you have valid creds.",
     "references": [],
@@ -917,6 +1105,21 @@
     "filePath": "nodes/05-privesc/linux-kernel.md"
   },
   {
+    "id": "linux-nfs-privesc",
+    "title": "NFS no_root_squash Privesc",
+    "stage": "privesc",
+    "tags": [
+      "linux",
+      "nfs"
+    ],
+    "leads_to": [
+      "root-linux"
+    ],
+    "summary": "Plant a SUID bash binary via an NFS export with no_root_squash — you create the binary as root on your attacker machine, the target executes it as root with no shell required.",
+    "references": [],
+    "filePath": "nodes/05-privesc/linux-nfs-privesc.md"
+  },
+  {
     "id": "linux-pam-polkit",
     "title": "Linux PAM / Polkit Privesc",
     "stage": "privesc",
@@ -987,6 +1190,54 @@
     "filePath": "nodes/05-privesc/linux-suid-caps.md"
   },
   {
+    "id": "linux-writable-files",
+    "title": "Linux Writable File Abuse",
+    "stage": "privesc",
+    "tags": [
+      "linux"
+    ],
+    "leads_to": [
+      "root-linux"
+    ],
+    "summary": "Write to privileged files as a low-priv user — /etc/passwd, sudoers, cron.d, or service unit files — to create a root backdoor or execute commands as root without cracking anything.",
+    "references": [],
+    "filePath": "nodes/05-privesc/linux-writable-files.md"
+  },
+  {
+    "id": "mssql-privesc",
+    "title": "MSSQL Privilege Escalation",
+    "stage": "privesc",
+    "tags": [
+      "windows",
+      "mssql"
+    ],
+    "leads_to": [
+      "token-impersonation",
+      "rev-shell",
+      "system-shell"
+    ],
+    "summary": "Escalate from a SQL login to OS command execution via xp_cmdshell, impersonation chains, or linked server abuse — SQL Server service accounts almost always have SeImpersonatePrivilege.",
+    "references": [],
+    "filePath": "nodes/05-privesc/mssql-privesc.md"
+  },
+  {
+    "id": "shadow-credentials",
+    "title": "Shadow Credentials (KeyCredentialLink)",
+    "stage": "privesc",
+    "tags": [
+      "windows",
+      "ad"
+    ],
+    "leads_to": [
+      "pass-the-hash",
+      "domain-admin",
+      "dcsync"
+    ],
+    "summary": "Write a certificate credential to a user or computer object's KeyCredentialLink attribute — then authenticate via PKINIT to get that account's NT hash without changing its password.",
+    "references": [],
+    "filePath": "nodes/05-privesc/shadow-credentials.md"
+  },
+  {
     "id": "token-impersonation",
     "title": "Token Impersonation (SeImpersonate)",
     "stage": "privesc",
@@ -1035,6 +1286,20 @@
     "filePath": "nodes/05-privesc/windows-gpp-creds.md"
   },
   {
+    "id": "windows-registry-privesc",
+    "title": "Windows Registry Privesc",
+    "stage": "privesc",
+    "tags": [
+      "windows"
+    ],
+    "leads_to": [
+      "system-shell"
+    ],
+    "summary": "Exploit registry misconfigurations — AlwaysInstallElevated installs MSI packages as SYSTEM, writable AutoRun keys persist malicious executables, and unquoted paths in registry service configs execute injected binaries.",
+    "references": [],
+    "filePath": "nodes/05-privesc/windows-registry-privesc.md"
+  },
+  {
     "id": "windows-sebackup",
     "title": "SeBackupPrivilege",
     "stage": "privesc",
@@ -1076,7 +1341,8 @@
     "leads_to": [
       "winrm",
       "pass-the-hash",
-      "system-shell"
+      "system-shell",
+      "smb-lateral-movement"
     ],
     "summary": "Extract plaintext credentials from cmdkey, the registry, PowerShell history, and credential managers — Winlogon autologon entries are almost always plaintext and reused.",
     "references": [],
@@ -1108,11 +1374,29 @@
     "leads_to": [
       "golden-ticket",
       "pivot",
-      "dcsync"
+      "dcsync",
+      "domain-trust-abuse"
     ],
     "summary": "You have Domain Admin — dump all hashes, screenshot proof, grab krbtgt for persistence, and enumerate additional forests before finishing.",
     "references": [],
     "filePath": "nodes/06-objective/domain-admin.md"
+  },
+  {
+    "id": "domain-trust-abuse",
+    "title": "Domain / Forest Trust Abuse",
+    "stage": "objective",
+    "tags": [
+      "windows",
+      "ad"
+    ],
+    "leads_to": [
+      "domain-admin",
+      "dcsync",
+      "golden-ticket"
+    ],
+    "summary": "Abuse Active Directory trust relationships to move from a compromised child domain or forest to parent domains or trusted forests — requires DA in the source domain and the krbtgt hash.",
+    "references": [],
+    "filePath": "nodes/06-objective/domain-trust-abuse.md"
   },
   {
     "id": "golden-ticket",

@@ -9,6 +9,7 @@ leads_to:
   - rev-shell
   - rdp-access
   - bloodhound
+  - password-cracking
 ---
 
 ## Prerequisites

@@ -10,6 +10,7 @@ leads_to:
   - public-exploit
   - printnightmare
   - responder
+  - print-spooler-coercion
 ---
 
 ## Prerequisites
