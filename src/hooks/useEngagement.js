@@ -33,7 +33,7 @@ export function useEngagement() {
   const removeService = useCallback((svc) =>
     mutate(p => {
       const { [svc]: _, ...rest } = p.dismissed
-      return { discovered: p.discovered.filter(s => s !== svc), dismissed: rest }
+      return { ...p, discovered: p.discovered.filter(s => s !== svc), dismissed: rest }
     })
   , [mutate])
 
