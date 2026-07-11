@@ -8,10 +8,10 @@ export function DetailPanel({ node, width, onClose, onOpenWriteup, onResizeStart
   const d = node.data
   const [body,          setBody]          = useState(null)
   const [activeTab,     setActiveTab]     = useState('notes')
-  const [leadsToOpen,   setLeadsToOpen]   = useState(false)
+  const [leadsToOpen,   setLeadsToOpen]   = useState(true)
 
   // Reset tabs and accordion whenever the selected node changes
-  useEffect(() => { setActiveTab('notes'); setLeadsToOpen(false) }, [node.id])
+  useEffect(() => { setActiveTab('notes'); setLeadsToOpen(true) }, [node.id])
 
   useEffect(() => {
     if (!d.filePath) { setBody(''); return }

@@ -642,7 +642,7 @@ body {
   color: var(--text-dim);
   font-family: inherit;
   font-size: var(--text-xs);
-  letter-spacing: 1px;
+  letter-spacing: 2px;
   text-transform: uppercase;
   cursor: pointer;
   transition: color 0.12s;
@@ -1498,8 +1498,8 @@ body {
 /* ── Keyboard hints overlay ──────────────────────────────────────────────── */
 .kb-hints {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: 130px;
+  left: 15px;
   z-index: 1000;
 }
 
