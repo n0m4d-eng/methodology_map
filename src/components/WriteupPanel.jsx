@@ -28,9 +28,10 @@ function injectHeadingIds(html) {
 }
 
 export function WriteupPanel({ writeup, onClose, onNavigateToNode }) {
-  const [body,     setBody]     = useState(null)
-  const [activeId, setActiveId] = useState('')
-  const [tocOpen,  setTocOpen]  = useState(false)
+  const [body,           setBody]          = useState(null)
+  const [activeId,       setActiveId]       = useState('')
+  const [tocOpen,        setTocOpen]        = useState(false)
+  const [attackPathOpen, setAttackPathOpen] = useState(false)
   const bodyRef   = useRef(null)
   const tocBtnRef = useRef(null)
   const tocPopRef = useRef(null)
@@ -57,8 +58,11 @@ export function WriteupPanel({ writeup, onClose, onNavigateToNode }) {
   const headings = useMemo(() => {
     if (!body) return []
     const seen = {}
+    let inFence = false
     return body.split('\n').reduce((acc, line) => {
-      const m = line.match(/^(#{1,3})\s+(.+)/)
+      if (line.trimStart().startsWith('```')) { inFence = !inFence; return acc }
+      if (inFence) return acc
+      const m = line.match(/^(#{1,2})\s+(.+)/)
       if (m) {
         const text = m[2].trim()
         let id = slugify(text.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/<[^>]*>/g, ''))
@@ -93,7 +97,7 @@ export function WriteupPanel({ writeup, onClose, onNavigateToNode }) {
       },
       { rootMargin: '-8% 0px -80% 0px', threshold: 0 }
     )
-    bodyRef.current.querySelectorAll('h1, h2, h3').forEach(el => obs.observe(el))
+    bodyRef.current.querySelectorAll('h1, h2').forEach(el => obs.observe(el))
     return () => obs.disconnect()
   }, [body, headings.length])
 
@@ -180,6 +184,18 @@ export function WriteupPanel({ writeup, onClose, onNavigateToNode }) {
           </div>
         )}
 
+        {/* Tags */}
+        {writeup.tags?.length > 0 && (
+          <div className="writeup-panel-section">
+            <div className="detail-section-title">Tags</div>
+            <div className="node-tags" style={{ gap: '5px' }}>
+              {writeup.tags.map(t => (
+                <span key={t} className={`ntag ntag-${t}`}>{t}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Key techniques */}
         {writeup.key_techniques?.length > 0 && (
           <div className="writeup-panel-section">
@@ -194,36 +210,35 @@ export function WriteupPanel({ writeup, onClose, onNavigateToNode }) {
           </div>
         )}
 
-        {/* Tags */}
-        {writeup.tags?.length > 0 && (
-          <div className="writeup-panel-section">
-            <div className="detail-section-title">Tags</div>
-            <div className="node-tags" style={{ gap: '5px' }}>
-              {writeup.tags.map(t => (
-                <span key={t} className={`ntag ntag-${t}`}>{t}</span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Attack Path */}
+        {/* Attack Path — collapsible accordion */}
         {writeup.attack_path?.length > 0 && (
           <div className="writeup-panel-section">
-            <div className="detail-section-title">Attack Path ({writeup.attack_path.length} steps)</div>
-            <div className="attack-path-list">
-              {writeup.attack_path.map((step, i) => (
-                <div
-                  key={step}
-                  className="attack-path-step attack-path-step-link"
-                  onClick={() => { onClose(); onNavigateToNode?.(step) }}
-                  title={`View ${step} on methodology map`}
-                >
-                  <span className="attack-step-num">{String(i + 1).padStart(2, '0')}</span>
-                  <span className="attack-step-name">{step}</span>
-                  <span className="attack-step-goto">↗</span>
-                </div>
-              ))}
-            </div>
+            <button
+              className="attack-path-accordion-header"
+              onClick={() => setAttackPathOpen(o => !o)}
+              aria-expanded={attackPathOpen}
+            >
+              <span className="detail-section-title" style={{ margin: 0 }}>
+                Attack Path ({writeup.attack_path.length} steps)
+              </span>
+              <span className="attack-path-chevron">{attackPathOpen ? '▲' : '▼'}</span>
+            </button>
+            {attackPathOpen && (
+              <div className="attack-path-list">
+                {writeup.attack_path.map((step, i) => (
+                  <div
+                    key={step}
+                    className="attack-path-step attack-path-step-link"
+                    onClick={() => { onClose(); onNavigateToNode?.(step) }}
+                    title={`View ${step} on methodology map`}
+                  >
+                    <span className="attack-step-num">{String(i + 1).padStart(2, '0')}</span>
+                    <span className="attack-step-name">{step}</span>
+                    <span className="attack-step-goto">↗</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

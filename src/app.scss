@@ -730,6 +730,27 @@ body {
 }
 
 /* ── Attack path ─────────────────────────────────────────────────────────── */
+.attack-path-accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  margin-bottom: 8px;
+
+  &:hover .attack-path-chevron { color: var(--accent); }
+}
+
+.attack-path-chevron {
+  font-size: 10px;
+  color: var(--text-dim);
+  transition: color 0.15s;
+}
+
 .attack-path-list {
   display: flex;
   flex-direction: column;
@@ -1996,4 +2017,3 @@ body {
 
 .toc-h1 { padding-left: 8px; }
 .toc-h2 { padding-left: 16px; }
-.toc-h3 { padding-left: 24px; font-size: var(--text-xs); }
