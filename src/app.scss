@@ -1606,7 +1606,9 @@ body {
 
     li {
       display: flex;
+      flex-wrap: wrap;
       gap: 0.5em;
+      align-items: baseline;
 
       &::before {
         content: '–';
@@ -1614,7 +1616,21 @@ body {
         flex-shrink: 0;
       }
 
-      p { margin: 0; }
+      p {
+        margin: 0;
+        flex: 1;
+        min-width: 0;
+      }
+
+      p:has(img) {
+        flex: 0 0 100%;
+      }
+
+      img {
+        display: block;
+        max-width: 100%;
+        margin-top: 4px;
+      }
     }
   }
 
