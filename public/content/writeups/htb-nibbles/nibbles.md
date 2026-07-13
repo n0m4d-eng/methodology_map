@@ -85,11 +85,11 @@ Service detection performed. Please report any incorrect results at https://nmap
 ### HTTP (tcp/80)
 
 - Navigating to the site using a browser shows an almost blank site
-  ![](.images/img_20260713_205152.png)
+  ![](images/img_20260713_205152.png)
 - There is a comment about a directory link in the page source
-  ![](.images/img_20260713_205255.png)
+  ![](images/img_20260713_205255.png)
 - Going to that directory shows a blog of some short
-  ![](.images/img_20260713_214819.png)
+  ![](images/img_20260713_214819.png)
 
 - The blog seems to run on a PHP based CMS based on the page source.
 
@@ -225,7 +225,7 @@ Powered                 [Status: 200, Size: 48, Words: 6, Lines: 1, Duration: 33
 
 ## Admin panel
 
-![](.images/img_20260714_002020.png)
+![](images/img_20260714_002020.png)
 
 ## File Upload POCs
 
