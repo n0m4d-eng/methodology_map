@@ -1599,7 +1599,16 @@ body {
   h2 { font-size: var(--text-xl);   color: var(--text); margin: 24px 0 8px; }
   h3 { font-size: var(--text-base); color: var(--text-dim); margin: 18px 0 6px; }
   p  { margin-bottom: 6px; }
-  ul { padding-left: 16px; margin-bottom: 6px; }
+  ul {
+    padding-left: 0;
+    margin-bottom: 6px;
+    list-style: none;
+
+    li::before {
+      content: '– ';
+      color: var(--text-dim);
+    }
+  }
 
   code {
     background: var(--card);
