@@ -17,6 +17,7 @@ leads_to:
   - xxe-injection
   - jwt-attack
   - xss-csrf
+  - web-brute
 ---
 
 ## Prerequisites
