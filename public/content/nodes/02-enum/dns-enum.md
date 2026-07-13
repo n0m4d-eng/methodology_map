@@ -2,7 +2,7 @@
 id: dns-enum
 title: DNS Enumeration
 stage: enumeration
-tags: [windows, linux, web, dns]
+tags: [windows, linux, dns]
 summary: Extract subdomains and internal hostnames via zone transfer and brute force — expands the attack surface significantly.
 leads_to:
   - web-enum
