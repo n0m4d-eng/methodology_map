@@ -1,12 +1,14 @@
 import { useState } from 'react'
 
 const SERVICE_GROUPS = [
-  { label: 'Remote Access',  services: ['ssh', 'rdp', 'winrm'] },
-  { label: 'File Sharing',   services: ['smb', 'ftp', 'nfs'] },
-  { label: 'Web & Mail',     services: ['web', 'smtp'] },
-  { label: 'Database',       services: ['mssql', 'mysql', 'redis'] },
-  { label: 'Network',        services: ['dns', 'snmp'] },
-  { label: 'Directory/Auth', services: ['ldap', 'ad', 'kerberos', 'adcs'] },
+  { label: 'Remote Access',   services: ['ssh', 'rdp', 'winrm', 'vnc', 'telnet'] },
+  { label: 'File Sharing',    services: ['smb', 'ftp', 'nfs', 'rsync', 'tftp', 'webdav'] },
+  { label: 'Web',             services: ['web', 'elasticsearch'] },
+  { label: 'Mail',            services: ['smtp', 'pop3', 'imap'] },
+  { label: 'Database',        services: ['mssql', 'mysql', 'postgresql', 'mongodb', 'oracle', 'redis'] },
+  { label: 'Network',         services: ['dns', 'snmp', 'ntp'] },
+  { label: 'Directory/Auth',  services: ['ldap', 'ad-dc', 'kerberos', 'adcs'] },
+  { label: 'Container/Cloud', services: ['docker', 'kubernetes'] },
 ]
 
 export function EngagementPanel({
