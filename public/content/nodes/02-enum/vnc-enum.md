@@ -2,7 +2,7 @@
 id: vnc-enum
 title: VNC Enumeration
 stage: enumeration
-tags: [windows, linux]
+tags: [windows, linux, vnc]
 summary: Check for null authentication or weak single-password VNC access — GUI access gives clipboard, file transfer, and full desktop without a traditional shell.
 leads_to:
   - rev-shell

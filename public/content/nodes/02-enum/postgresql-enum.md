@@ -2,7 +2,7 @@
 id: postgresql-enum
 title: PostgreSQL Enumeration
 stage: enumeration
-tags: [windows, linux]
+tags: [windows, linux, postgresql]
 summary: Connect to PostgreSQL and escalate to OS command execution via COPY TO PROGRAM — superuser access (common on default installs) is all it takes.
 leads_to:
   - sqli-rce

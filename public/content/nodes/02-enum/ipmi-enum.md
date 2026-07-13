@@ -2,7 +2,7 @@
 id: ipmi-enum
 title: IPMI Enumeration
 stage: enumeration
-tags: [linux, windows]
+tags: [linux, windows, ipmi]
 summary: Exploit IPMI 2.0 to dump password hashes via RAKP authentication or bypass auth entirely with Cipher 0 — cracked hashes are frequently reused for SSH and web admin panels.
 leads_to:
   - password-spray

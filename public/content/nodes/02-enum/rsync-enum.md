@@ -2,7 +2,7 @@
 id: rsync-enum
 title: Rsync Enumeration
 stage: enumeration
-tags: [linux]
+tags: [linux, rsync]
 summary: List and download Rsync modules without authentication — home directories exposed here mean SSH key injection is minutes away.
 leads_to:
   - ssh-access

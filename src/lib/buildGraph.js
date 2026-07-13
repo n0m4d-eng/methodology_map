@@ -1,12 +1,14 @@
 import { MarkerType } from '@xyflow/react'
 
 export const ALL_SERVICE_TAGS = new Set([
-  'ssh', 'rdp', 'winrm',
-  'smb', 'ftp', 'nfs',
-  'web', 'smtp',
-  'mssql', 'mysql', 'redis',
-  'dns', 'snmp',
-  'ldap', 'ad', 'kerberos', 'adcs',
+  'ssh', 'rdp', 'winrm', 'vnc', 'telnet',
+  'smb', 'ftp', 'nfs', 'rsync', 'tftp', 'webdav',
+  'web', 'elasticsearch',
+  'smtp', 'pop3', 'imap',
+  'mssql', 'mysql', 'postgresql', 'mongodb', 'oracle', 'redis',
+  'dns', 'snmp', 'ntp', 'ipmi',
+  'ldap', 'ad', 'ad-dc', 'kerberos', 'adcs',
+  'docker', 'kubernetes',
 ])
 
 // Stage order → column index

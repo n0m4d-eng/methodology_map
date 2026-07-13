@@ -6,7 +6,7 @@ const SERVICE_GROUPS = [
   { label: 'Web',             services: ['web', 'elasticsearch'] },
   { label: 'Mail',            services: ['smtp', 'pop3', 'imap'] },
   { label: 'Database',        services: ['mssql', 'mysql', 'postgresql', 'mongodb', 'oracle', 'redis'] },
-  { label: 'Network',         services: ['dns', 'snmp', 'ntp'] },
+  { label: 'Network',         services: ['dns', 'snmp', 'ntp', 'ipmi'] },
   { label: 'Directory/Auth',  services: ['ldap', 'ad-dc', 'kerberos', 'adcs'] },
   { label: 'Container/Cloud', services: ['docker', 'kubernetes'] },
 ]
