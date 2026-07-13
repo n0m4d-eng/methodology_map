@@ -1604,9 +1604,17 @@ body {
     margin-bottom: 6px;
     list-style: none;
 
-    li::before {
-      content: '– ';
-      color: var(--text-dim);
+    li {
+      display: flex;
+      gap: 0.5em;
+
+      &::before {
+        content: '–';
+        color: var(--text-dim);
+        flex-shrink: 0;
+      }
+
+      p { margin: 0; }
     }
   }
 
