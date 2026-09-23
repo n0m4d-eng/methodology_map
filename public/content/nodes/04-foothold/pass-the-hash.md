@@ -15,9 +15,17 @@ leads_to:
 
 ## Prerequisites
 
-An NTLM hash from secretsdump, SAM dump, NTLM relay, or DCSync. For pass-the-ticket: a `.ccache` file from getTGT or ticket extraction. SMB/WinRM/RPC accessible on the target.
+- An NTLM hash from secretsdump, SAM dump, NTLM relay, or DCSync
 
-NTLM authentication uses the hash directly — the plaintext password is never required. Every hash you obtain should be sprayed immediately across all hosts before you do anything else. `nxc smb` with `--local-auth` catches local Administrator password reuse across the entire subnet, which is one of the fastest lateral movement paths in AD environments.
+- For pass-the-ticket: a `.ccache` file from getTGT or ticket extraction
+
+- SMB/WinRM/RPC accessible on the target
+
+- NTLM authentication uses the hash directly — plaintext password is never required
+
+- Every hash obtained should be sprayed immediately across all hosts before doing anything else
+
+- `nxc smb` with `--local-auth` catches local Administrator password reuse across the entire subnet — one of the fastest lateral movement paths in AD environments
 
 ## Quick Win
 
@@ -78,4 +86,10 @@ sekurlsa::pth /user:Administrator /domain:$DOMAIN /ntlm:$NTLM /run:powershell.ex
 
 ## Leads To
 
-Local admin hash → shell on target → `whoami /priv` → SeImpersonatePrivilege → SYSTEM. Domain admin hash → DCSync via `impacket-secretsdump` → dump all domain hashes → domain-admin. Hash valid on multiple hosts → spray → lateral movement across subnet. DA hash or machine account hash → BloodHound shows all attack paths from here.
+- Local admin hash → shell on target → `whoami /priv` → SeImpersonatePrivilege → SYSTEM
+
+- Domain admin hash → DCSync via `impacket-secretsdump` → dump all domain hashes → domain-admin
+
+- Hash valid on multiple hosts → spray → lateral movement across subnet
+
+- DA hash or machine account hash → BloodHound shows all attack paths from here

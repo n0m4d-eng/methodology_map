@@ -10,9 +10,13 @@ leads_to:
 
 ## Prerequisites
 
-Network access to the subnet, either direct or via a pivot host. Run `ip route` and `arp -a` on a compromised host to find subnets first.
+- Network access to the subnet, either direct or via a pivot host
 
-Host discovery tells you which IPs are actually alive before you spend time scanning. ICMP (ping sweeps) is fast but often blocked; ARP is the most reliable on the local segment and can't be filtered. On a pivot, use proxychains with TCP-based checks since ICMP won't traverse SOCKS.
+- Run `ip route` and `arp -a` on a compromised host to find subnets first
+
+- ICMP (ping sweeps) is fast but often blocked; ARP is most reliable on the local segment and can't be filtered
+
+- On a pivot, use proxychains with TCP-based checks since ICMP won't traverse SOCKS
 
 ## Quick Win
 
@@ -50,4 +54,6 @@ proxychains nmap -Pn -sT 10.10.10.0/24
 
 ## Leads To
 
-Feed every live IP into nmap-scan. Prioritise IPs that responded to ARP but not ICMP — those are likely Windows hosts with firewalls up, and they're still running services.
+- Feed every live IP into `nmap-scan`
+
+- Prioritise IPs that responded to ARP but not ICMP — likely Windows hosts with firewalls up, still running services

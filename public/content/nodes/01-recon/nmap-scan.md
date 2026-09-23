@@ -27,9 +27,11 @@ leads_to:
 
 ## Prerequisites
 
-Network access to the target (direct or via proxychains through a pivot).
+- Network access to the target (direct or via proxychains through a pivot)
 
-Before touching any service, write two sentences: *What do I think this system is and what is it doing?* and *What would have to be misconfigured for it to be exploitable?* Form the hypothesis first — enumerate to test it. RustScan finds open ports in seconds; Nmap then probes only those ports for service banners and default scripts.
+- Before scanning, form a hypothesis: *what do I think this system is, and what would have to be misconfigured for it to be exploitable?*
+
+- RustScan finds open ports in seconds; Nmap then probes only those ports for banners and default scripts
 
 ## Quick Win
 
@@ -93,4 +95,8 @@ sudo nmap -Pn -sU --top-ports 20 -oN recon/udp.out $TARGET &
 
 ## Leads To
 
-Every open port maps to an enumeration node. Work the port table above — don't skip UDP (SNMP and IPMI are frequently the fastest path to credentials). Once services are identified, branch into the relevant enum nodes simultaneously.
+- Every open port maps to an enumeration node — work the port table above
+
+- Don't skip UDP: SNMP and IPMI are frequently the fastest path to credentials
+
+- Once services are identified, branch into the relevant enum nodes simultaneously

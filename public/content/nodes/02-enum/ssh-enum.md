@@ -12,9 +12,15 @@ leads_to:
 
 ## Prerequisites
 
-Port 22 open (also check 2222, 2200, 22022). No credentials required for banner grab and auth method check.
+- Port 22 open (also check 2222, 2200, 22022)
 
-SSH enumeration answers two questions before you spend time brute-forcing: Does this version have a known CVE? And does it even accept password authentication? If it's `publickey` only, brute-force won't work — hunt for key files elsewhere in the engagement instead. The version banner is worth checking against searchsploit every time.
+- No credentials required for banner grab and auth method check
+
+- Answers two questions before brute-forcing: does the version have a known CVE, and does it accept password auth?
+
+- `publickey` only → brute-force won't work, hunt for key files elsewhere in the engagement instead
+
+- Always check the version banner against searchsploit
 
 ## Quick Win
 
@@ -67,4 +73,10 @@ run
 
 ## Leads To
 
-Valid credentials found → ssh-access. Old version with known CVE → public-exploit. Username list discovered → password-spray across other protocols. `publickey` only → hunt for `id_rsa` files in FTP, NFS, web, or after getting a shell on a different service.
+- Valid credentials found → `ssh-access`
+
+- Old version with known CVE → `public-exploit`
+
+- Username list discovered → `password-spray` across other protocols
+
+- `publickey` only → hunt for `id_rsa` files in FTP, NFS, web, or after getting a shell on a different service

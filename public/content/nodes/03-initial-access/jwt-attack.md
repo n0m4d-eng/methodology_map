@@ -12,9 +12,15 @@ leads_to:
 
 ## Prerequisites
 
-A web application that uses JWT for session management — look for `Authorization: Bearer eyJ...` headers or `token=eyJ...` cookies. The `eyJ` prefix is always base64-encoded `{"` (the start of a JSON object). Decode with Burp's Inspector or jwt.io.
+- A web app using JWT for session management — look for `Authorization: Bearer eyJ...` headers or `token=eyJ...` cookies
 
-JWTs have three base64url-encoded parts: header.payload.signature. Attacks target the signature verification: a `none` algorithm bypass removes signature checking entirely; algorithm confusion (RS256→HS256) uses the public key as an HMAC secret; weak secrets can be brute-forced. Once you forge a valid token you become whatever `role`, `sub`, or `admin` field you set.
+- `eyJ` prefix is always base64-encoded `{"` (start of a JSON object) — decode with Burp's Inspector or jwt.io
+
+- Three base64url-encoded parts: header.payload.signature
+
+- Attack targets: `none` algorithm bypass, algorithm confusion (RS256→HS256 using the public key as an HMAC secret), weak secret brute force
+
+- Forging a valid token makes you whatever `role`, `sub`, or `admin` field you set
 
 ## Quick Win
 
@@ -90,4 +96,10 @@ python3 jwt_tool.py TOKEN -X s
 
 ## Leads To
 
-Admin token forged → access to admin panel → file upload, SQLi, command injection surfaces that weren't visible to the low-priv user. Admin panel with user management → create new admin users. File manager in admin panel → file-upload-shell. Admin SQLi surface → sqli-rce.
+- Admin token forged → access to admin panel → file upload, SQLi, command injection surfaces not visible to the low-priv user
+
+- Admin panel with user management → create new admin users
+
+- File manager in admin panel → `file-upload-shell`
+
+- Admin SQLi surface → `sqli-rce`

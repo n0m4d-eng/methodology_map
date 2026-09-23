@@ -27,9 +27,17 @@ leads_to:
 
 ## Prerequisites
 
-Target has outbound connectivity to your IP on the listener port. Confirm your tun0 IP before generating payloads (`ip a show tun0`). If outbound is blocked, try common egress ports: 80, 443, 8080.
+- Target has outbound connectivity to your IP on the listener port
 
-A reverse shell connects from the target back to your listener, converting any code execution primitive into an interactive session. Always try bash one-liners first — they require nothing on disk. Fall back to msfvenom binaries when shell builtins are unavailable or restricted.
+- Confirm your tun0 IP before generating payloads (`ip a show tun0`)
+
+- If outbound is blocked, try common egress ports: 80, 443, 8080
+
+- Converts any code execution primitive into an interactive session
+
+- Try bash one-liners first — they require nothing on disk
+
+- Fall back to msfvenom binaries when shell builtins are unavailable or restricted
 
 ## Quick Win
 
@@ -127,4 +135,8 @@ impacket-smbserver share $(pwd) -smb2support
 
 ## Leads To
 
-Linux shell → run `sudo -l`, `find / -perm -4000`, `getcap -r /` immediately — these three cover the fastest privesc paths. Windows shell → `whoami /priv` and check for SeImpersonatePrivilege → GodPotato → SYSTEM. Domain-joined Windows → run SharpHound immediately for BloodHound analysis.
+- Linux shell → run `sudo -l`, `find / -perm -4000`, `getcap -r /` immediately — fastest privesc paths
+
+- Windows shell → `whoami /priv` → check SeImpersonatePrivilege → GodPotato → SYSTEM
+
+- Domain-joined Windows → run SharpHound immediately for BloodHound analysis

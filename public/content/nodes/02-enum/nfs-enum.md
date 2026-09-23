@@ -13,9 +13,15 @@ leads_to:
 
 ## Prerequisites
 
-Port 2049 open. No credentials required — NFS relies on IP-based access control, not passwords.
+- Port 2049 open
 
-NFS exports are either unrestricted (world-mountable) or IP-filtered. If you can mount a share, you either get direct file access or, with `no_root_squash`, the ability to create SUID binaries as root from your attacker machine. Even without `no_root_squash`, UID spoofing (creating a local user with the same UID as the file owner) bypasses ACLs on restricted files.
+- No credentials required — NFS relies on IP-based access control, not passwords
+
+- Exports are either unrestricted (world-mountable) or IP-filtered
+
+- `no_root_squash` lets you create SUID binaries as root from your attacker machine
+
+- Without `no_root_squash`, UID spoofing (local user with the same UID as the file owner) bypasses ACLs on restricted files
 
 ## Quick Win
 
@@ -65,4 +71,8 @@ cat /mnt/nfs/restricted_file
 
 ## Leads To
 
-SSH key found in home directory export → ssh-access immediately. `no_root_squash` on a user home → plant SUID binary → linux-suid-caps. Configuration files with credentials → try against SSH and other services.
+- SSH key found in home directory export → `ssh-access` immediately
+
+- `no_root_squash` on a user home → plant SUID binary → `linux-suid-caps`
+
+- Configuration files with credentials → try against SSH and other services

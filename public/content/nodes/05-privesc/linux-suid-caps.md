@@ -10,9 +10,13 @@ leads_to:
 
 ## Prerequisites
 
-A low-privilege shell. `find` available to enumerate SUID binaries. `getcap` available (or equivalent) for capabilities. Any non-standard binary in the SUID list is a high-priority target.
+- A low-privilege shell
 
-SUID binaries run as their owner (often root) regardless of who executes them. Linux capabilities grant a subset of root privileges (e.g., reading raw sockets, setting UID) to specific binaries without full root. Both are commonly misonfigured in exam environments — always enumerate both in your post-foothold checklist.
+- `find` available to enumerate SUID binaries; `getcap` (or equivalent) for capabilities
+
+- Any non-standard binary in the SUID list is a high-priority target
+
+- SUID binaries run as their owner (often root) regardless of who executes them; capabilities grant a subset of root privileges to a specific binary without full root — always enumerate both
 
 ## Quick Win
 
@@ -66,4 +70,8 @@ vim -c ':py3 import os; os.setuid(0); os.execl("/bin/sh","sh")'
 
 ## Leads To
 
-SUID or capability exploit → root shell → root-linux. `cp` with SUID → overwrite `/etc/passwd` → `su` as synthetic root user. `cap_dac_read_search` → read `/etc/shadow` → crack hashes offline → password reuse across network.
+- SUID or capability exploit → root shell → `root-linux`
+
+- `cp` with SUID → overwrite `/etc/passwd` → `su` as synthetic root user
+
+- `cap_dac_read_search` → read `/etc/shadow` → crack hashes offline → password reuse across network

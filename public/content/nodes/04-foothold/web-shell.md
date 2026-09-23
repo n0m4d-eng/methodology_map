@@ -15,9 +15,17 @@ leads_to:
 
 ## Prerequisites
 
-File execution path is web-accessible (uploaded file, write to web root via SQLi or path traversal). For PHP: `system()` / `passthru()` / `shell_exec()` not disabled in php.ini. For JSP: Tomcat or servlet container running.
+- File execution path is web-accessible (uploaded file, write to web root via SQLi or path traversal)
 
-A web shell converts file write access into command execution — you interact with it via HTTP GET parameters. It's semi-interactive and fragile (no stdin, no job control), so upgrade to a reverse shell as quickly as possible. Watch for WAFs blocking keywords like `system` or `exec` — `passthru` is a useful alternative.
+- PHP: `system()` / `passthru()` / `shell_exec()` not disabled in php.ini
+
+- JSP: Tomcat or servlet container running
+
+- Converts file write access into command execution via HTTP GET parameters
+
+- Semi-interactive and fragile (no stdin, no job control) — upgrade to a reverse shell ASAP
+
+- Watch for WAFs blocking keywords like `system` or `exec` — `passthru` is a useful alternative
 
 ## Quick Win
 
@@ -67,4 +75,8 @@ curl "http://$TARGET/shell.aspx?cmd=powershell+-enc+BASE64_PAYLOAD"
 
 ## Leads To
 
-Web shell confirmed → immediately run the upgrade to rev-shell for a stable session. On Linux, `cmd=id` → `www-data` → check sudo and SUID from the shell. On Windows IIS/ASPX → `cmd=whoami+/priv` → SeImpersonatePrivilege → GodPotato for SYSTEM.
+- Web shell confirmed → immediately upgrade to `rev-shell` for a stable session
+
+- Linux: `cmd=id` → `www-data` → check sudo and SUID from the shell
+
+- Windows IIS/ASPX: `cmd=whoami+/priv` → SeImpersonatePrivilege → GodPotato for SYSTEM

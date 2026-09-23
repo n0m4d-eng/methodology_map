@@ -13,9 +13,13 @@ leads_to:
 
 ## Prerequisites
 
-A parameter that reflects database query results or exhibits error-based/time-based behavior. Capture the request in Burp first — sqlmap works best from a saved request file.
+- A parameter that reflects database query results or exhibits error-based/time-based behavior
 
-SQL injection lets you break out of a query's intended context and issue your own SQL. Beyond credential extraction, MySQL with FILE privilege can write a web shell to disk, and MSSQL with sysadmin rights can execute OS commands via `xp_cmdshell`. The database type determines your RCE path — always identify the engine first.
+- Capture the request in Burp first — sqlmap works best from a saved request file
+
+- Beyond credential extraction, MySQL with FILE privilege can write a web shell to disk, and MSSQL with sysadmin rights can execute OS commands via `xp_cmdshell`
+
+- The database type determines your RCE path — always identify the engine first
 
 ## Quick Win
 
@@ -103,4 +107,10 @@ sqlmap -r request.txt --tamper=space2comment --batch
 
 ## Leads To
 
-MySQL FILE privilege → write PHP shell to web root → web-shell or rev-shell. MSSQL sysadmin → xp_cmdshell → `whoami /priv` → SeImpersonatePrivilege → SYSTEM via GodPotato. MSSQL NTLMv2 steal via xp_dirtree → crack or relay → pass-the-hash. Credentials from user table → password-spray across the environment.
+- MySQL FILE privilege → write PHP shell to web root → `web-shell` or `rev-shell`
+
+- MSSQL sysadmin → `xp_cmdshell` → `whoami /priv` → SeImpersonatePrivilege → SYSTEM via GodPotato
+
+- MSSQL NTLMv2 steal via `xp_dirtree` → crack or relay → `pass-the-hash`
+
+- Credentials from user table → `password-spray` across the environment

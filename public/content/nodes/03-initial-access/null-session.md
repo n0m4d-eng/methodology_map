@@ -14,9 +14,15 @@ leads_to:
 
 ## Prerequisites
 
-Port 445 open. Null sessions are allowed by default on older Windows versions and many exam environments. Try before assuming you need credentials.
+- Port 445 open
 
-A null session authenticates to SMB with an empty username and password. On misconfigured systems, this grants access to share listings, RPC user/group enumeration, and the SYSVOL share. SYSVOL access is particularly valuable because Group Policy Preference XML files stored there may contain encrypted passwords — and the encryption key is public knowledge (MS14-025).
+- Null sessions allowed by default on older Windows versions and many exam environments — try before assuming you need credentials
+
+- Authenticates to SMB with an empty username and password
+
+- On misconfigured systems, grants access to share listings, RPC user/group enumeration, and the SYSVOL share
+
+- SYSVOL access is high-value — Group Policy Preference XML may contain encrypted passwords, and the encryption key is public knowledge (MS14-025)
 
 ## Quick Win
 
@@ -52,4 +58,10 @@ smbclient //$TARGET/SYSVOL -U '' -N
 
 ## Leads To
 
-User list obtained → password-spray. SYSVOL readable → windows-gpp-creds (search for `cpassword` in Group Policy XML files). Share with sensitive files → credentials or SSH keys → rev-shell or direct auth. Password policy lockout = 0 → spray aggressively.
+- User list obtained → `password-spray`
+
+- SYSVOL readable → `windows-gpp-creds` (search for `cpassword` in Group Policy XML files)
+
+- Share with sensitive files → credentials or SSH keys → `rev-shell` or direct auth
+
+- Password policy lockout = 0 → spray aggressively

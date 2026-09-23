@@ -14,9 +14,13 @@ leads_to:
 
 ## Prerequisites
 
-A username list (from LDAP, kerbrute, or RPC). No credentials required for the unauthenticated variant — this is often the very first AD attack after user enumeration.
+- A username list (from LDAP, kerbrute, or RPC)
 
-AS-REP roasting exploits accounts where `DONT_REQ_PREAUTH` is set in `userAccountControl`. Without pre-auth, the KDC returns an AS-REP blob encrypted with the user's password hash, and you crack it offline. This is one of the few AD attacks that requires zero credentials — pair it immediately with Kerberos user enumeration for a clean zero-to-foothold chain.
+- No credentials required for the unauthenticated variant — often the very first AD attack after user enumeration
+
+- Exploits accounts with `DONT_REQ_PREAUTH` set in `userAccountControl` — the KDC returns an AS-REP blob encrypted with the user's password hash, crackable offline
+
+- One of the few AD attacks requiring zero credentials — pair immediately with Kerberos user enumeration for a clean zero-to-foothold chain
 
 ## Quick Win
 
@@ -56,4 +60,8 @@ john --wordlist=/usr/share/wordlists/rockyou.txt asrep.txt
 
 ## Leads To
 
-Cracked password → authenticate as that user → password-spray across WinRM/SMB/RDP, then run BloodHound immediately with the new credential. AS-REP roastable accounts are often service accounts — check what they have access to in BloodHound before touching anything else.
+- Cracked password → authenticate as that user → `password-spray` across WinRM/SMB/RDP
+
+- Run BloodHound immediately with the new credential
+
+- AS-REP roastable accounts are often service accounts — check what they have access to in BloodHound before touching anything else

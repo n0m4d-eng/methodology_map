@@ -10,9 +10,17 @@ leads_to:
 
 ## Prerequisites
 
-A low-privilege shell. One of: `env_keep+=LD_PRELOAD` in `sudo -l` output, a SUID binary with an RPATH pointing to a writable directory, or write access to a directory in `/etc/ld.so.conf`. `gcc` available for compiling the library (or cross-compile on attacker).
+- A low-privilege shell
 
-Shared library hijacking exploits the order in which Linux resolves `.so` files. LD_PRELOAD is the simplest — it loads your library before all others — but is stripped for SUID binaries (only works with sudo). RPATH is embedded in the binary and bypasses LD_PRELOAD restrictions, making it exploitable even for SUID. Always run `ldd` on the target binary to see what libraries it loads before writing the payload.
+- One of: `env_keep+=LD_PRELOAD` in `sudo -l` output, a SUID binary with an RPATH pointing to a writable directory, or write access to a directory in `/etc/ld.so.conf`
+
+- `gcc` available for compiling the library (or cross-compile on the attacker box)
+
+- Exploits the order Linux resolves `.so` files — LD_PRELOAD is simplest (loads before all others) but stripped for SUID binaries, only works with sudo
+
+- RPATH is embedded in the binary and bypasses LD_PRELOAD restrictions, making it exploitable even for SUID
+
+- Always run `ldd` on the target binary to see what libraries it loads before writing the payload
 
 ## Quick Win
 
@@ -103,4 +111,10 @@ find / -perm -4000 2>/dev/null -exec ldd {} \; 2>/dev/null | grep "not found"
 
 ## Leads To
 
-LD_PRELOAD with sudo → bash shell as root → root-linux. RPATH hijack → SUID bash created → `/tmp/bash -p` → root. Missing library exploit → same. LD_PRELOAD is dropped for pure SUID binaries — RPATH and ldconfig bypasses work even when LD_PRELOAD is restricted.
+- LD_PRELOAD with sudo → bash shell as root → `root-linux`
+
+- RPATH hijack → SUID bash created → `/tmp/bash -p` → root
+
+- Missing library exploit → same
+
+- LD_PRELOAD is dropped for pure SUID binaries — RPATH and ldconfig bypasses work even when LD_PRELOAD is restricted

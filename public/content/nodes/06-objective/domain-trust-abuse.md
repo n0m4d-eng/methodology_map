@@ -12,9 +12,17 @@ leads_to:
 
 ## Prerequisites
 
-Domain Admin (or equivalent) in the source domain. The krbtgt hash of the source domain (from DCSync). A trust relationship visible via BloodHound or `nltest`. For child-to-parent escalation: the SID of Enterprise Admins in the parent domain. For cross-forest: a valid trust key.
+- Domain Admin (or equivalent) in the source domain
 
-Trust abuse exploits the way Kerberos handles inter-domain authentication. In a parent-child trust, the child domain's krbtgt can forge a TGT with an extra SID (Enterprise Admins SID from the parent) injected into the PAC — the parent's KDC honours it because the trust is transitive. This escalates from Child DA to full control of the parent domain.
+- The krbtgt hash of the source domain (from DCSync)
+
+- A trust relationship visible via BloodHound or `nltest`
+
+- Child-to-parent escalation: the SID of Enterprise Admins in the parent domain
+
+- Cross-forest: a valid trust key
+
+- Exploits transitive Kerberos trust — the child's krbtgt can forge a TGT with an extra Enterprise Admins SID injected into the PAC, which the parent KDC honours
 
 ## Quick Win
 
@@ -105,4 +113,8 @@ mimikatz # sid::add /sam:lowprivuser /new:S-1-5-21-PARENT-SID-519
 
 ## Leads To
 
-Enterprise Admins TGT forged → full control of parent forest → DCSync all parent domain hashes → domain-admin in parent. Cross-forest credential valid → repeat full attack path in new forest. Golden ticket with extra SIDs → persistent cross-domain access.
+- Enterprise Admins TGT forged → full control of parent forest → DCSync all parent domain hashes → `domain-admin` in parent
+
+- Cross-forest credential valid → repeat full attack path in new forest
+
+- Golden ticket with extra SIDs → persistent cross-domain access (`golden-ticket`)

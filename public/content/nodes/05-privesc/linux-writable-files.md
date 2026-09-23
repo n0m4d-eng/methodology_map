@@ -10,9 +10,19 @@ leads_to:
 
 ## Prerequisites
 
-A shell as a low-priv user. `find / -writable -type f 2>/dev/null` or `ls -la` on specific config paths. The most valuable writable files are: `/etc/passwd`, `/etc/sudoers`, `/etc/sudoers.d/*`, `/etc/cron.d/*`, `/etc/systemd/system/*.service`, scripts called by root cron jobs.
+- A shell as a low-priv user
 
-Writing to privileged config files is often faster than chaining SUID or sudo exploits. `/etc/passwd` write lets you add a root-equivalent user with no hash check — the fastest path if you have write access. Writable sudoers grants passwordless sudo. Writable cron.d files execute as root on next tick.
+- `find / -writable -type f 2>/dev/null` or `ls -la` on specific config paths
+
+- Most valuable writable files: `/etc/passwd`, `/etc/sudoers`, `/etc/sudoers.d/*`, `/etc/cron.d/*`, `/etc/systemd/system/*.service`, scripts called by root cron jobs
+
+- Often faster than chaining SUID or sudo exploits
+
+- `/etc/passwd` write lets you add a root-equivalent user with no hash check — the fastest path if you have write access
+
+- Writable sudoers grants passwordless sudo
+
+- Writable cron.d files execute as root on the next tick
 
 ## Quick Win
 
@@ -90,4 +100,6 @@ systemctl restart SERVICE_NAME
 
 ## Leads To
 
-Any of the above → root shell → read `/root/root.txt`. Plant SSH key in `/root/.ssh/authorized_keys` for persistence: `echo PUBKEY >> /root/.ssh/authorized_keys`.
+- Any of the above → root shell → read `/root/root.txt`
+
+- Plant an SSH key in `/root/.ssh/authorized_keys` for persistence: `echo PUBKEY >> /root/.ssh/authorized_keys`

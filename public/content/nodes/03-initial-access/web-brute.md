@@ -12,13 +12,18 @@ leads_to:
 
 ## Prerequisites
 
-A login form discovered during web-enum. Confirm **no lockout policy** exists before running — submit a few intentional wrong passwords and verify the account stays accessible.
+- A login form discovered during web-enum
+
+- Confirm **no lockout policy** exists before running — submit a few intentional wrong passwords and verify the account stays accessible
 
 ## Step 1 — Capture the Form Request
 
-Open browser DevTools → Network tab, submit the login form, then copy the request body exactly. You need:
+> Open browser DevTools → Network tab, submit the login form, then copy the request body exactly.
+
 - The POST path (e.g. `/admin/login.php`)
+
 - Every form field name (e.g. `username=admin&password=test&submit=Login`)
+
 - The string shown on a **failed** login (e.g. `Invalid credentials`)
 
 ## Quick Win — Hydra HTTP POST Form
@@ -81,13 +86,18 @@ ffuf -w /usr/share/wordlists/rockyou.txt:FUZZ \
 
 ## CSRF Tokens
 
-If the login form has a CSRF token field, hydra cannot handle it natively — use Burp Intruder with a session-handling macro, or a custom Python script that fetches a fresh token per request.
+- If the login form has a CSRF token field, hydra cannot handle it natively
 
-Check for CSRF tokens:
+- Use Burp Intruder with a session-handling macro, or a custom Python script that fetches a fresh token per request
+
 ```bash
 curl -s http://$TARGET/login | grep -i "csrf\|token\|nonce" | head -5
 ```
 
 ## Leads To
 
-Admin panel access → look for file upload, command execution, or backup download (rev-shell). Credentials valid on SSH or WinRM → ssh-access. App with SQLi exposure → sqli-rce.
+- Admin panel access → look for file upload, command execution, or backup download → `rev-shell`
+
+- Credentials valid on SSH or WinRM → `ssh-access`
+
+- App with SQLi exposure → `sqli-rce`

@@ -11,9 +11,13 @@ leads_to:
 
 ## Prerequisites
 
-A root shell (any method). The proof file location depends on the exam (`/root/root.txt` for HTB, `/root/proof.txt` for OSCP). Always run `id && hostname` before the cat command so both appear in the same screenshot.
+- A root shell (any method)
 
-Root access on Linux ends the local privilege escalation phase but doesn't mean the engagement is over. Immediately dump `/etc/shadow` for password reuse across other hosts, check network interfaces and routes for additional segments, and plant SSH persistence so you don't lose access if your shell drops.
+- Proof file location depends on the exam — `/root/root.txt` (HTB), `/root/proof.txt` (OSCP)
+
+- Run `id && hostname` before the cat command so both appear in the same screenshot
+
+- Ends local privesc but not the engagement — dump `/etc/shadow` for password reuse, check for additional network segments, plant SSH persistence
 
 ## Quick Win
 
@@ -68,4 +72,10 @@ ss -anp   # internal listeners
 
 ## Leads To
 
-Additional NIC or route found → pivot to new network segment using Chisel or Ligolo-ng. SSH keys found in `/root/.ssh/` → try them against other hosts. Cracked shadow passwords → spray across all known services (SSH, FTP, WinRM, RDP). Internal services on `ss -anp` → port-forward them to your attacker box for further enumeration.
+- Additional NIC or route found → `pivot` to new network segment using Chisel or Ligolo-ng
+
+- SSH keys found in `/root/.ssh/` → try them against other hosts
+
+- Cracked shadow passwords → spray across all known services (SSH, FTP, WinRM, RDP)
+
+- Internal services on `ss -anp` → port-forward them to your attacker box for further enumeration

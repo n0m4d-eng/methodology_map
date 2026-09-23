@@ -10,9 +10,15 @@ leads_to:
 
 ## Prerequisites
 
-A low-privilege shell. A SUID binary that calls another program by bare name (visible via `strings`), OR a root cron job that uses a relative binary name. A writable directory that can be prepended to PATH (usually `/tmp` or `/dev/shm`).
+- A low-privilege shell
 
-PATH hijacking exploits the fact that Linux searches directories in PATH order to find a binary name. If a privileged process calls `backup` instead of `/usr/bin/backup`, and you can put your own `backup` in `/tmp` before `/usr/bin` in the search order, your binary runs with the caller's privileges. Use `pspy64` to watch what cron jobs actually execute, and `strings` on SUID binaries to see what programs they invoke.
+- A SUID binary calling another program by bare name (check with `strings`), or a root cron job using a relative binary name
+
+- A writable directory that can be prepended to PATH (usually `/tmp` or `/dev/shm`)
+
+- Exploits Linux's PATH search order — if a privileged process calls `backup` instead of `/usr/bin/backup`, placing your own `backup` earlier in PATH runs your binary with the caller's privileges
+
+- Use `pspy64` to watch what cron jobs execute, and `strings` on SUID binaries to see what they invoke
 
 ## Quick Win
 
@@ -63,9 +69,15 @@ chmod +x /tmp/service
 ## What to Look For
 
 - World-writable directories already in PATH: `/tmp`, `/dev/shm`
+
 - SUID binary calling another program by bare name (no `/usr/bin/` prefix)
+
 - Cron running as root that calls binaries without full paths
 
 ## Leads To
 
-Malicious binary executes as root → SUID bash created → `/bin/bash -p` → root-linux. Or plant a reverse shell script as the target binary name → rev-shell as root. Use `pspy64` to watch timing and confirm the hijack fires.
+- Malicious binary executes as root → SUID bash created → `/bin/bash -p` → `root-linux`
+
+- Or plant a reverse shell script as the target binary name → reverse shell as root
+
+- Use `pspy64` to watch timing and confirm the hijack fires

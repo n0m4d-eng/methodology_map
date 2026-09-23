@@ -13,9 +13,13 @@ leads_to:
 
 ## Prerequisites
 
-A shell running as `NT AUTHORITY\SYSTEM`. Proof file location: `C:\Users\Administrator\Desktop\proof.txt` (OSCP) or `root.txt` (HTB). Always run `hostname && whoami` alongside the type command for a clean screenshot.
+- A shell running as `NT AUTHORITY\SYSTEM`
 
-SYSTEM access ends the local privilege escalation phase. Immediate priorities: grab the proof file, dump LSASS for any cached domain credentials, dump SAM for local hashes, spray those hashes across the subnet, and check for additional networks or domain controllers to pivot into.
+- Proof file location: `C:\Users\Administrator\Desktop\proof.txt` (OSCP) or `root.txt` (HTB)
+
+- Run `hostname && whoami` alongside the type command for a clean screenshot
+
+- Ends local privesc — immediate priorities: proof file, dump LSASS for cached domain creds, dump SAM for local hashes, spray hashes across subnet, check for additional networks
 
 ## Quick Win
 
@@ -94,4 +98,10 @@ netstat -ano
 
 ## Leads To
 
-Local Administrator hash → pass-the-hash to other machines in the subnet. LSASS dump with domain credentials → domain-admin if a DA was logged in. Additional subnet found → pivot to next segment and restart recon. Domain-joined machine + SYSTEM access → run SharpHound for BloodHound analysis → full AD attack path from here.
+- Local Administrator hash → pass-the-hash to other machines in the subnet
+
+- LSASS dump with domain credentials → `domain-admin` if a DA was logged in
+
+- Additional subnet found → `pivot` to next segment and restart recon
+
+- Domain-joined machine + SYSTEM access → run SharpHound for BloodHound analysis → full AD attack path

@@ -11,9 +11,17 @@ leads_to:
 
 ## Prerequisites
 
-A service account or computer account's NTLM hash (from DCSync, SAM dump, or secretsdump). Domain SID. The SPN of the target service. Unlike Golden Tickets, the DC is never contacted during use — only the target service validates the ticket.
+- A service account or computer account's NTLM hash (from DCSync, SAM dump, or secretsdump)
 
-A Silver Ticket is a forged TGS (service ticket) signed with the NTLM hash of the service account or machine account. It grants access to one specific service on one specific machine. The key advantage over Golden Tickets: no KDC contact during use means no Kerberos logs at the DC. Forge `ldap/$DC` tickets to enable DCSync without DA credentials.
+- Domain SID
+
+- The SPN of the target service
+
+- Unlike Golden Tickets, the DC is never contacted during use — only the target service validates the ticket
+
+- Forged TGS grants access to one specific service on one specific machine — no KDC contact means no Kerberos logs at the DC
+
+- Forge `ldap/$DC` tickets to enable DCSync without DA credentials
 
 ## Quick Win
 
@@ -113,4 +121,10 @@ impacket-secretsdump -k -no-pass domain.local/Administrator@$DC
 
 ## Leads To
 
-cifs silver ticket → SMB shell on target → system-shell. ldap silver ticket → DCSync for domain hashes without DA membership. host silver ticket → schtasks/service manipulation on target. Computer account hash changes every 30 days — use the current hash from a fresh DCSync.
+- `cifs` silver ticket → SMB shell on target → `system-shell`
+
+- `ldap` silver ticket → DCSync for domain hashes without DA membership
+
+- `host` silver ticket → schtasks/service manipulation on target
+
+- Computer account hash changes every 30 days — use the current hash from a fresh DCSync

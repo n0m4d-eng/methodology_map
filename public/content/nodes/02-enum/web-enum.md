@@ -22,9 +22,13 @@ leads_to:
 
 ## Prerequisites
 
-Port 80 or 443 open. Add any vhosts/subdomains to `/etc/hosts` before starting.
+- Port 80 or 443 open
 
-Web enum is about understanding the stack before attacking it. The tech you identify (PHP/Apache vs ASP.NET vs Java) completely changes your extension list, exploit paths, and what default creds to try. Vhost fuzzing is often skipped but catches entire internal apps that don't respond on the IP directly — always run it.
+- Add any vhosts/subdomains to `/etc/hosts` before starting
+
+- Identify the stack before attacking — PHP/Apache vs ASP.NET vs Java changes the extension list, exploit paths, and default creds to try
+
+- Vhost fuzzing is often skipped but catches entire internal apps that don't respond on the IP directly — always run it
 
 ## Quick Win
 
@@ -108,4 +112,14 @@ admin:admin   admin:password   admin:   root:root   guest:guest   test:test
 
 ## Leads To
 
-Login form → try default creds + sqli-rce. File upload → file-upload-shell. URL with `?page=` or `?file=` → lfi-rce. Template-rendered user input → ssti-rce. CMS version hit → public-exploit. Outdated framework version → public-exploit.
+- Login form → try default creds + `sqli-rce`
+
+- File upload → `file-upload-shell`
+
+- URL with `?page=` or `?file=` → `lfi-rce`
+
+- Template-rendered user input → `ssti-rce`
+
+- CMS version hit → `public-exploit`
+
+- Outdated framework version → `public-exploit`

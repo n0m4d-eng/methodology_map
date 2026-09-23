@@ -10,9 +10,15 @@ leads_to:
 
 ## Prerequisites
 
-A field that reflects user input through a server-side template engine — email headers, name fields, search boxes, error messages, or any place where your input appears in the rendered HTML. The engine type determines the injection syntax.
+- A field that reflects user input through a server-side template engine — email headers, name fields, search boxes, error messages, or any place your input appears in the rendered HTML
 
-Server-Side Template Injection happens when user input is evaluated by the template engine rather than treated as a string. Unlike XSS (client-side), SSTI runs on the server — giving you OS command execution under the web server's user. The detection payload `{{7*7}}` is safe and reliable: if you see 49 in the response, the engine is evaluating your input.
+- The engine type determines the injection syntax
+
+- Happens when user input is evaluated by the template engine rather than treated as a string
+
+- Unlike XSS (client-side), SSTI runs on the server — giving OS command execution under the web server's user
+
+- The detection payload `{{7*7}}` is safe and reliable: seeing 49 in the response confirms the engine is evaluating your input
 
 ## Quick Win
 
@@ -78,4 +84,8 @@ tplmap -u "http://$TARGET/page?name=INJECT" --os-shell
 
 ## Leads To
 
-Confirmed RCE → replace `id` with a reverse shell payload and catch with nc. Jinja2 on Flask is the most common OSCP/CPTS scenario — the `os.popen()` chain works on all modern Flask versions. RCE under www-data → rev-shell → linux privesc chain.
+- Confirmed RCE → replace `id` with a reverse shell payload and catch with nc
+
+- Jinja2 on Flask is the most common OSCP/CPTS scenario — the `os.popen()` chain works on all modern Flask versions
+
+- RCE under www-data → `rev-shell` → Linux privesc chain

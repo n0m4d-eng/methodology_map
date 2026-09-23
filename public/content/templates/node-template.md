@@ -35,29 +35,37 @@ references:
   - https://gtfobins.github.io/...
 ---
 
-## Quick Syntax
+# See SCHEMA.md → Content Style for section structure and bullet-style rules.
+# NOTE: leave a blank line between every bullet — required for the bullet CSS to render
+# correctly (see SCHEMA.md), not just style.
+
+## Prerequisites
+
+- What port/service/access must already exist
+
+- Tooling required (only if non-standard)
+
+- One-line "why this works" note if useful — keep it to a single sentence
+
+## Quick Win
+
+> One-line description of the fastest path.
 
 ```bash
 # Primary command — copy-paste ready
 tool --flag value $TARGET
+```
 
-# Variant / alternative
+## Variant Name (optional — add one section per distinct technique variant)
+
+> One-line description of when to use this variant instead.
+
+```bash
 tool2 -u $USER -p $PASS $TARGET
 ```
 
-## When to Use
+## Leads To
 
-- Condition one (what port/service/context must exist)
-- Condition two
-- Prerequisite or dependency
+- Finding one → `target-node-id`
 
-## Steps
-
-1. First step
-2. Second step — explain what to look for in the output
-3. Third step
-
-## Notes
-
-Key gotchas, caveats, or things that commonly trip you up. Exam-specific notes go here.
-Reference related techniques inline when helpful.
+- Finding two → `another-node-id`

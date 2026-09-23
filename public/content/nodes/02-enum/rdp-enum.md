@@ -12,9 +12,13 @@ leads_to:
 
 ## Prerequisites
 
-Port 3389 open (also check 3390, 13389). No credentials needed for fingerprinting and vulnerability scanning.
+- Port 3389 open (also check 3390, 13389)
 
-RDP enumeration tells you what you're dealing with before attempting login. NLA (Network Level Authentication) authenticates before displaying the login screen — brute-force still works but you can't see the OS. The BlueKeep/DejaBlue family of CVEs enables pre-auth RCE, but avoid running exploit modules on live targets — they crash hosts.
+- No credentials needed for fingerprinting and vulnerability scanning
+
+- NLA authenticates before displaying the login screen — brute-force still works but you can't see the OS
+
+- BlueKeep/DejaBlue CVEs enable pre-auth RCE — use scanner modules only, exploit modules crash hosts
 
 ## Quick Win
 
@@ -63,4 +67,10 @@ nxc rdp $CIDR -u administrator -H <NTLM_hash>   # PTH — requires RestrictedAdm
 
 ## Leads To
 
-Valid credentials → rdp-access (GUI session, clipboard, file transfer). BlueKeep/DejaBlue vulnerable → public-exploit → SYSTEM (avoid in unstable environments). Credentials confirmed → password-spray the same creds against SMB, WinRM, and web. RestrictedAdmin mode enabled → Pass-the-Hash RDP with NTLM hash.
+- Valid credentials → `rdp-access` (GUI session, clipboard, file transfer)
+
+- BlueKeep/DejaBlue vulnerable → `public-exploit` → SYSTEM (avoid in unstable environments)
+
+- Credentials confirmed → `password-spray` the same creds against SMB, WinRM, and web
+
+- RestrictedAdmin mode enabled → Pass-the-Hash RDP with NTLM hash

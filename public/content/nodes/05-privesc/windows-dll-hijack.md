@@ -11,9 +11,15 @@ leads_to:
 
 ## Prerequisites
 
-A low-privilege Windows shell. A privileged process (running as SYSTEM or Admin) that loads a DLL from a user-writable directory, or that searches for a DLL that doesn't exist. ProcMon (Sysinternals) to identify missing DLL loads. PowerUp for automated discovery.
+- A low-privilege Windows shell
 
-DLL hijacking exploits Windows's DLL search order — the application directory is checked first, before System32. If a SYSTEM-level service binary lives in a directory you can write to, or if it calls a DLL by name that doesn't exist, you can drop your own DLL there and it runs under the process's identity. Phantom DLLs (missing ones) are the easiest — no need to forward exports.
+- A privileged process (SYSTEM or Admin) that loads a DLL from a user-writable directory, or searches for a DLL that doesn't exist
+
+- ProcMon (Sysinternals) to identify missing DLL loads; PowerUp for automated discovery
+
+- Exploits Windows's DLL search order — the application directory is checked before System32
+
+- Phantom DLLs (missing ones) are easiest — no export forwarding needed
 
 ## Quick Win
 
@@ -91,4 +97,8 @@ sc stop ServiceName && sc start ServiceName
 
 ## Leads To
 
-DLL loaded by SYSTEM process → reverse shell or SUID-equivalent payload as SYSTEM → system-shell. Place DLL in app directory → runs on next service restart or reboot. Phantom DLL is cleanest — no export forwarding needed, lower chance of app crash.
+- DLL loaded by SYSTEM process → reverse shell or SUID-equivalent payload as SYSTEM → `system-shell`
+
+- DLL placed in app directory → runs on next service restart or reboot
+
+- Phantom DLL is cleanest — no export forwarding needed, lower chance of app crash

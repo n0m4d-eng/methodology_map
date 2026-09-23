@@ -11,9 +11,19 @@ leads_to:
 
 ## Prerequisites
 
-Valid domain credentials (any user). Print Spooler service running on the target (`sc query spooler`). Target unpatched (missing KB5004945 or equivalent July 2021 rollup). Port 445 open.
+- Valid domain credentials (any user)
 
-PrintNightmare exploits the Print Spooler's `RpcAddPrinterDriverEx` function to load an arbitrary DLL into the spooler process, which runs as SYSTEM. CVE-2021-1675 is the local privilege escalation variant; CVE-2021-34527 is the remote RCE — the impacket PoC covers the remote path. Domain Controllers commonly have Print Spooler enabled for legacy GPO reasons, making this a direct path to SYSTEM on the DC.
+- Print Spooler service running on the target (`sc query spooler`)
+
+- Target unpatched (missing KB5004945 or equivalent July 2021 rollup)
+
+- Port 445 open
+
+- Exploits `RpcAddPrinterDriverEx` to load an arbitrary DLL into the spooler process, which runs as SYSTEM
+
+- CVE-2021-1675 is the local privesc variant; CVE-2021-34527 is the remote RCE — the impacket PoC covers the remote path
+
+- DCs commonly have Print Spooler enabled for legacy GPO reasons, making this a direct path to SYSTEM on the DC
 
 ## Quick Win
 
@@ -101,4 +111,8 @@ Get-HotFix | Where-Object {$_.HotFixID -in @('KB5004945','KB5004946','KB5004947'
 
 ## Leads To
 
-Successful exploit → DLL runs as SYSTEM → reverse shell as `NT AUTHORITY\SYSTEM` or backdoor admin account. On a DC, SYSTEM access → dump NTDS.dit via `impacket-secretsdump` for all domain hashes → domain-admin. Backdoor account added → RDP in as local admin → full workstation control.
+- Successful exploit → DLL runs as SYSTEM → reverse shell as `NT AUTHORITY\SYSTEM` or backdoor admin account
+
+- On a DC, SYSTEM access → dump NTDS.dit via `impacket-secretsdump` for all domain hashes → domain-admin
+
+- Backdoor account added → RDP in as local admin → full workstation control

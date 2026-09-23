@@ -12,9 +12,13 @@ leads_to:
 
 ## Prerequisites
 
-A parameter that fetches a URL or makes an outbound request — `url=`, `fetch=`, `redirect=`, `src=`, `path=`, `file=`, image loaders, PDF generators, webhook endpoints. Confirm with a request to your Burp Collaborator or interactserver.
+- A parameter that fetches a URL or makes an outbound request — `url=`, `fetch=`, `redirect=`, `src=`, `path=`, `file=`, image loaders, PDF generators, webhook endpoints
 
-SSRF forces the application's server to make requests internally. The server has access to `localhost`, internal subnets, and cloud metadata services (169.254.169.254) that you can't reach directly. The critical question after confirmation is: what's listening internally that isn't exposed externally?
+- Confirm with a request to your Burp Collaborator or interactsh server
+
+- The server has access to `localhost`, internal subnets, and cloud metadata services (169.254.169.254) that you can't reach directly
+
+- Critical question after confirmation: what's listening internally that isn't exposed externally?
 
 ## Quick Win
 
@@ -98,4 +102,10 @@ gopher://127.0.0.1:6379/... # Raw TCP via gopher
 
 ## Leads To
 
-Internal Redis found → enumerate and exploit (ssh key injection, cron write). Cloud metadata returns IAM token → use with aws-cli for further enumeration or credential exfil → linux-cred-hunting. File read via `file://` → `/etc/passwd`, app configs, SSH keys. Internal admin panels → may expose further injection points or file uploads.
+- Internal Redis found → enumerate and exploit (SSH key injection, cron write)
+
+- Cloud metadata returns IAM token → use with aws-cli for further enumeration or credential exfil → `linux-cred-hunting`
+
+- File read via `file://` → `/etc/passwd`, app configs, SSH keys
+
+- Internal admin panels → may expose further injection points or file uploads

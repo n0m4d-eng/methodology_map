@@ -11,9 +11,13 @@ leads_to:
 
 ## Prerequisites
 
-Port 53 TCP/UDP open. A domain name to enumerate (get from SMB banner, SSL cert, or web server headers).
+- Port 53 TCP/UDP open
 
-DNS enumeration finds targets that don't show up in port scans. A zone transfer (AXFR) on a misconfigured server dumps every hostname in the domain in one request. Even without a zone transfer, brute-forcing subdomains reveals internal apps, dev instances, and management interfaces that live behind different vhosts.
+- A domain name to enumerate (get from SMB banner, SSL cert, or web server headers)
+
+- A zone transfer (AXFR) on a misconfigured server dumps every hostname in the domain in one request
+
+- Even without a zone transfer, brute-forcing subdomains reveals internal apps, dev instances, and management interfaces behind different vhosts
 
 ## Quick Win
 
@@ -53,4 +57,8 @@ nslookup $TARGET_IP $DNS_SERVER
 
 ## Leads To
 
-Every discovered hostname goes into `/etc/hosts`, then into nmap-scan (new IPs) or web-enum (new vhosts). Zone transfer success is a separate security finding — document it. Internal hostnames like `dev.domain.local`, `internal.domain.local` frequently expose unpatched apps or admin panels.
+- Every discovered hostname → `/etc/hosts` → `nmap-scan` (new IPs) or `web-enum` (new vhosts)
+
+- Zone transfer success is a separate security finding — document it
+
+- Internal hostnames like `dev.domain.local`, `internal.domain.local` frequently expose unpatched apps or admin panels

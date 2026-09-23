@@ -12,9 +12,21 @@ leads_to:
 
 ## Prerequisites
 
-Valid domain credentials. A machine or account with delegation configured — visible in BloodHound as `AllowedToDelegate` or `AllowedToActOnBehalfOf` edges. For unconstrained: admin access to the delegation machine. For RBCD: write access to `msDS-AllowedToActOnBehalfOfOtherIdentity` on the target computer.
+- Valid domain credentials
 
-Delegation allows a service to authenticate to other services on behalf of a user. Unconstrained delegation caches TGTs of any authenticating user, making it a TGT harvesting vector. Constrained delegation allows S4U2Proxy to request service tickets as any user. RBCD (Resource-Based Constrained Delegation) is the most commonly exploited — if you can write to a computer object, you can configure it to accept delegation from any account you control.
+- A machine or account with delegation configured — visible in BloodHound as `AllowedToDelegate` or `AllowedToActOnBehalfOf` edges
+
+- Unconstrained delegation: admin access to the delegation machine
+
+- RBCD: write access to `msDS-AllowedToActOnBehalfOfOtherIdentity` on the target computer
+
+- Delegation lets a service authenticate to other services on a user's behalf
+
+- Unconstrained delegation caches TGTs of any authenticating user — a TGT harvesting vector
+
+- Constrained delegation allows S4U2Proxy to request service tickets as any user
+
+- RBCD is the most commonly exploited — write access to a computer object lets you configure it to accept delegation from any account you control
 
 ## Quick Win
 
@@ -104,4 +116,8 @@ KRB5CCNAME=Administrator.ccache impacket-psexec -k -no-pass domain.local/Adminis
 
 ## Leads To
 
-Unconstrained delegation + DC TGT → PTT → access everything the DC can access → domain-admin. Constrained delegation S4U2Proxy → SYSTEM shell on the target service host. RBCD → impersonate Administrator on the target machine → SYSTEM shell → dump SAM for lateral movement.
+- Unconstrained delegation + DC TGT → PTT → access everything the DC can access → `domain-admin`
+
+- Constrained delegation S4U2Proxy → SYSTEM shell on the target service host → `system-shell`
+
+- RBCD → impersonate Administrator on the target machine → SYSTEM shell → dump SAM for lateral movement → `pass-the-hash`

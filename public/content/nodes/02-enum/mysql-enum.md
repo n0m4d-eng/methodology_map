@@ -13,9 +13,15 @@ leads_to:
 
 ## Prerequisites
 
-Port 3306 open. `root` with no password or a weak password is the most common entry point. File operations require the `FILE` privilege and a writable path.
+- Port 3306 open
 
-MySQL running as root with no password is a frequent misconfiguration in exam environments. Even with a low-privilege user, reading files via `load_file()` can expose SSH keys or passwords. Writing to the web root with `INTO OUTFILE` drops a web shell without touching the filesystem directly — check `secure_file_priv` first to confirm file operations aren't blocked.
+- `root` with no password or a weak password is the most common entry point
+
+- File operations require the `FILE` privilege and a writable path
+
+- Reading files via `load_file()` can expose SSH keys or passwords even as a low-privilege user
+
+- `INTO OUTFILE` drops a web shell to the web root — check `secure_file_priv` first to confirm file ops aren't blocked
 
 ## Quick Win
 
@@ -71,4 +77,12 @@ select "<?php system($_GET['cmd']); ?>" into outfile '/var/www/html/shell.php';
 
 ## Leads To
 
-Web shell written → rev-shell. SSH key read → ssh-access. Credentials found in databases → password-spray. Write to cron path on Linux MySQL running as root → rev-shell. If running as root OS user, `xp_cmdshell` equivalent doesn't exist in MySQL, but UDF injection can execute OS commands.
+- Web shell written → `rev-shell`
+
+- SSH key read → `ssh-access`
+
+- Credentials found in databases → `password-spray`
+
+- Write to cron path on Linux MySQL running as root → `rev-shell`
+
+- No `xp_cmdshell` equivalent in MySQL, but UDF injection can execute OS commands if running as root OS user

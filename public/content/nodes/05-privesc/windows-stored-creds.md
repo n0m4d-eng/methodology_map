@@ -13,9 +13,17 @@ leads_to:
 
 ## Prerequisites
 
-A low-privilege Windows shell. No special permissions required — these are all readable by the current user. Run all checks immediately on landing, before doing anything else.
+- A low-privilege Windows shell
 
-Windows stores credentials in multiple locations: the Credential Manager (accessible via `cmdkey`), the registry (Winlogon autologon entries are plaintext), PowerShell command history, and application config files. LaZagne automates extraction across all credential stores including browsers. These credentials frequently belong to administrators and are often reused across the domain.
+- No special permissions required — all readable by the current user
+
+- Run all checks immediately on landing, before doing anything else
+
+- Credentials live in Credential Manager (`cmdkey`), the registry (Winlogon autologon, plaintext), PowerShell history, and application config files
+
+- LaZagne automates extraction across all credential stores including browsers
+
+- Frequently belong to administrators and are often reused across the domain
 
 ## Quick Win
 
@@ -88,4 +96,10 @@ type C:\inetpub\wwwroot\web.config 2>nul
 
 ## Leads To
 
-Winlogon plaintext credential → try it for WinRM access (winrm) or RDP. NTLM hash extracted → pass-the-hash across subnet. `cmdkey` Administrator saved → `runas /savecred` for immediate SYSTEM context → system-shell. KeePass database found → extract master password → full credential store access.
+- Winlogon plaintext credential → try it for WinRM access (`winrm`) or RDP
+
+- NTLM hash extracted → pass-the-hash across subnet
+
+- `cmdkey` Administrator saved → `runas /savecred` for immediate SYSTEM context → `system-shell`
+
+- KeePass database found → extract master password → full credential store access

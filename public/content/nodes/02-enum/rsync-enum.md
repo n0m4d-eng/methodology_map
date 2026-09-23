@@ -11,9 +11,13 @@ leads_to:
 
 ## Prerequisites
 
-Port 873 TCP open. No credentials required when modules allow unauthenticated access (the default for many setups).
+- Port 873 TCP open
 
-Rsync is a file sync tool that exposes "modules" — named directory shares. Unauthenticated access to a home directory module is effectively game over: you can read SSH keys or write your own public key into `authorized_keys` and SSH in directly. Even read-only access to `/etc` or `/var/www` routinely yields credentials and configs.
+- No credentials required when modules allow unauthenticated access (the default for many setups)
+
+- Unauthenticated access to a home directory module is effectively game over — read SSH keys or write your own public key into `authorized_keys`
+
+- Read-only access to `/etc` or `/var/www` routinely yields credentials and configs
 
 ## Quick Win
 
@@ -70,4 +74,10 @@ ssh -i /tmp/evil_rsa user@$TARGET
 
 ## Leads To
 
-Home directory exposed with write access → SSH key injection → ssh-access immediately. Config files with credentials → password-spray or direct auth on other services. Web root exposed with write access → drop a web shell → rev-shell. Module names to try: `home`, `backup`, `www`, `var`, `etc`, `data`.
+- Home directory exposed with write access → SSH key injection → `ssh-access` immediately
+
+- Config files with credentials → `password-spray` or direct auth on other services
+
+- Web root exposed with write access → drop a web shell → `rev-shell`
+
+- Module names to try: `home`, `backup`, `www`, `var`, `etc`, `data`

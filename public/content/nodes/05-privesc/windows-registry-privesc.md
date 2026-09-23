@@ -10,9 +10,15 @@ leads_to:
 
 ## Prerequisites
 
-A low-priv shell. winPEAS or PowerUp will flag these automatically. Check manually with reg query commands. AlwaysInstallElevated is the most commonly intended path in exam environments — check it first.
+- A low-privilege Windows shell
 
-Registry privesc is a reliable winPEAS finding on older or misconfigured Windows systems. AlwaysInstallElevated is the most common exam path — both HKCU and HKLM keys must be set to 1. Writable service registry keys let you replace the binary path. AutoRun entries in writable locations execute on login.
+- winPEAS or PowerUp to flag these automatically, or check manually with `reg query`
+
+- AlwaysInstallElevated is the most commonly intended path in exam environments — check it first (both HKCU and HKLM keys must be set to 1)
+
+- Writable service registry keys let you replace the binary path
+
+- AutoRun entries in writable locations execute on login
 
 ## Quick Win
 
@@ -83,4 +89,10 @@ icacls "C:\Program Files\Vulnerable App"
 
 ## Leads To
 
-AlwaysInstallElevated MSI executed → SYSTEM shell. Writable service key → service restart → SYSTEM. AutoRun binary replaced → waits for user login (or reboot) → SYSTEM. Unquoted path binary planted → service restart → SYSTEM.
+- AlwaysInstallElevated MSI executed → `system-shell`
+
+- Writable service key modified → service restart → SYSTEM
+
+- AutoRun binary replaced → waits for user login (or reboot) → SYSTEM
+
+- Unquoted path binary planted → service restart → SYSTEM

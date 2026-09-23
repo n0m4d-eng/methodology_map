@@ -12,9 +12,15 @@ leads_to:
 
 ## Prerequisites
 
-`GenericWrite` or `WriteProperty` over the target user or computer object (visible in BloodHound as these exact edge types). ADCS or at least a KDC that supports PKINIT (Windows Server 2016+). pywhisker or certipy to perform the write.
+- `GenericWrite` or `WriteProperty` over the target user or computer object (BloodHound edge types)
 
-Shadow Credentials abuses the `msDS-KeyCredentialLink` attribute, which stores certificate-based credentials for Windows Hello for Business. If you can write to this attribute on any account, you add your own certificate, then use it to authenticate via PKINIT — the KDC returns a TGT and, via U2U (user-to-user) authentication, the NT hash. Unlike ForceChangePassword, you don't modify the account's password, making this significantly stealthier.
+- ADCS or a KDC that supports PKINIT (Windows Server 2016+)
+
+- pywhisker or certipy to perform the write
+
+- Abuses `msDS-KeyCredentialLink` (Windows Hello for Business certs) — add your own cert, authenticate via PKINIT, recover the NT hash via U2U
+
+- Doesn't modify the account's password, unlike ForceChangePassword — significantly stealthier
 
 ## Quick Win
 
@@ -79,4 +85,10 @@ python3 pywhisker.py -d $DOMAIN -u $USER -p $PASS \
 
 ## Leads To
 
-NT hash of target user obtained → pass-the-hash with evil-winrm or wmiexec. If target is a DA account → domain-admin immediately. Machine account hash from computer object → S4U2Self to impersonate local admin, or DCSync if it's a DC machine account. Clean up the `msDS-KeyCredentialLink` entry afterward — it's a detectable artifact.
+- NT hash of target user obtained → pass-the-hash with evil-winrm or wmiexec
+
+- Target is a DA account → `domain-admin` immediately
+
+- Machine account hash from computer object → S4U2Self to impersonate local admin, or DCSync if it's a DC machine account
+
+- Clean up the `msDS-KeyCredentialLink` entry afterward — it's a detectable artifact

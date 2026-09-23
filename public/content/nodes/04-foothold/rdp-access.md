@@ -15,9 +15,17 @@ leads_to:
 
 ## Prerequisites
 
-Port 3389 open. Valid Windows credentials or NTLM hash (xfreerdp supports pass-the-hash natively). User must be in the Remote Desktop Users group or local Administrators. NLA (Network Level Authentication) may require valid credentials before the connection is established.
+- Port 3389 open
 
-RDP gives a full Windows GUI session — useful when tools require interactive input, when you need to click through UAC prompts, or when working with browser-based admin panels. For shell-only work, WinRM is faster. Use RDP when you need the desktop.
+- Valid Windows credentials or NTLM hash (xfreerdp supports pass-the-hash natively)
+
+- User must be in the Remote Desktop Users group or local Administrators
+
+- NLA (Network Level Authentication) may require valid credentials before the connection is established
+
+- Gives a full Windows GUI session — useful for interactive tools, clicking through UAC prompts, or browser-based admin panels
+
+- For shell-only work, WinRM is faster — use RDP when you need the desktop
 
 ## Quick Win
 
@@ -47,4 +55,10 @@ nxc rdp $TARGET -u user -p password
 
 ## Leads To
 
-GUI session → open PowerShell as Administrator → `whoami /priv` for token impersonation → GodPotato/PrintSpoofer for SYSTEM. GUI access → install and run BloodHound ingestor interactively. UAC bypass required → test fodhelper/eventvwr registry hijacks from an elevated prompt. Credential Manager visible in GUI → windows-stored-creds.
+- GUI session → open PowerShell as Administrator → `whoami /priv` for token impersonation → GodPotato/PrintSpoofer for SYSTEM
+
+- GUI access → install and run BloodHound ingestor interactively
+
+- UAC bypass required → test fodhelper/eventvwr registry hijacks from an elevated prompt
+
+- Credential Manager visible in GUI → `windows-stored-creds`

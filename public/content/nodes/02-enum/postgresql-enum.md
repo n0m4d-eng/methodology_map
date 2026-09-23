@@ -12,9 +12,13 @@ leads_to:
 
 ## Prerequisites
 
-Port 5432 open (sometimes 5433). The `postgres` superuser with no password or a weak password is the most common entry point.
+- Port 5432 open (sometimes 5433)
 
-PostgreSQL's `COPY TO PROGRAM` feature allows superusers to execute arbitrary OS commands, making it one of the cleanest SQL-to-RCE paths available. The `postgres` OS user on Linux almost always has passwordless sudo or sudo rules — getting a shell as the service account frequently means an immediate path to root.
+- `postgres` superuser with no password or a weak password is the most common entry point
+
+- `COPY TO PROGRAM` lets superusers execute arbitrary OS commands — one of the cleanest SQL-to-RCE paths
+
+- The `postgres` OS user on Linux almost always has passwordless sudo or sudo rules — a shell as the service account often means an immediate path to root
 
 ## Quick Win
 
@@ -78,4 +82,10 @@ SELECT lo_get(<OID>);
 
 ## Leads To
 
-Superuser + `COPY TO PROGRAM` → rev-shell as postgres service account → check `sudo -l` (postgres OS user often has passwordless sudo). Web shell written → rev-shell via web. File read reveals SSH keys or credentials → ssh-access or password-spray. Non-superuser → `lo_import` for file read → look for keys and configs.
+- Superuser + `COPY TO PROGRAM` → `rev-shell` as postgres service account → check `sudo -l` (often passwordless)
+
+- Web shell written → `rev-shell` via web
+
+- File read reveals SSH keys or credentials → `ssh-access` or `password-spray`
+
+- Non-superuser → `lo_import` for file read → look for keys and configs

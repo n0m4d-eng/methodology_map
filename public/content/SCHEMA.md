@@ -32,7 +32,8 @@ references    array     external URLs: HackTricks, GTFOBins, IPPSEC, OffSec docs
 ```
 
 Body (below `---`): full technique notes in markdown. Use `##` sections.
-Recommended sections: Quick Syntax · When to Use · Steps · Notes
+Structure: `Prerequisites` · `Quick Win` · one or more technique-specific sections · `Leads To`.
+See **Content Style** below for how to write each section.
 
 ---
 
@@ -146,6 +147,67 @@ default gray style.
 - A node can `leads_to` multiple targets (diverging path)
 - Multiple nodes can `leads_to` the same target (converging path — DAG, not tree)
 - Cycles are not meaningful — the graph represents methodology, not loops
+
+---
+
+## Content Style (Cheat-Sheet Format)
+
+Node bodies should read like a quick-reference cheat sheet, not a written walkthrough — a
+reader should know what's needed and what to run within a few seconds of opening the panel.
+
+**Structure (all node bodies follow this shape):**
+1. `## Prerequisites` — what's needed to attempt this technique
+2. `## Quick Win` — the fastest path, as a one-line blockquote + code block
+3. One or more technique-specific sections — each with a one-line blockquote above its code block
+4. `## Leads To` — where this technique chains next
+
+**Bullets over prose.** `Prerequisites` and `Leads To` are the two sections most prone to
+turning into paragraphs — keep them as short bullet lists instead. A one-line "why this
+works" note may follow as italic or blockquote text, but multi-sentence paragraphs should be
+cut down to their bullet points.
+
+Before:
+```markdown
+## Prerequisites
+
+Port 22 open. Valid credentials, a private key found during enumeration (LFI, share access,
+file read), or a username list for brute force. SSH is rarely brute-forced directly — most
+SSH footholds come from credentials found elsewhere.
+```
+
+After:
+```markdown
+## Prerequisites
+
+- Port 22 open
+
+- Valid credentials, a private key found during enumeration, or a username list for brute force
+
+- Rarely brute-forced directly — most SSH footholds come from credentials found elsewhere
+```
+
+**Blank line between every bullet — this is required, not stylistic.** Markdown only wraps
+each `<li>`'s content in a `<p>` tag ("loose list") when there's a blank line between items;
+the site's bullet CSS (`.body-html ul li`, a flex row with the `–` marker as `::before`) relies
+on that `<p>` wrapper for its text to wrap correctly. Bullets written without blank lines
+render as "tight" list items — the marker and text break onto separate, oddly-spaced lines
+instead of flowing together. Always put one blank line between consecutive `- ` bullets.
+
+**Tables stay tables — never bulletize them.** Any table cell containing a `→` character is a
+routing table: the app makes the text after the arrow a clickable link to that node id (see
+"Route by Finding" in `nmap-scan.md`). Converting a routing table to bullets or prose breaks
+in-app navigation. Non-routing reference tables (flags, capabilities, comparisons) are already
+scannable as tables and don't need converting either — leave both kinds of table exactly as-is.
+
+**`Leads To` bullets vs. the Leads To accordion.** The bullets under `## Leads To` are for
+human scanning (e.g. `` - SUID binary found → `linux-suid-caps` ``) — write them as plain list
+text, not inside a table, so they don't trigger the routing-link behavior. Click-to-navigate is
+already provided separately by the "LEADS TO (N)" accordion, which is generated from the
+node's `leads_to` frontmatter, not from this body text.
+
+For a worked example spanning a routing table, a reference table, and a pure-bullets case, see
+`content/nodes/01-recon/nmap-scan.md`, `content/nodes/05-privesc/linux-suid-caps.md`, and
+`content/nodes/04-foothold/ssh-access.md`.
 
 ---
 

@@ -13,9 +13,15 @@ leads_to:
 
 ## Prerequisites
 
-A hash to crack: NTLMv2 from Responder/relay, AS-REP blob from ASREPRoasting, TGS blob from Kerberoasting, NT hash from SAM/NTDS dump, or `/etc/shadow` line from Linux file read. hashcat with GPU is preferred; john on CPU is the fallback.
+- A hash to crack: NTLMv2 (Responder/relay), AS-REP blob (ASREPRoasting), TGS blob (Kerberoasting), NT hash (SAM/NTDS dump), or an `/etc/shadow` line (Linux file read)
 
-Cracking is the bridge between hash capture and credential use. The hash type determines the mode — identify it before running hashcat. For exam environments, always try rockyou.txt first with rules; most passwords are weak variants. RC4 Kerberos tickets (`$krb5tgs$23$`) crack orders of magnitude faster than AES256 (`$krb5tgs$18$`).
+- hashcat with GPU is preferred; john on CPU is the fallback
+
+- Identify the hash type before running hashcat — it determines the mode
+
+- Try rockyou.txt with rules first for exam/lab targets — most passwords are weak variants
+
+- RC4 Kerberos tickets (`$krb5tgs$23$`) crack orders of magnitude faster than AES256 (`$krb5tgs$18$`)
 
 ## Quick Win
 
@@ -101,4 +107,10 @@ john unshadowed.txt --wordlist=/usr/share/wordlists/rockyou.txt
 
 ## Leads To
 
-Cracked NTLMv2 → password-spray across subnets, or direct winrm/rdp-access if it's a domain account. Cracked AS-REP or TGS → spray the password or use for bloodhound enumeration with new account. Cracked Linux shadow hash → ssh-access with that password. Cracked NT hash → pass-the-hash (use hash directly, no need to crack to plaintext).
+- Cracked NTLMv2 → `password-spray` across subnets, or direct `winrm`/`rdp-access` if it's a domain account
+
+- Cracked AS-REP or TGS → spray the password, or use the new account for BloodHound enumeration
+
+- Cracked Linux shadow hash → `ssh-access` with that password
+
+- Cracked NT hash → `pass-the-hash` directly — no need to crack it to plaintext

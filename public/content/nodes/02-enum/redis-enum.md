@@ -12,9 +12,15 @@ leads_to:
 
 ## Prerequisites
 
-Port 6379 open. Authentication is disabled by default on older Redis installs. The SSH key injection technique requires Redis running as root or as the target user.
+- Port 6379 open
 
-Redis is an in-memory key-value store that, when exposed without authentication, lets you reconfigure the server's persistence paths. Writing your public key to `authorized_keys` via Redis requires only network access — no exploit, no password. If Redis isn't running as root, check `config get dir` to see what user it runs as and what paths it can write.
+- Authentication is disabled by default on older Redis installs
+
+- SSH key injection requires Redis running as root or as the target user
+
+- Unauthenticated access lets you reconfigure the server's persistence paths — writing to `authorized_keys` needs only network access
+
+- If not running as root, check `config get dir` to see what user it runs as and what paths it can write
 
 ## Quick Win
 
@@ -69,4 +75,10 @@ redis-cli -h $TARGET
 
 ## Leads To
 
-SSH key injection → ssh-access as root (immediate). Web shell write → rev-shell. Stored keys/tokens in Redis data → try against other services. If running as non-root, check what home directory is writable and repeat the authorized_keys technique for that user.
+- SSH key injection → `ssh-access` as root (immediate)
+
+- Web shell write → `rev-shell`
+
+- Stored keys/tokens in Redis data → try against other services
+
+- Running as non-root → check what home directory is writable and repeat the `authorized_keys` technique for that user

@@ -13,9 +13,15 @@ leads_to:
 
 ## Prerequisites
 
-A low-privilege shell with read access to `/var/www/`, `/opt/`, and home directories. This runs in parallel with other privesc checks — start the find commands and let them run while you check sudo/SUID.
+- A low-privilege shell with read access to `/var/www/`, `/opt/`, and home directories
 
-Credentials found in one place almost always reappear somewhere else. A MySQL password in a PHP config might also be the system user's password or the SSH passphrase. Shell history reveals commands typed as root during testing. SSH keys found in one home directory often unlock access to other machines.
+- Runs in parallel with other privesc checks — start the find commands and let them run while you check sudo/SUID
+
+- Credentials found in one place almost always reappear elsewhere — a MySQL password in a PHP config might also be the system user's password or SSH passphrase
+
+- Shell history reveals commands typed as root during testing
+
+- SSH keys found in one home directory often unlock access to other machines
 
 ## Quick Win
 
@@ -72,4 +78,10 @@ find / -name "*.db" -o -name "*.sqlite" -o -name "*.sqlite3" 2>/dev/null
 
 ## Leads To
 
-Database password found → try it as the current user's sudo password → linux-sudo. SSH private key found → `ssh -i id_rsa root@$TARGET` or lateral movement to other hosts. System user password in config → `su root` or `sudo -i`. `/etc/shadow` readable (via SUID or capability) → crack hashes offline → root-linux or password spray across network.
+- Database password found → try as the current user's sudo password → `linux-sudo`
+
+- SSH private key found → `ssh -i id_rsa root@$TARGET` or lateral movement to other hosts → `ssh-access`
+
+- System user password in config → `su root` or `sudo -i` → `root-linux`
+
+- `/etc/shadow` readable (via SUID or capability) → crack hashes offline → `root-linux` or `password-spray` across the network

@@ -11,9 +11,13 @@ leads_to:
 
 ## Prerequisites
 
-A domain name or company name. No credentials required — this is all public data.
+- A domain name or company name
 
-Passive recon builds your target picture before you make a single packet hit the target. It's more impactful in real engagements and CPTS external assessments than in OSCP CTF boxes, but user lists from LinkedIn and subdomains from certificate transparency can unlock password spraying and vhost discovery that active scanning alone would miss.
+- No credentials required — this is all public data
+
+- More impactful in real engagements and CPTS external assessments than OSCP CTF boxes
+
+- User lists from LinkedIn and subdomains from certificate transparency can unlock password spraying and vhost discovery that active scanning alone would miss
 
 ## Quick Win
 
@@ -69,4 +73,8 @@ shodan search "hostname:$DOMAIN"
 
 ## Leads To
 
-Subdomains discovered → add to `/etc/hosts` → feed into web-enum and dns-enum. User lists from LinkedIn/email harvesting → format to `firstname.lastname` → use in password-spray. Any login portals found → try breach credentials immediately.
+- Subdomains discovered → add to `/etc/hosts` → feed into `web-enum` and `dns-enum`
+
+- User lists from LinkedIn/email harvesting → format to `firstname.lastname` → use in `password-spray`
+
+- Login portals found → try breach credentials immediately

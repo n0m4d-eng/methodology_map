@@ -10,9 +10,19 @@ leads_to:
 
 ## Prerequisites
 
-A local shell. The target kernel version must match a known CVE. Kernel exploits are last resort — try sudo, SUID, cron, and credential hunting first. A crash from a bad kernel exploit can kill the machine and cost you exam points.
+- A local shell
 
-Kernel exploits bypass all permission checks at the OS level, giving direct root access. PwnKit targets `pkexec` (a SUID binary), making it stable and crash-safe unlike pure kernel memory exploits. DirtyPipe writes to read-only files via a pipe race condition. Always identify the kernel version and distro before selecting an exploit.
+- Target kernel version must match a known CVE
+
+- Last resort — try sudo, SUID, cron, and credential hunting first; a bad kernel exploit can crash the machine and cost exam points
+
+- Kernel exploits bypass all permission checks at the OS level for direct root access
+
+- PwnKit targets `pkexec` (a SUID binary) — stable and crash-safe unlike pure kernel memory exploits
+
+- DirtyPipe writes to read-only files via a pipe race condition
+
+- Always identify the kernel version and distro before selecting an exploit
 
 ## Quick Win
 
@@ -63,4 +73,10 @@ gcc -o /tmp/dpipe exploit.c && /tmp/dpipe /usr/bin/sudo
 
 ## Leads To
 
-Kernel exploit fires → root shell → root-linux. PwnKit gives you a bash root shell directly. DirtyPipe allows overwriting the SUID bit on any binary or injecting into a root process. After root, dump `/etc/shadow` for password reuse and check network interfaces for additional segments to pivot into.
+- Kernel exploit fires → root shell → `root-linux`
+
+- PwnKit gives a bash root shell directly
+
+- DirtyPipe allows overwriting the SUID bit on any binary or injecting into a root process
+
+- After root, dump `/etc/shadow` for password reuse and check network interfaces for additional segments to pivot into

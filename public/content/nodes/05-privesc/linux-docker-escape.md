@@ -10,9 +10,15 @@ leads_to:
 
 ## Prerequisites
 
-A shell inside a Docker container. Check with `cat /proc/1/cgroup | grep docker` or `ls /.dockerenv`. One of: accessible `/var/run/docker.sock`, `--privileged` flag set, or `CAP_SYS_ADMIN` capability present.
+- A shell inside a Docker container — check with `cat /proc/1/cgroup | grep docker` or `ls /.dockerenv`
 
-Docker containers share the host kernel, so privileged access within a container often means privileged access to the host. The docker socket is the biggest risk — it gives full daemon API control, letting you spin up a new container that mounts the host filesystem with no restrictions. Privileged containers have all capabilities and device access, making direct host disk mounting trivial.
+- One of: accessible `/var/run/docker.sock`, `--privileged` flag set, or `CAP_SYS_ADMIN` capability present
+
+- Containers share the host kernel — privileged access inside often means privileged access on the host
+
+- The docker socket is the biggest risk — full daemon API control lets you spin up a container that mounts the host filesystem with no restrictions
+
+- Privileged containers have all capabilities and device access, making direct host disk mounting trivial
 
 ## Quick Win
 
@@ -105,4 +111,10 @@ cp /bin/bash /mnt/hostpath/bash && chmod +s /mnt/hostpath/bash
 
 ## Leads To
 
-Socket escape → chroot to host → root on the host machine → root-linux. Privileged container → same. Host filesystem writable → plant SSH key → SSH directly to host as root. After escaping, enumerate other containers and internal services for additional pivot paths.
+- Socket escape → chroot to host → root on the host machine → `root-linux`
+
+- Privileged container escape → same
+
+- Host filesystem writable → plant SSH key → SSH directly to host as root
+
+- After escaping, enumerate other containers and internal services for additional pivot paths

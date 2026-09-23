@@ -11,9 +11,17 @@ leads_to:
 
 ## Prerequisites
 
-ADCS with Web Enrollment enabled (HTTP endpoint at `http://CA/certsrv`). At least one other machine with SMB signing disabled, or ability to coerce DC authentication (PetitPotam, SpoolSample). The relay catches the DC machine account auth and uses it to request a certificate as the DC.
+- ADCS with Web Enrollment enabled (HTTP endpoint at `http://CA/certsrv`)
 
-ESC8 is NTLM relay to ADCS. It's the combination of a relay target (ADCS Web Enrollment) and a coercion primitive (PetitPotam, Responder, SpoolSample). The DC machine account (`DC$`) has permissions to enroll in the `DomainController` template. Certificate for `DC$` → PKINIT auth as DC → DC's NT hash via U2U → DCSync.
+- At least one other machine with SMB signing disabled, or ability to coerce DC authentication (PetitPotam, SpoolSample)
+
+- Relay catches the DC machine account auth and uses it to request a certificate as the DC
+
+- NTLM relay to ADCS — combines a relay target (ADCS Web Enrollment) with a coercion primitive (PetitPotam, Responder, SpoolSample)
+
+- DC machine account (`DC$`) has permissions to enroll in the `DomainController` template
+
+- Chain: certificate for `DC$` → PKINIT auth as DC → DC's NT hash via U2U → DCSync
 
 ## Quick Win
 
@@ -83,4 +91,6 @@ impacket-secretsdump -hashes :$DC_NT_HASH '$DOMAIN/DC$'@$DC_IP
 
 ## Leads To
 
-DC certificate → DC NT hash → DCSync all domain hashes (krbtgt, Administrator) → domain-admin and golden-ticket. No DA credentials required at any step — only network access and an unpatched ADCS server.
+- DC certificate → DC NT hash → DCSync all domain hashes (krbtgt, Administrator) → `domain-admin` and golden-ticket
+
+- No DA credentials required at any step — only network access and an unpatched ADCS server

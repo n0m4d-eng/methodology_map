@@ -15,9 +15,17 @@ leads_to:
 
 ## Prerequisites
 
-Any valid domain user credential (even low-privilege). The domain must have service accounts with SPNs configured (run BloodHound first to confirm targets).
+- Any valid domain user credential (even low-privilege)
 
-Kerberoasting asks the KDC to issue a TGS for every service account SPN in the domain — no special permissions needed. The TGS is encrypted with the service account's password hash and can be cracked offline. RC4-encrypted tickets (`$krb5tgs$23$`) crack much faster than AES (`$krb5tgs$18$`). Service accounts are high-value targets because their passwords are rarely rotated and often weak.
+- Domain must have service accounts with SPNs configured (run BloodHound first to confirm targets)
+
+- Requests a TGS for every service account SPN in the domain — no special permissions needed
+
+- TGS is encrypted with the service account's password hash and can be cracked offline
+
+- RC4-encrypted tickets (`$krb5tgs$23$`) crack much faster than AES (`$krb5tgs$18$`)
+
+- Service accounts are high-value — passwords are rarely rotated and often weak
 
 ## Quick Win
 
@@ -49,4 +57,8 @@ john --wordlist=/usr/share/wordlists/rockyou.txt kerberoast.txt
 
 ## Leads To
 
-Cracked password → spray immediately against WinRM (winrm), RDP (rdp-access), SMB. Service accounts often have elevated privileges in the domain — check in BloodHound what the cracked account can access. High-value targets: `svc-backup`, `svc-sql`, `svc-admin`, anything in the `Domain Admins` or IT groups.
+- Cracked password → spray immediately against WinRM (`winrm`), RDP (`rdp-access`), SMB
+
+- Service accounts often have elevated domain privileges — check in BloodHound what the cracked account can access
+
+- High-value targets: `svc-backup`, `svc-sql`, `svc-admin`, anything in `Domain Admins` or IT groups

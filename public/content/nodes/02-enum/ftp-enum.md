@@ -13,9 +13,13 @@ leads_to:
 
 ## Prerequisites
 
-Port 21 open. No credentials required for anonymous login checks.
+- Port 21 open
 
-FTP often exposes sensitive files via anonymous access or reveals its version in the banner — both vsftpd 2.3.4 and ProFTPD with mod_copy have critical RCE exploits. If the FTP root overlaps with the web root, write access becomes a web shell upload straight to RCE.
+- No credentials required for anonymous login checks
+
+- vsftpd 2.3.4 and ProFTPD with mod_copy both have critical RCE exploits — check the banner
+
+- FTP root overlapping the web root turns write access into a web shell upload straight to RCE
 
 ## Quick Win
 
@@ -76,4 +80,8 @@ medusa -h $TARGET -U users.txt -P passwords.txt -M ftp
 
 ## Leads To
 
-Anonymous read-only → look for stored credentials and configs → public-exploit or password-spray. Anonymous write + web root overlap → file-upload-shell → rev-shell. Version match on vsftpd/ProFTPD → public-exploit → immediate shell.
+- Anonymous read-only → look for stored credentials and configs → `public-exploit` or `password-spray`
+
+- Anonymous write + web root overlap → `file-upload-shell` → `rev-shell`
+
+- Version match on vsftpd/ProFTPD → `public-exploit` → immediate shell

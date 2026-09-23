@@ -11,9 +11,15 @@ leads_to:
 
 ## Prerequisites
 
-A low-privilege Windows shell. At minimum one of: a service binary in a user-writable directory, an unquoted service path with a writable parent, or both AlwaysInstallElevated registry keys set to 1. Run winPEAS first — it flags all three automatically.
+- A low-privilege Windows shell
 
-Windows services often run as SYSTEM, and if their binary or parent directory is writable by non-admins, you can replace the binary with your payload. Unquoted service paths exploit Windows's path resolution: `C:\Program Files\Some App\service.exe` (unquoted) causes Windows to try `C:\Program.exe` first. AlwaysInstallElevated lets any MSI installer run as SYSTEM regardless of the caller's privileges.
+- At minimum one of: a service binary in a user-writable directory, an unquoted service path with a writable parent, or both AlwaysInstallElevated registry keys set to 1
+
+- Run winPEAS first — it flags all three automatically
+
+- Unquoted service paths exploit Windows's path resolution — `C:\Program Files\Some App\service.exe` causes Windows to try `C:\Program.exe` first
+
+- AlwaysInstallElevated lets any MSI installer run as SYSTEM regardless of caller privileges
 
 ## Quick Win
 
@@ -82,4 +88,10 @@ msiexec /quiet /qn /i C:\Windows\Temp\evil.msi
 
 ## Leads To
 
-Service binary replaced → reverse shell as SYSTEM → system-shell → dump SAM/LSA for lateral movement. Unquoted path exploited → same SYSTEM shell. AlwaysInstallElevated → MSI fires → SYSTEM shell. SYSTEM service account → check `whoami /priv` for SeImpersonatePrivilege as an alternative route.
+- Service binary replaced → reverse shell as SYSTEM → `system-shell` → dump SAM/LSA for lateral movement
+
+- Unquoted path exploited → same SYSTEM shell
+
+- AlwaysInstallElevated MSI fires → SYSTEM shell
+
+- SYSTEM service account → check `whoami /priv` for SeImpersonatePrivilege as an alternative route (`token-impersonation`)

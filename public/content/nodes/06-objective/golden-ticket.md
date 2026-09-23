@@ -11,9 +11,15 @@ leads_to:
 
 ## Prerequisites
 
-The `krbtgt` NTLM hash (from DCSync). Domain SID (from secretsdump output or lookupsid). A Windows host with Mimikatz/Rubeus, or impacket-ticketer for Linux-side forgery.
+- The `krbtgt` NTLM hash (from DCSync)
 
-A Golden Ticket is a forged Kerberos TGT signed with the krbtgt key. The KDC trusts any TGT encrypted with this key — so your forged ticket grants access to any service in the domain as any user. It's the highest-value persistence artifact: resetting the krbtgt password twice (back to back, with a replication interval between) is the only defense.
+- Domain SID (from secretsdump output or lookupsid)
+
+- A Windows host with Mimikatz/Rubeus, or impacket-ticketer for Linux-side forgery
+
+- Forged TGT signed with the krbtgt key — the KDC trusts it, granting access to any service as any user
+
+- Highest-value persistence artifact — resetting the krbtgt password twice back-to-back (with a replication interval between) is the only defense
 
 ## Quick Win
 
@@ -70,4 +76,8 @@ kerberos::ptt golden.kirbi
 
 ## Leads To
 
-Golden ticket forged → access any service in the domain as DA indefinitely. Useful for persistence after the exam: re-import the ticket any time and regain DA access without re-running the exploit chain. Combine with silver-ticket for stealthy targeted service access that doesn't touch the KDC.
+- Golden ticket forged → access any service in the domain as DA indefinitely
+
+- Persistence after the exam — re-import the ticket any time and regain DA access without re-running the exploit chain
+
+- Combine with `silver-ticket` for stealthy targeted service access that doesn't touch the KDC

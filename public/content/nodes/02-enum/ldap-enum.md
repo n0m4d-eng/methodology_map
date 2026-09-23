@@ -12,9 +12,15 @@ leads_to:
 
 ## Prerequisites
 
-Port 389 (LDAP) or 636 (LDAPS) open. Anonymous bind frequently works on domain controllers in lab environments — try it first.
+- Port 389 (LDAP) or 636 (LDAPS) open
 
-LDAP is the AD phone book. Even without credentials, an anonymous bind can dump every user, group, computer, and description in the domain. Description fields routinely contain plaintext passwords in CTF and exam environments. The `userAccountControl` attribute tells you which accounts have no Kerberos pre-auth required — that's your AS-REP roast list.
+- Anonymous bind frequently works on domain controllers in lab environments — try it first
+
+- An anonymous bind can dump every user, group, computer, and description in the domain
+
+- Description fields routinely contain plaintext passwords in CTF and exam environments
+
+- `userAccountControl` flags accounts with no Kerberos pre-auth required — that's your AS-REP roast list
 
 ## Quick Win
 
@@ -66,4 +72,10 @@ ldapsearch -H ldap://$TARGET -x -b "DC=domain,DC=local" "(objectClass=user)" sAM
 
 ## Leads To
 
-User list obtained → immediately test with asreproast (no creds needed). Description field password found → password-spray across all protocols. AS-REP roastable accounts found → asreproast → crack → authenticate. With user list and domain name → kerberoast if you get credentials.
+- User list obtained → test with `asreproast` immediately (no creds needed)
+
+- Description field password found → `password-spray` across all protocols
+
+- AS-REP roastable accounts found → `asreproast` → crack → authenticate
+
+- User list + domain name → `kerberoast` once you have credentials

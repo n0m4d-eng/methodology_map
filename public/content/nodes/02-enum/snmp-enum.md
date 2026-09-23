@@ -12,9 +12,15 @@ leads_to:
 
 ## Prerequisites
 
-Port 161 UDP open — will not appear in TCP-only scans. Default community string is usually `public` or `private`.
+- Port 161 UDP open — won't appear in TCP-only scans
 
-SNMP is frequently left with the default community string (`public`) and exposes an enormous amount of system data without authentication. On Windows, the running processes OID often contains credentials passed as CLI arguments (backup tools, monitoring agents). The local users OID gives you a username list for password spraying.
+- Default community string is usually `public` or `private`
+
+- Frequently left at the default, exposing an enormous amount of system data without authentication
+
+- Windows running-processes OID often contains credentials passed as CLI arguments (backup tools, monitoring agents)
+
+- Local users OID gives a username list for password spraying
 
 ## Quick Win
 
@@ -46,4 +52,10 @@ snmpwalk -c public -v1 $TARGET 1.3.6.1.2.1.25.6.3.1.2   # Installed software →
 
 ## Leads To
 
-User list from users OID → password-spray. Passwords found in process arguments → try immediately against SSH, SMB, WinRM. Installed software list → match against CVEs in public-exploit. Open ports reveal services missed by a firewalled TCP scan.
+- User list from users OID → `password-spray`
+
+- Passwords found in process arguments → try immediately against SSH, SMB, WinRM
+
+- Installed software list → match against CVEs in `public-exploit`
+
+- Open ports reveal services missed by a firewalled TCP scan

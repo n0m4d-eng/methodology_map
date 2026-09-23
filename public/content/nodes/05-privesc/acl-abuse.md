@@ -14,9 +14,17 @@ leads_to:
 
 ## Prerequisites
 
-A valid domain account with at least one abusable ACL edge visible in BloodHound. bloodyAD installed on attacker (Linux-side abuse) or PowerView available (Windows-side). Run BloodHound first — ACL abuse without a map is guesswork.
+- Valid domain account with at least one abusable ACL edge visible in BloodHound
 
-Active Directory ACLs control who can do what to AD objects. When a low-privilege user has `GenericAll` over a DA account, they can reset that DA's password. `WriteDACL` on the domain object allows granting yourself DCSync rights. BloodHound visualizes all of this — the "Outbound Object Control" section on any node shows every object that node has a right over.
+- bloodyAD installed on attacker (Linux-side) or PowerView available (Windows-side)
+
+- Run BloodHound first — ACL abuse without a map is guesswork
+
+- AD ACLs control who can do what to AD objects — e.g. `GenericAll` over a DA account allows resetting that DA's password
+
+- `WriteDACL` on the domain object allows granting yourself DCSync rights
+
+- BloodHound's "Outbound Object Control" section on any node shows every object that node has a right over
 
 ## Quick Win
 
@@ -90,4 +98,12 @@ Get-DomainComputer target_host -Properties ms-mcs-admpwd
 
 ## Leads To
 
-Password reset on DA account → authenticate as DA → DCSync for all hashes → domain-admin. Added to Domain Admins group → same. DCSync rights granted → run secretsdump immediately. gMSA hash retrieved → PTH with evil-winrm → winrm access. After any ACL exploit: re-mark the new account as Owned in BloodHound and re-run "Shortest Paths from Owned Principals".
+- Password reset on DA account → authenticate as DA → DCSync for all hashes → `domain-admin`
+
+- Added to Domain Admins group → same
+
+- DCSync rights granted → run secretsdump immediately → `dcsync`
+
+- gMSA hash retrieved → PTH with evil-winrm → `winrm` access
+
+- After any ACL exploit: re-mark the new account as Owned in BloodHound and re-run "Shortest Paths from Owned Principals"

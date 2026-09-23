@@ -22,9 +22,17 @@ leads_to:
 
 ## Prerequisites
 
-Port 5985 (HTTP) or 5986 (HTTPS) open. User must be in the `Remote Management Users` group or local Administrators. Verify access with `nxc winrm` before connecting — "Pwn3d!" in the output confirms the user can WinRM in.
+- Port 5985 (HTTP) or 5986 (HTTPS) open
 
-WinRM is the go-to shell for Windows AD environments — evil-winrm handles both password and NTLM hash auth, making it usable directly after a hash dump without cracking. It's a PowerShell session with upload/download built in. Run `whoami /all` immediately on landing to see your privileges and group memberships.
+- User must be in the `Remote Management Users` group or local Administrators
+
+- Verify access with `nxc winrm` before connecting — "Pwn3d!" in output confirms access
+
+- evil-winrm handles both password and NTLM hash auth — usable directly after a hash dump without cracking
+
+- PowerShell session with upload/download built in
+
+- Run `whoami /all` immediately on landing to see privileges and group memberships
 
 ## Quick Win
 
@@ -71,4 +79,10 @@ reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
 
 ## Leads To
 
-`whoami /priv` shows SeImpersonatePrivilege → token-impersonation → GodPotato for SYSTEM. `cmdkey /list` shows stored credentials → windows-stored-creds. Domain-joined machine → run SharpHound → bloodhound for AD attack paths. Additional subnets in `ipconfig /all` → pivot node to reach internal services.
+- `whoami /priv` shows SeImpersonatePrivilege → `token-impersonation` → GodPotato for SYSTEM
+
+- `cmdkey /list` shows stored credentials → `windows-stored-creds`
+
+- Domain-joined machine → run SharpHound → `bloodhound` for AD attack paths
+
+- Additional subnets in `ipconfig /all` → pivot to reach internal services

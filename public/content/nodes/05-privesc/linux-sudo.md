@@ -10,9 +10,15 @@ leads_to:
 
 ## Prerequisites
 
-A shell as a non-root user. `sudo -l` available (almost always is). Any binary in the sudo output that appears on GTFOBins is likely exploitable.
+- A shell as a non-root user
 
-`sudo -l` is the first command to run on any Linux foothold — always. Even locked-down sudo configs (e.g., `NOPASSWD: /usr/bin/find`) frequently have GTFOBins entries. The LD_PRELOAD vector is a misconfiguration where the sysadmin preserved that environment variable, allowing library injection with any allowed sudo binary.
+- `sudo -l` available (almost always is)
+
+- Any binary in the sudo output that appears on GTFOBins is likely exploitable
+
+- `sudo -l` is the first command to run on any Linux foothold, always — even locked-down configs (e.g., `NOPASSWD: /usr/bin/find`) frequently have GTFOBins entries
+
+- LD_PRELOAD vector: a misconfiguration where the sysadmin preserved that environment variable, allowing library injection with any allowed sudo binary
 
 ## Quick Win
 
@@ -89,4 +95,8 @@ sudo LD_PRELOAD=/tmp/exploit.so /usr/bin/find
 
 ## Leads To
 
-Root shell from GTFOBins binary → root-linux (grab proof and `/etc/shadow`). LD_PRELOAD or sudo CVE → same. Any sudo path with no GTFOBins entry → check for writable config files the binary uses as root, or use it to read `/etc/shadow` for cracking.
+- Root shell from GTFOBins binary → `root-linux` (grab proof and `/etc/shadow`)
+
+- LD_PRELOAD or sudo CVE → same
+
+- No GTFOBins entry → check for writable config files the binary uses as root, or use it to read `/etc/shadow` for cracking

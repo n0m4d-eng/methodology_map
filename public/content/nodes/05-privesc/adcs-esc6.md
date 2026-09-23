@@ -11,9 +11,17 @@ leads_to:
 
 ## Prerequisites
 
-A domain account with enrollment rights in any Client Authentication certificate template. The CA must have `EDITF_ATTRIBUTESUBJECTALTNAME2` set (certipy reports this as ESC6). This is a CA-level setting, not a template setting — it affects every template simultaneously.
+- Domain account with enrollment rights in any Client Authentication certificate template
 
-ESC6 differs from ESC1 in that the misconfiguration is on the CA itself, not on a specific template. The flag `EDITF_ATTRIBUTESUBJECTALTNAME2` tells the CA to honour the SAN field in certificate requests, even for templates that don't explicitly allow it. You can request a certificate as any domain user (including Domain Admins) using any enrollable template.
+- CA must have `EDITF_ATTRIBUTESUBJECTALTNAME2` set (certipy reports this as ESC6)
+
+- CA-level setting, not a template setting — affects every template simultaneously
+
+- Differs from ESC1: the misconfiguration is on the CA itself, not a specific template
+
+- The flag makes the CA honour the SAN field in certificate requests, even for templates that don't explicitly allow it
+
+- Request a certificate as any domain user (including Domain Admins) using any enrollable template
 
 ## Quick Win
 
@@ -63,4 +71,6 @@ certipy auth -pfx administrator.pfx -dc-ip $DC_IP
 
 ## Leads To
 
-Certificate for Administrator obtained → certipy auth returns NT hash → pass-the-hash as Administrator → DCSync all domain hashes → domain-admin. If Administrator hash is a DC machine account, it enables DCSync directly.
+- Certificate for Administrator obtained → certipy auth returns NT hash → pass-the-hash as Administrator → DCSync all domain hashes → `domain-admin`
+
+- If the Administrator hash is a DC machine account, it enables DCSync directly

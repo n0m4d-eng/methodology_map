@@ -37,6 +37,34 @@
     "filePath": "writeups/htb-forest.md"
   },
   {
+    "id": "htb-nibbles",
+    "title": "HackTheBox - Nibbles",
+    "platform": "HackTheBox",
+    "os": "Linux",
+    "difficulty": "Easy",
+    "date": "2026-07-13",
+    "tags": [
+      "linux",
+      "web",
+      "ssh"
+    ],
+    "key_techniques": [
+      "CeWL wordlist generation for targeted admin panel password spray",
+      "Nibbleblog 4.0.3 authenticated file upload RCE",
+      "Sudo NOPASSWD on a user-writable script (monitor.sh)"
+    ],
+    "attack_path": [
+      "nmap-scan",
+      "web-enum",
+      "web-brute",
+      "public-exploit",
+      "rev-shell",
+      "linux-sudo"
+    ],
+    "summary": "Enumerated a Nibbleblog v4.0.3 CMS via directory busting, cracked the admin panel with a CeWL-generated wordlist using ffuf, then exploited an authenticated unrestricted file upload to get a shell as nibbler. Escalated to root via a NOPASSWD sudo entry on a user-writable script.",
+    "filePath": "writeups/htb-nibbles/nibbles.md"
+  },
+  {
     "id": "htb-pterodactyl",
     "title": "HTB - pterodactyl",
     "platform": "HackTheBox",
@@ -129,5 +157,38 @@
     ],
     "summary": "SMB guest → RID brute → blank-password spray → BloodHound ACL chain → gMSA hash → service ImagePath creds → ADCS ESC4 → domain admin",
     "filePath": "writeups/htb-sendai/sendai.md"
+  },
+  {
+    "id": "offsec-coldboxeasy",
+    "title": "Offsec - Coldboxeasy",
+    "platform": "Offsec",
+    "os": "Linux",
+    "difficulty": "Easy",
+    "date": "2026-05-06",
+    "tags": [
+      "linux",
+      "web",
+      "wordpress",
+      "rce",
+      "privesc",
+      "password-reuse"
+    ],
+    "key_techniques": [
+      "Authenticated WordPress theme file modification for RCE",
+      "Password reuse from database config to lateral movement",
+      "SUID binary abuse (find -exec) for privilege escalation"
+    ],
+    "attack_path": [
+      "nmap-scan",
+      "web-enum",
+      "password-spray",
+      "web-shell",
+      "rev-shell",
+      "linux-cred-hunting",
+      "linux-suid-caps",
+      "root-linux"
+    ],
+    "summary": "WordPress brute-force → admin panel access → theme file RCE → reverse shell → db credential hunting → password reuse for lateral movement → SUID find privesc to root.",
+    "filePath": "writeups/offsec-coldboxeasy/offsec-coldboxeasy.md"
   }
 ]

@@ -11,9 +11,21 @@ leads_to:
 
 ## Prerequisites
 
-Network access to the target. For SpoolSample/PrinterBug: Print Spooler service running on target (check with `nxc smb TARGET -u user -p pass -M spooler`). For PetitPotam: works unauthenticated on unpatched systems. For DFSCoerce: DFS running on target. These coerce the *machine account* of the target — most valuable when targeting DCs.
+- Network access to the target
 
-Coercion attacks force a Windows machine to initiate an outbound authentication to an IP you control. The machine authenticates as its computer account (e.g., `DC$`). If you relay that authentication to ADCS Web Enrollment (ESC8), you get a certificate for the DC account → Kerberos auth as DC → DCSync. If the DC has unconstrained delegation on another host, the TGT is cached there and can be extracted.
+- SpoolSample/PrinterBug: Print Spooler service running on target (check with `nxc smb TARGET -u user -p pass -M spooler`)
+
+- PetitPotam: works unauthenticated on unpatched systems
+
+- DFSCoerce: DFS running on target
+
+- These coerce the *machine account* of the target — most valuable when targeting DCs
+
+- The machine authenticates as its computer account (e.g., `DC$`) to an attacker-controlled IP
+
+- Relaying that auth to ADCS Web Enrollment (ESC8) gets a certificate for the DC account → Kerberos auth as DC → DCSync
+
+- If the DC has unconstrained delegation on another host, its TGT is cached there and can be extracted
 
 ## Quick Win
 
@@ -87,4 +99,8 @@ python3 PetitPotam.py DELEGATION_HOST_IP $DC_IP
 
 ## Leads To
 
-Coerce DC → relay to ADCS → DC certificate → DCSync (via kerberos-delegation or ntlm-relay path). Coerce DC → relay to LDAP → configure RBCD on attacker machine → S4U2Self/S4U2Proxy → DA. DC TGT harvested from unconstrained delegation host → `sekurlsa::tickets` → impersonate DC → DCSync.
+- Coerce DC → relay to ADCS → DC certificate → DCSync (via `kerberos-delegation` or `ntlm-relay` path)
+
+- Coerce DC → relay to LDAP → configure RBCD on attacker machine → S4U2Self/S4U2Proxy → DA
+
+- DC TGT harvested from unconstrained delegation host → `sekurlsa::tickets` → impersonate DC → DCSync

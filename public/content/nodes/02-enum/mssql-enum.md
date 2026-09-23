@@ -14,9 +14,15 @@ leads_to:
 
 ## Prerequisites
 
-Port 1433 open (or non-standard port from nmap). Domain credentials, SQL credentials, or NT hash — all work. `sa` with no password is still common on unpatched installs.
+- Port 1433 open (or non-standard port from nmap)
 
-MSSQL is one of the highest-value services in Windows environments. Even with a low-privilege SQL user, impersonation (`EXECUTE AS LOGIN`) frequently escalates to sysadmin. Sysadmin means `xp_cmdshell` → OS commands as the SQL service account → `SeImpersonatePrivilege` is almost guaranteed → GodPotato → SYSTEM. This is one of the most reliable OSCP/CPTS paths.
+- Domain credentials, SQL credentials, or NT hash — all work
+
+- `sa` with no password is still common on unpatched installs
+
+- Low-privilege SQL user + impersonation (`EXECUTE AS LOGIN`) frequently escalates to sysadmin
+
+- Sysadmin → `xp_cmdshell` → OS commands as the SQL service account → `SeImpersonatePrivilege` almost guaranteed → GodPotato → SYSTEM
 
 ## Quick Win
 
@@ -87,4 +93,8 @@ EXEC ('EXEC sp_configure ''xp_cmdshell'',1; RECONFIGURE; EXEC xp_cmdshell ''whoa
 
 ## Leads To
 
-xp_cmdshell enabled → whoami shows service account → check `whoami /priv` → if SeImpersonatePrivilege present, go directly to token-impersonation (GodPotato → SYSTEM). Hash capture via xp_dirtree → crack or relay. Linked server with higher rights → repeat escalation chain on the linked server.
+- `xp_cmdshell` enabled → `whoami /priv` → SeImpersonatePrivilege present → `token-impersonation` (GodPotato → SYSTEM)
+
+- Hash capture via `xp_dirtree` → crack or relay
+
+- Linked server with higher rights → repeat escalation chain on the linked server

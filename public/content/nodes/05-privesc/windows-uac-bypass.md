@@ -11,9 +11,17 @@ leads_to:
 
 ## Prerequisites
 
-A shell in the local Administrators group but at **medium** integrity (UAC not yet bypassed). `whoami /groups` must show `Medium Mandatory Level`. These techniques do NOT escalate from a standard user to admin — they bypass the UAC prompt for accounts already in the Administrators group.
+- A shell in the local Administrators group but at **medium** integrity (UAC not yet bypassed)
 
-UAC bypass techniques hijack COM object resolution by writing to `HKCU\Software\Classes\` — a registry hive writable by any user without elevation. Auto-elevating Windows binaries like `fodhelper.exe` check this user-controlled hive before system defaults, executing whatever you put there at high integrity. After bypass, your token integrity changes from Medium to High, unlocking operations like SAM dump and RDP enable.
+- `whoami /groups` shows `Medium Mandatory Level`
+
+- Does NOT escalate from a standard user to admin — only bypasses the UAC prompt for accounts already in Administrators
+
+- Hijacks COM object resolution via `HKCU\Software\Classes\` — writable by any user without elevation
+
+- Auto-elevating binaries like `fodhelper.exe` check this user-controlled hive before system defaults
+
+- Bypass flips token integrity from Medium to High, unlocking SAM dump, RDP enable, etc.
 
 ## Quick Win
 
@@ -77,4 +85,10 @@ Start-Process eventvwr.exe
 
 ## Leads To
 
-High integrity shell → `whoami /priv` shows SeImpersonatePrivilege now usable → token-impersonation → SYSTEM. High integrity → dump SAM hashes → pass-the-hash laterally. High integrity → enable RDP (`netsh` or registry) → RDP in as admin. Always clean up registry keys after exploitation.
+- High integrity shell → `whoami /priv` shows SeImpersonatePrivilege now usable → `token-impersonation` → SYSTEM
+
+- High integrity → dump SAM hashes → pass-the-hash laterally
+
+- High integrity → enable RDP (`netsh` or registry) → RDP in as admin
+
+- Always clean up registry keys after exploitation

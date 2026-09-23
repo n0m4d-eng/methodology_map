@@ -13,9 +13,13 @@ leads_to:
 
 ## Prerequisites
 
-An account with `Replicating Directory Changes` + `Replicating Directory Changes All` on the domain object. This is held by Domain Admins, Domain Controllers, and any account explicitly granted these rights via ACL abuse. Network access to the DC on port 445 or 135+dynamic. No shell on the DC required.
+- An account with `Replicating Directory Changes` + `Replicating Directory Changes All` on the domain object — held by Domain Admins, Domain Controllers, or any account explicitly granted these rights via ACL abuse
 
-DCSync impersonates a domain controller and requests password replication from the real DC via DRSUAPI. It dumps every account's NT hash — including `krbtgt` (for Golden Tickets), Administrator (for PTH), and all service accounts. It runs entirely over the network from your attacker machine. Prefer impacket over on-box Mimikatz to avoid AV.
+- Network access to the DC on port 445 or 135+dynamic — no shell on the DC required
+
+- DCSync impersonates a domain controller and requests password replication from the real DC via DRSUAPI — dumps every account's NT hash, including `krbtgt` (Golden Tickets), Administrator (PTH), and all service accounts
+
+- Runs entirely over the network from the attacker machine — prefer impacket over on-box Mimikatz to avoid AV
 
 ## Quick Win
 
@@ -67,4 +71,10 @@ nxc smb 192.168.x.0/24 -u Administrator -H <ADMIN_NTLM>
 
 ## Leads To
 
-Administrator NT hash → PTH to any machine → domain-admin. krbtgt hash → Golden Ticket → 10-year forged TGT → golden-ticket persistence. Computer account hashes → Silver Tickets for specific services without DC contact → silver-ticket. Full hash dump → identify other DA accounts → additional PTH paths.
+- Administrator NT hash → PTH to any machine → `domain-admin`
+
+- krbtgt hash → Golden Ticket → 10-year forged TGT → `golden-ticket` persistence
+
+- Computer account hashes → Silver Tickets for specific services without DC contact → `silver-ticket`
+
+- Full hash dump → identify other DA accounts → additional PTH paths

@@ -15,9 +15,13 @@ leads_to:
 
 ## Prerequisites
 
-Port 445 (or 139) open on target. No credentials required for null/guest session checks.
+- Port 445 (or 139) open on target
 
-SMB is the first service you enumerate on any Windows target. It leaks OS version, domain name, hostname, user lists, share contents, and vulnerability status all before you have a single credential. The password policy check here is mandatory — skip it and you risk locking out accounts before a spray even starts.
+- No credentials required for null/guest session checks
+
+- First service to enumerate on any Windows target — leaks OS version, domain name, hostname, user lists, share contents, and vulnerability status before a single credential
+
+- Password policy check is mandatory — skip it and risk locking out accounts before a spray even starts
 
 ## Quick Win
 
@@ -71,10 +75,19 @@ nmap -Pn -p 445 --script smb-vuln* $TARGET
 ## What to Look For in Shares
 
 - `*.config`, `*.xml`, `*.ini` — may contain plaintext creds
+
 - `web.config`, `.sqlconfig` — DB credentials
+
 - Files modified recently — active service config
+
 - Writable shares → stage files for NTLM relay / coercion
 
 ## Leads To
 
-SMBv1 open → check public-exploit (EternalBlue → SYSTEM, no privesc needed). Null session user list → password-spray immediately. Signing disabled → ntlm-relay. Print Spooler running → printnightmare.
+- SMBv1 open → check `public-exploit` (EternalBlue → SYSTEM, no privesc needed)
+
+- Null session user list → `password-spray` immediately
+
+- Signing disabled → `ntlm-relay`
+
+- Print Spooler running → `printnightmare`

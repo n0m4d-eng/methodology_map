@@ -12,9 +12,15 @@ leads_to:
 
 ## Prerequisites
 
-Valid domain credentials (any user). SYSVOL readable (default for all authenticated domain users). The `cpassword` attribute present in any GPP XML file on SYSVOL — check with impacket or CME before manual searching.
+- Valid domain credentials (any user)
 
-Group Policy Preferences allowed admins to set local passwords, map drives, and create tasks — all stored as XML on SYSVOL. Microsoft published the AES-256 key used to encrypt `cpassword` in 2012. MS14-025 (May 2014) prevented new GPP passwords from being created but did not remove existing entries. These passwords are often local Administrator credentials and are frequently reused across all domain machines.
+- SYSVOL readable (default for all authenticated domain users)
+
+- The `cpassword` attribute present in any GPP XML file on SYSVOL — check with impacket or CME before manual searching
+
+- Microsoft published the AES-256 key used to encrypt `cpassword` in 2012; MS14-025 (2014) stopped new GPP passwords but never removed existing entries
+
+- Often local Administrator credentials, frequently reused across all domain machines
 
 ## Quick Win
 
@@ -92,4 +98,8 @@ gpp-decrypt <cpassword_value>
 
 ## Leads To
 
-GPP password decrypted → spray it against all domain machines as local Administrator (`nxc smb 192.168.x.0/24 -u Administrator -p GPP_PASS --local-auth`) → system-shell on every machine sharing that local admin password. Autologon credential → domain account → domain-admin path. Password matches → password-spray to confirm scope.
+- GPP password decrypted → spray against all domain machines as local Administrator (`nxc smb 192.168.x.0/24 -u Administrator -p GPP_PASS --local-auth`) → `system-shell` on every machine sharing that password
+
+- Autologon credential → domain account → `domain-admin` path
+
+- Password matches elsewhere → `password-spray` to confirm scope

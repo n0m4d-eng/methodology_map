@@ -11,9 +11,15 @@ leads_to:
 
 ## Prerequisites
 
-A web input that gets passed to a shell function — ping utilities, DNS resolvers, file converters, nmap wrappers, image processors. Look for parameters named `host`, `ip`, `cmd`, `exec`, `ping`, `domain`, `url`. Confirm injection with a time-based payload before attempting RCE.
+- A web input passed to a shell function — ping utilities, DNS resolvers, file converters, nmap wrappers, image processors
 
-Command injection is possible wherever an application constructs a shell command using user input without sanitisation. The application runs the command as its own user (often `www-data`), giving you immediate code execution. Always confirm blind injection via timing before trying OOB techniques.
+- Look for parameters named `host`, `ip`, `cmd`, `exec`, `ping`, `domain`, `url`
+
+- Confirm injection with a time-based payload before attempting RCE
+
+- Runs as the application's own user (often `www-data`) — gives immediate code execution
+
+- Always confirm blind injection via timing before trying OOB techniques
 
 ## Quick Win
 
@@ -87,4 +93,8 @@ wHoAmI
 
 ## Leads To
 
-Shell confirmed → immediately upgrade to a full reverse shell via the rev-shell techniques — a web shell is semi-interactive and drops on connection reset. On Linux: check `id` first — `www-data` means SUID/sudo checks next. On Windows: `whoami /priv` → SeImpersonatePrivilege → GodPotato.
+- Shell confirmed → upgrade immediately to a full reverse shell via `rev-shell` — a web shell is semi-interactive and drops on connection reset
+
+- On Linux: check `id` first — `www-data` means SUID/sudo checks next
+
+- On Windows: `whoami /priv` → SeImpersonatePrivilege → GodPotato

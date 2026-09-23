@@ -12,9 +12,15 @@ leads_to:
 
 ## Prerequisites
 
-A domain account with `ReadLAPSPassword` or `ReadGMSAPassword` rights — visible in BloodHound as explicit edges. nxc (netexec) installed for LAPS module, or bloodyAD/gMSADumper for gMSA.
+- A domain account with `ReadLAPSPassword` or `ReadGMSAPassword` rights — visible in BloodHound as explicit edges
 
-LAPS randomises the local Administrator password on each domain-joined machine and stores it in `ms-Mcs-AdmPwd` in AD. Only accounts with `AllExtendedRights` or specific `ReadProperty` on that attribute can retrieve it. gMSA passwords live in `msDS-ManagedPassword`. Both can be read over LDAP with valid credentials if the ACL allows it — no shell on the target machine required.
+- nxc (netexec) installed for the LAPS module, or bloodyAD/gMSADumper for gMSA
+
+- LAPS randomises the local Administrator password per machine and stores it in `ms-Mcs-AdmPwd` — only accounts with `AllExtendedRights` or specific `ReadProperty` on that attribute can retrieve it
+
+- gMSA passwords live in `msDS-ManagedPassword` — same ACL requirement
+
+- Both readable over LDAP with valid credentials if the ACL allows it — no shell on the target machine required
 
 ## Quick Win
 
@@ -85,4 +91,8 @@ evil-winrm -i $TARGET -u 'gMSA_ACCOUNT$' -H NTLM_HASH
 
 ## Leads To
 
-LAPS password retrieved → local admin on that machine → dump SAM/LSA → pass-the-hash laterally → system-shell. gMSA hash retrieved → PTH as service account → if service account has DA rights → domain-admin. If you have `WriteDACL` on `PrincipalsAllowedToRetrieveManagedPassword` → add yourself to that group → read all gMSA passwords.
+- LAPS password retrieved → local admin on that machine → dump SAM/LSA → pass-the-hash laterally → `system-shell`
+
+- gMSA hash retrieved → PTH as service account → if service account has DA rights → `domain-admin`
+
+- `WriteDACL` on `PrincipalsAllowedToRetrieveManagedPassword` → add yourself to that group → read all gMSA passwords

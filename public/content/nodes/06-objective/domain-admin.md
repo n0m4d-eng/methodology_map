@@ -13,9 +13,13 @@ leads_to:
 
 ## Prerequisites
 
-Domain Admin credentials or NTLM hash. Network access to the DC. This is the end state for AD engagement objectives — document everything before taking any potentially destructive actions.
+- Domain Admin credentials or NTLM hash
 
-Domain Admin is game over for the domain. The immediate priorities are: confirm and screenshot proof for the exam submission, DCSync for all hashes (including krbtgt for persistence), spray the Administrator hash across all machines, and check for additional subnets or forest trusts to pivot into.
+- Network access to the DC
+
+- End state for AD engagement objectives — document everything before any potentially destructive actions
+
+- Immediate priorities: screenshot proof, DCSync for all hashes (including krbtgt), spray the Administrator hash across all machines, check for additional subnets or forest trusts
 
 ## Quick Win
 
@@ -81,4 +85,10 @@ nxc smb 192.168.x.0/24 -u Administrator -H $NTLM --local-auth
 
 ## Leads To
 
-krbtgt hash from DCSync → golden-ticket for persistent domain access. Additional subnets in `ipconfig /all` or AD sites → pivot to next network segment. Forest trusts visible in BloodHound → repeat the entire methodology in the trusted forest. Always check for additional machines/subnets before wrapping up.
+- krbtgt hash from DCSync → `golden-ticket` for persistent domain access
+
+- Additional subnets in `ipconfig /all` or AD sites → `pivot` to the next network segment
+
+- Forest trusts visible in BloodHound → `domain-trust-abuse`, repeat the methodology in the trusted forest
+
+- Always check for additional machines/subnets before wrapping up

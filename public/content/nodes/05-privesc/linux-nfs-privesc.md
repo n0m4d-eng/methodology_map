@@ -10,9 +10,15 @@ leads_to:
 
 ## Prerequisites
 
-An NFS export with `no_root_squash` set (visible in `/etc/exports` via LFI or a mounted share). You must have root on your attacker machine to set SUID ownership. The target must be able to execute the binary on the mounted share.
+- An NFS export with `no_root_squash` set (visible in `/etc/exports` via LFI or a mounted share)
 
-`no_root_squash` means the NFS server trusts root from the connecting machine. If your attacker machine mounts the export as root, files you create are owned by root on the server. Plant a SUID bash binary, then execute it from your low-priv shell on the target to get root. No exploit, no password — just a misconfig.
+- Root on the attacker machine to set SUID ownership
+
+- Target must be able to execute the binary on the mounted share
+
+- `no_root_squash` means the NFS server trusts root from the connecting machine — files created as root on the attacker mount are owned by root on the server
+
+- Plant a SUID bash binary, then execute it from the low-priv shell on the target to get root — no exploit, no password, just a misconfig
 
 ## Quick Win
 
@@ -93,4 +99,6 @@ cat /mnt/nfs/restricted_file
 
 ## Leads To
 
-SUID bash or shell binary on NFS share → `/share/bash -p` → euid=0 (root) → `cat /root/root.txt`. From root shell: dump `/etc/shadow`, plant SSH key, enumerate internal network for pivot.
+- SUID bash or shell binary on NFS share → `/share/bash -p` → euid=0 (root) → `cat /root/root.txt`
+
+- From root shell: dump `/etc/shadow`, plant SSH key, enumerate internal network for pivot

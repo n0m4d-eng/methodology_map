@@ -11,9 +11,13 @@ leads_to:
 
 ## Prerequisites
 
-A file upload endpoint that serves uploaded files from a web-accessible path. If uploads go to a non-web directory (e.g., `/tmp/`), you need a separate LFI or directory traversal to trigger execution.
+- A file upload endpoint that serves uploaded files from a web-accessible path
 
-Upload restrictions exist in three layers: extension validation (blocked list or allowlist), content-type header check, and magic bytes inspection. Most applications only check one or two — defeating the right layer gets your PHP shell executed. Find where the file lands after upload (check the response URL, or directory bust under `/uploads/`, `/files/`, `/images/`), then trigger it with `?cmd=id`.
+- Uploads to a non-web directory (e.g. `/tmp/`) need a separate LFI or directory traversal to trigger execution
+
+- Three restriction layers: extension validation, content-type header check, magic bytes inspection — most apps only check one or two
+
+- Find where the file lands (response URL, or directory bust under `/uploads/`, `/files/`, `/images/`), then trigger with `?cmd=id`
 
 ## Quick Win
 
@@ -70,4 +74,8 @@ GIF89a;
 
 ## Leads To
 
-Shell uploaded and accessible → `?cmd=id` confirms execution → web-shell for interactive browsing or swap `id` for a rev-shell payload. ASPX shell on IIS → cmd.exe context → `whoami /priv` → SeImpersonatePrivilege → SYSTEM via GodPotato. PHP shell on Linux → www-data → standard linux privesc chain.
+- Shell uploaded and accessible → `?cmd=id` confirms execution → `web-shell` for interactive browsing, or swap `id` for a rev-shell payload
+
+- ASPX shell on IIS → cmd.exe context → `whoami /priv` → SeImpersonatePrivilege → SYSTEM via GodPotato
+
+- PHP shell on Linux → www-data → standard linux privesc chain

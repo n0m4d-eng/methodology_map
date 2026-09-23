@@ -10,9 +10,13 @@ leads_to:
 
 ## Prerequisites
 
-Port 25 (or 587, 465) open. No credentials required for user enumeration — it exploits response differences.
+- Port 25 (or 587, 465) open
 
-SMTP user enumeration exploits the fact that misconfigured mail servers return different responses for valid vs invalid recipients. This builds a username list without any credentials. On Exchange, the NTLM auth info disclosure leaks the domain name and internal hostname before you've made a single real login attempt.
+- No credentials required for user enumeration — it exploits response differences between valid and invalid recipients
+
+- Builds a username list without any credentials
+
+- On Exchange, NTLM auth info disclosure leaks the domain name and internal hostname before any real login attempt
 
 ## Quick Win
 
@@ -57,4 +61,8 @@ swaks --to victim@example.com --from attacker@attacker.com --server $TARGET
 
 ## Leads To
 
-Valid username list → password-spray using those usernames across SSH, SMB, WinRM, and web login forms. NTLM info disclosure reveals domain name → use for Kerberos enumeration and LDAP queries. Open relay is primarily a documentation finding unless used for phishing in a full red team engagement.
+- Valid username list → `password-spray` across SSH, SMB, WinRM, and web login forms
+
+- NTLM info disclosure reveals domain name → use for Kerberos enumeration and LDAP queries
+
+- Open relay is primarily a documentation finding unless used for phishing in a full red team engagement

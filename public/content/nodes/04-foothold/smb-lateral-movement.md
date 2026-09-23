@@ -12,9 +12,17 @@ leads_to:
 
 ## Prerequisites
 
-Valid credentials (plaintext or NTLM hash) for an account with local admin rights on the target. SMB port 445 open, or WMI (135+dynamic) for wmiexec. If you have a hash use pass-the-hash directly — this node is for credential-based lateral movement (plaintext password you've obtained or a hash you want to use for shell access across multiple hosts).
+- Valid credentials (plaintext or NTLM hash) for an account with local admin rights on the target
 
-Lateral movement over SMB is the most common path in AD environments after obtaining credentials. The tool choice affects noise: psexec writes a service binary (loud, creates event logs), wmiexec uses WMI (quieter, runs as target user), smbexec uses SCM without dropping a binary (medium), atexec uses Task Scheduler. Always try wmiexec first.
+- SMB port 445 open, or WMI (135+dynamic) for wmiexec
+
+- With a hash, use pass-the-hash directly — this node covers credential-based lateral movement for shell access across multiple hosts
+
+- Most common lateral movement path in AD environments after obtaining credentials
+
+- Tool choice affects noise: psexec writes a service binary (loud, creates event logs), wmiexec uses WMI (quieter, runs as target user), smbexec uses SCM without dropping a binary (medium), atexec uses Task Scheduler
+
+- Always try wmiexec first
 
 ## Quick Win
 
@@ -83,4 +91,10 @@ download C:\path\to\file
 
 ## Leads To
 
-Shell on new host → `whoami /priv` → token-impersonation if SeImpersonatePrivilege. Shell → enumerate credential stores (Credential Manager, registry, unattend.xml) → windows-stored-creds. New context → run SharpHound with new account for updated BloodHound picture → bloodhound. Service account shell → check SPNs and delegation settings.
+- Shell on new host → `whoami /priv` → `token-impersonation` if SeImpersonatePrivilege
+
+- Shell → enumerate credential stores (Credential Manager, registry, unattend.xml) → `windows-stored-creds`
+
+- New context → run SharpHound with new account for updated BloodHound picture → `bloodhound`
+
+- Service account shell → check SPNs and delegation settings

@@ -12,9 +12,13 @@ leads_to:
 
 ## Prerequisites
 
-An endpoint that accepts XML input — SOAP web services, file uploads (DOCX, SVG, XML configs), REST APIs that accept `Content-Type: application/xml`, or JSON endpoints that can be switched to XML. Intercept with Burp to identify XML parsers.
+- An endpoint that accepts XML input — SOAP web services, file uploads (DOCX, SVG, XML configs), REST APIs accepting `Content-Type: application/xml`, or JSON endpoints switchable to XML
 
-XXE (XML External Entity) exploits the XML parser's ability to load external resources. An injected entity can point to local files (`file:///etc/passwd`) or internal services (`http://169.254.169.254`), reading their content into the response. Blind XXE (no response reflection) uses out-of-band channels — DNS or HTTP to your server.
+- Intercept with Burp to identify XML parsers
+
+- Exploits the XML parser's ability to load external resources — an injected entity can point to local files (`file:///etc/passwd`) or internal services (`http://169.254.169.254`), reading their content into the response
+
+- Blind XXE (no response reflection) uses out-of-band channels — DNS or HTTP to your server
 
 ## Quick Win
 
@@ -110,4 +114,10 @@ cd docx_dir && zip -r ../evil.docx .
 
 ## Leads To
 
-SSH private key found in `/root/.ssh/id_rsa` → immediate root SSH access. App config files with DB credentials → password-spray or database exploitation. SSRF via XXE → internal service enumeration, cloud metadata. `/etc/shadow` readable → offline hash cracking.
+- SSH private key found in `/root/.ssh/id_rsa` → immediate root SSH access
+
+- App config files with DB credentials → `password-spray` or database exploitation
+
+- SSRF via XXE → internal service enumeration, cloud metadata
+
+- `/etc/shadow` readable → offline hash cracking

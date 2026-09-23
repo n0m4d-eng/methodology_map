@@ -15,9 +15,13 @@ leads_to:
 
 ## Prerequisites
 
-A valid username list (from LDAP, kerbrute, SMTP, or RPC null session). The lockout policy **must** be checked before the first spray — locking accounts on an exam is catastrophic and unrecoverable.
+- A valid username list (from LDAP, kerbrute, SMTP, or RPC null session)
 
-Password spraying is controlled brute-force: one password across all users, then wait. The goal isn't to crack passwords — it's to find the one user who never changed their welcome credential. Once you have any domain user credential, the entire AD attack chain opens up (BloodHound, Kerberoast, ADCS checks).
+- Lockout policy **must** be checked before the first spray — locking accounts on an exam is catastrophic and unrecoverable
+
+- Controlled brute-force: one password across all users, then wait — the goal is finding the one user who never changed their welcome credential
+
+- Once you have any domain user credential, the entire AD attack chain opens up (BloodHound, Kerberoast, ADCS checks)
 
 ## Step 0 — Check Lockout Policy FIRST
 
@@ -67,4 +71,8 @@ smbpasswd.py '$DOMAIN/username:@$DC_IP' -newpass 'NewPassword1!'
 
 ## Leads To
 
-Hit confirmed (`Pwn3d!`) → go immediately to that protocol's access node (winrm/rdp-access/ssh-access). Any valid domain credential → run bloodhound before anything else. No `Pwn3d!` but valid creds → check certipy for ADCS vulns, run kerberoast, follow BloodHound paths.
+- Hit confirmed (`Pwn3d!`) → go immediately to that protocol's access node (`winrm`/`rdp-access`/`ssh-access`)
+
+- Any valid domain credential → run BloodHound before anything else
+
+- No `Pwn3d!` but valid creds → check certipy for ADCS vulns, run Kerberoast, follow BloodHound paths

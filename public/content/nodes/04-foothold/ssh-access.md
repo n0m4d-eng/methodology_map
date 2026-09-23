@@ -19,9 +19,15 @@ leads_to:
 
 ## Prerequisites
 
-Port 22 open. Valid credentials, a private key found during enumeration (LFI, share access, file read), or a username list for brute force. SSH is rarely brute-forced directly — most SSH footholds come from credentials found elsewhere.
+- Port 22 open
 
-SSH gives a fully interactive, encrypted terminal — no TTY upgrade needed, tab completion and job control work out of the box. It's the best Linux foothold when available. Private keys found during recon (`/root/.ssh/id_rsa`, SYSVOL shares, backup files) often give direct root access without any cracking.
+- Valid credentials, a private key found during enumeration (LFI, share access, file read), or a username list for brute force
+
+- Rarely brute-forced directly — most SSH footholds come from credentials found elsewhere
+
+- Fully interactive, encrypted terminal — no TTY upgrade needed. Best Linux foothold when available
+
+- Private keys found during recon (`/root/.ssh/id_rsa`, SYSVOL shares, backup files) often give direct root access without any cracking
 
 ## Quick Win
 
@@ -69,4 +75,12 @@ cat ~/.ssh/id_rsa 2>/dev/null
 
 ## Leads To
 
-`sudo -l` output → check GTFOBins for each entry → linux-sudo. SUID binaries found → linux-suid-caps. Cron jobs writing to world-writable paths → linux-cron. Internal ports found via `ss -anp` → pivot to additional services. SSH keys for other hosts found in `~/.ssh/` → repeat SSH access laterally.
+- `sudo -l` output → check GTFOBins for each entry → `linux-sudo`
+
+- SUID binaries found → `linux-suid-caps`
+
+- Cron jobs writing to world-writable paths → `linux-cron`
+
+- Internal ports found via `ss -anp` → pivot to additional services
+
+- SSH keys for other hosts found in `~/.ssh/` → repeat SSH access laterally

@@ -11,9 +11,15 @@ leads_to:
 
 ## Prerequisites
 
-Port 5900–5910 open. VNC uses a single shared password (no username), so brute-force only needs a password list.
+- Port 5900–5910 open
 
-VNC provides a full graphical desktop session. Security type `None (1)` means you connect without any password at all — check for this before brute-forcing. VNC's maximum effective password length is 8 characters (longer passwords are silently truncated by many servers), so always cap your wordlist or hashcat mask at 8 chars. Stored VNC password files use a hardcoded DES key and are trivially decryptable.
+- VNC uses a single shared password (no username) — brute-force only needs a password list
+
+- Security type `None (1)` connects without any password — check for this before brute-forcing
+
+- Max effective password length is 8 characters (longer passwords are silently truncated by many servers) — always cap wordlist/hashcat mask at 8 chars
+
+- Stored VNC password files use a hardcoded DES key — trivially decryptable
 
 ## Quick Win
 
@@ -67,4 +73,6 @@ print(d.decrypt(data))
 
 ## Leads To
 
-Full GUI desktop access → use it to browse files, open a terminal for a proper shell (rev-shell), launch PowerShell as admin, or access other services on the internal network. GUI is slower than a shell for most tasks — use it to establish a proper reverse shell or find credentials, then move to CLI access.
+- Full GUI desktop access → browse files, open a terminal for a proper shell (`rev-shell`), launch PowerShell as admin, or reach other internal services
+
+- GUI is slower than a shell for most tasks — use it to establish a proper reverse shell or find credentials, then move to CLI access

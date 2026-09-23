@@ -20,9 +20,19 @@ leads_to:
 
 ## Prerequisites
 
-Valid domain credentials (any user). Network access to the DC (port 389 LDAP or 88 Kerberos). BloodHound + Neo4j running on your attacker machine. bloodhound-python installed (or SharpHound if you have a Windows shell).
+- Valid domain credentials (any user)
 
-BloodHound is the map — every other AD attack is following the map. It visualizes ACL relationships, session data, group memberships, and trust paths that are invisible through manual enumeration. Run it with `-c All` immediately after getting any domain credential, before you do anything else. The "Shortest Paths from Owned Principals" query shows you exactly where you can go from where you are.
+- Network access to the DC (port 389 LDAP or 88 Kerberos)
+
+- BloodHound + Neo4j running on your attacker machine
+
+- bloodhound-python installed (or SharpHound if you have a Windows shell)
+
+- Visualizes ACL relationships, session data, group memberships, and trust paths invisible to manual enumeration
+
+- Run with `-c All` immediately after getting any domain credential, before anything else
+
+- "Shortest Paths from Owned Principals" query shows exactly where you can go from where you are
 
 ## Quick Win
 
@@ -100,4 +110,16 @@ Click node → Node Info:
 
 ## Leads To
 
-BloodHound reveals the path — follow it. ACL edge (GenericAll, WriteDACL, etc.) → acl-abuse. Kerberoastable accounts → kerberoast. ADCS certificate templates → adcs-esc1 or adcs-esc4. ReadLAPSPassword or ReadGMSAPassword edge → laps-abuse. Unconstrained or constrained delegation → kerberos-delegation. DCSync rights already granted → dcsync.
+- BloodHound reveals the path — follow it
+
+- ACL edge (GenericAll, WriteDACL, etc.) → `acl-abuse`
+
+- Kerberoastable accounts → `kerberoast`
+
+- ADCS certificate templates → `adcs-esc1` or `adcs-esc4`
+
+- ReadLAPSPassword or ReadGMSAPassword edge → `laps-abuse`
+
+- Unconstrained or constrained delegation → `kerberos-delegation`
+
+- DCSync rights already granted → `dcsync`

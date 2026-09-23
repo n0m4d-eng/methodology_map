@@ -11,9 +11,13 @@ leads_to:
 
 ## Prerequisites
 
-Port 623 UDP open — won't appear in TCP scans. Common on servers with out-of-band management (Dell iDRAC, HP iLO, Supermicro BMC).
+- Port 623 UDP open — won't appear in TCP scans
 
-IPMI (Intelligent Platform Management Interface) provides out-of-band server management and is often overlooked. The IPMI 2.0 RAKP protocol design flaw means any client can request a password hash from the BMC without authenticating — the hash is then crackable offline. Cipher Suite 0 is an even worse bug: it authenticates with any password, including blank.
+- Common on servers with out-of-band management (Dell iDRAC, HP iLO, Supermicro BMC)
+
+- IPMI 2.0 RAKP protocol flaw lets any client request a password hash from the BMC without authenticating — crackable offline
+
+- Cipher Suite 0 is worse: authenticates with any password, including blank
 
 ## Quick Win
 
@@ -73,4 +77,8 @@ done
 
 ## Leads To
 
-Cracked or default IPMI credentials → try immediately against SSH, web admin panels, and the iDRAC/iLO web UI (password-spray). BMC access with valid creds → power cycle, virtual media mount, console access → full OS compromise. Credentials often reused at the OS level — check SSH first.
+- Cracked or default IPMI credentials → try against SSH, web admin panels, and the iDRAC/iLO web UI → `password-spray`
+
+- BMC access with valid creds → power cycle, virtual media mount, console access → full OS compromise
+
+- Credentials often reused at the OS level — check `ssh-access` first

@@ -68,7 +68,6 @@
     "tags": [
       "windows",
       "linux",
-      "web",
       "dns"
     ],
     "leads_to": [
@@ -104,7 +103,8 @@
     "stage": "enumeration",
     "tags": [
       "linux",
-      "windows"
+      "windows",
+      "ipmi"
     ],
     "leads_to": [
       "password-spray",
@@ -213,7 +213,8 @@
     "stage": "enumeration",
     "tags": [
       "windows",
-      "linux"
+      "linux",
+      "postgresql"
     ],
     "leads_to": [
       "sqli-rce",
@@ -263,7 +264,8 @@
     "title": "Rsync Enumeration",
     "stage": "enumeration",
     "tags": [
-      "linux"
+      "linux",
+      "rsync"
     ],
     "leads_to": [
       "ssh-access",
@@ -351,7 +353,8 @@
     "stage": "enumeration",
     "tags": [
       "windows",
-      "linux"
+      "linux",
+      "vnc"
     ],
     "leads_to": [
       "rev-shell",
@@ -380,7 +383,8 @@
       "ssrf",
       "xxe-injection",
       "jwt-attack",
-      "xss-csrf"
+      "xss-csrf",
+      "web-brute"
     ],
     "summary": "Identify web stack, discover hidden paths, and find attack surface before touching any functionality.",
     "references": [],
@@ -687,6 +691,24 @@
     "summary": "Inject template syntax into user-controlled fields to break out of the template context and execute arbitrary OS commands.",
     "references": [],
     "filePath": "nodes/03-initial-access/ssti-rce.md"
+  },
+  {
+    "id": "web-brute",
+    "title": "Web Login Bruteforce",
+    "stage": "initial-access",
+    "tags": [
+      "web",
+      "linux",
+      "windows"
+    ],
+    "leads_to": [
+      "rev-shell",
+      "ssh-access",
+      "sqli-rce"
+    ],
+    "summary": "Bruteforce HTTP login forms and admin panels with hydra or ffuf when default credentials fail and there is no account lockout in place.",
+    "references": [],
+    "filePath": "nodes/03-initial-access/web-brute.md"
   },
   {
     "id": "xss-csrf",

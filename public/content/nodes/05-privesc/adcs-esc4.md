@@ -12,9 +12,17 @@ leads_to:
 
 ## Prerequisites
 
-A domain account with `Full Control`, `Write Owner`, or `Write DACL` on a certificate template object — visible in BloodHound as an edge to the template. certipy installed. The CA name from `certipy find` output.
+- Domain account with `Full Control`, `Write Owner`, or `Write DACL` on a certificate template object — visible in BloodHound as an edge to the template
 
-ESC4 is a two-step chain: you overwrite the template's configuration to enable `Enrollee Supplies Subject` (making it ESC1-vulnerable), then exploit it exactly like ESC1. The old template config must be saved first so you can restore it after — some exam graders check for clean environments. BloodHound shows the write permission as an edge directly to the template object.
+- certipy installed
+
+- CA name from `certipy find` output
+
+- Two-step chain: overwrite the template config to enable `Enrollee Supplies Subject` (making it ESC1-vulnerable), then exploit like ESC1
+
+- Save the old template config first so you can restore it after — some exam graders check for clean environments
+
+- BloodHound shows the write permission as an edge directly to the template object
 
 ## Quick Win
 
@@ -59,4 +67,10 @@ certipy template -u user@$DOMAIN -p 'password' -dc-ip $DC_IP \
 
 ## Leads To
 
-`certipy auth` returns Administrator NT hash → PTH to DC → domain-admin. Then DCSync for all hashes. The `TargetTemplate.json` saved in Step 1 is what you pass to the restore command — always clean up or the CA is left in a permanently exploitable state.
+- `certipy auth` returns Administrator NT hash → PTH to DC → `domain-admin`
+
+- Then DCSync for all hashes → `dcsync`
+
+- `TargetTemplate.json` saved in Step 1 is what you pass to the restore command
+
+- Always clean up or the CA is left in a permanently exploitable state

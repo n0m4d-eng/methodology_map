@@ -11,9 +11,19 @@ leads_to:
 
 ## Prerequisites
 
-Valid domain credentials. ADCS (Active Directory Certificate Services) present on the network. A certificate template with: (1) Client Authentication EKU, (2) Enrollee Supplies Subject enabled, and (3) low-privilege accounts in Enrollment Rights. certipy installed on attacker.
+- Valid domain credentials
 
-ESC1 is a template misconfiguration where the CA lets the enrollee specify who the certificate is for. Instead of issuing a cert for your own account, you request one for `Administrator` — the CA signs it, and you use it to get Administrator's NT hash via PKINIT. This goes straight to DA from any domain user, no shell on any machine required.
+- ADCS (Active Directory Certificate Services) present on the network
+
+- A certificate template with: Client Authentication EKU, Enrollee Supplies Subject enabled, and low-privilege accounts in Enrollment Rights
+
+- certipy installed on attacker
+
+- CA lets the enrollee specify who the certificate is for — request one for `Administrator` and the CA signs it
+
+- Use the cert to get Administrator's NT hash via PKINIT
+
+- Goes straight to DA from any domain user, no shell required
 
 ## Quick Win
 
@@ -70,4 +80,8 @@ evil-winrm -i $DC_IP -u Administrator -H <NT_HASH>
 
 ## Leads To
 
-`certipy auth` returns the Administrator NT hash → PTH to DC via evil-winrm → domain-admin. From there: DCSync for all hashes (including krbtgt) → golden-ticket persistence. The CA name appears in `certipy find` output — always present in the PKI LDAP object.
+- `certipy auth` returns the Administrator NT hash → PTH to DC via evil-winrm → `domain-admin`
+
+- From there: DCSync for all hashes (including krbtgt) → golden-ticket persistence
+
+- CA name appears in `certipy find` output — always present in the PKI LDAP object

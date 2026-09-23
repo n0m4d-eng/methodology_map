@@ -10,9 +10,17 @@ leads_to:
 
 ## Prerequisites
 
-openSUSE Leap 15 or SUSE Linux Enterprise 15 target (check `/etc/os-release`). SSH access as a normal user. No root or sudo required. Both CVEs are needed — 6018 gets you the polkit session, 6019 is the actual privilege boundary break.
+- openSUSE Leap 15 or SUSE Linux Enterprise 15 target (check `/etc/os-release`)
 
-These two CVEs chain together: polkit actions like udisks filesystem resize normally require an `allow_active` session (physical console login). openSUSE 15's PAM reads `~/.pam_environment` on login and trusts `XDG_SEAT`/`XDG_VTNR` from it — letting any user fake a console session (6018). With the faked session, a race window during XFS resize exposes a temporarily SUID-capable mount (6019).
+- SSH access as a normal user — no root or sudo required
+
+- Both CVEs are needed — 6018 gets the polkit session, 6019 is the actual privilege boundary break
+
+- Polkit actions like udisks filesystem resize normally require an `allow_active` session (physical console login)
+
+- openSUSE 15's PAM reads `~/.pam_environment` on login and trusts `XDG_SEAT`/`XDG_VTNR` from it — letting any user fake a console session (CVE-2025-6018)
+
+- With the faked session, a race window during XFS resize exposes a temporarily SUID-capable mount (CVE-2025-6019)
 
 ## Quick Win
 
@@ -75,4 +83,6 @@ done
 
 ## Leads To
 
-Race win → `/tmp/pwned -p` → root shell → root-linux. Dump `/etc/shadow`, plant authorized_keys in `/root/.ssh/`, check interfaces for additional subnets.
+- Race win → `/tmp/pwned -p` → root shell → `root-linux`
+
+- Dump `/etc/shadow`, plant authorized_keys in `/root/.ssh/`, check interfaces for additional subnets

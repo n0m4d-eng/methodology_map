@@ -12,9 +12,15 @@ leads_to:
 
 ## Prerequisites
 
-A shell with `SeBackupPrivilege` enabled — common on Backup Operators group members and some service accounts. `whoami /priv` must show this privilege as Enabled. On a DC, this gives you the entire domain.
+- A shell with `SeBackupPrivilege` enabled — common on Backup Operators group members and some service accounts
 
-SeBackupPrivilege grants the right to read any file regardless of its DACL — it's designed for backup software. This means SAM, SYSTEM, SECURITY (local hashes on any machine), and NTDS.dit (domain hashes on a DC) are all readable. The `reg save` method works from any cmd prompt; NTDS.dit on a DC requires diskshadow to work around the exclusive file lock.
+- `whoami /priv` shows this privilege as Enabled
+
+- On a DC, this gives you the entire domain
+
+- Grants the right to read any file regardless of its DACL — SAM, SYSTEM, SECURITY, and NTDS.dit are all readable
+
+- `reg save` works from any cmd prompt; NTDS.dit on a DC requires diskshadow to bypass the exclusive file lock
 
 ## Quick Win
 
@@ -69,4 +75,10 @@ impacket-secretsdump -ntds C:\Temp\ntds.dit -system C:\Temp\SYSTEM LOCAL
 
 ## Leads To
 
-SAM + SYSTEM dump → local Administrator hash → pass-the-hash laterally. NTDS.dit from DC → every domain account hash → domain-admin. krbtgt hash from NTDS dump → golden-ticket persistence. Spray Administrator hash across subnet → `nxc smb` + hash → access to all domain machines sharing local admin password.
+- SAM + SYSTEM dump → local Administrator hash → pass-the-hash laterally
+
+- NTDS.dit from DC → every domain account hash → `domain-admin`
+
+- krbtgt hash from NTDS dump → `golden-ticket` persistence
+
+- Spray Administrator hash across subnet (`nxc smb` + hash) → access to all machines sharing local admin password

@@ -13,9 +13,15 @@ leads_to:
 
 ## Prerequisites
 
-Port 88 open (domain controller). A domain name (get from SMB banner, DNS, or LDAP). No credentials required.
+- Port 88 open (domain controller)
 
-The Kerberos KDC returns different error codes for non-existent users (`KRB5KDC_ERR_C_PRINCIPAL_UNKNOWN`) vs valid users with pre-auth required (`PREAUTH_REQUIRED`). This difference lets you enumerate valid usernames silently before any authentication attempt. The moment you have a valid user list, immediately test each for AS-REP roastability — accounts with `DONT_REQ_PREAUTH` yield crackable hashes with zero credentials.
+- A domain name (get from SMB banner, DNS, or LDAP)
+
+- No credentials required
+
+- KDC returns different error codes for non-existent users vs valid users needing pre-auth — enumerate usernames silently before any auth attempt
+
+- Once you have a valid user list, test each for AS-REP roastability — `DONT_REQ_PREAUTH` accounts yield crackable hashes with zero credentials
 
 ## Quick Win
 
@@ -68,4 +74,8 @@ hashcat -m 18200 asrep_hashes.txt /usr/share/wordlists/rockyou.txt
 
 ## Leads To
 
-Valid user list → asreproast (immediately), then password-spray with the list. AS-REP hashes cracked → authenticate as that user → ldap-enum and kerberoast. Valid user list alone is enough to begin password spraying — check lockout policy via SMB first.
+- Valid user list → `asreproast` immediately, then `password-spray` with the list
+
+- AS-REP hashes cracked → authenticate as that user → `ldap-enum` and `kerberoast`
+
+- Valid user list alone is enough to begin password spraying — check lockout policy via SMB first

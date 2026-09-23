@@ -15,9 +15,13 @@ leads_to:
 
 ## Prerequisites
 
-SMB signing disabled on at least one target (verify with `nxc smb $CIDR --gen-relay-list`). Must be on the same network segment to capture authentications, or use coercion to force auth from a specific machine.
+- SMB signing disabled on at least one target (verify with `nxc smb $CIDR --gen-relay-list`)
 
-NTLM relay intercepts an authentication challenge from one machine and forwards it to another, tricking the second machine into thinking the first has authenticated. The most powerful use is relaying to ADCS Web Enrollment (ESC8) — you relay a DC's authentication and get a certificate that lets you impersonate the DC, leading directly to domain admin via DCSync.
+- Same network segment to capture authentications, or use coercion to force auth from a specific machine
+
+- Intercepts an auth challenge from one machine and forwards it to another, tricking the second into thinking the first authenticated
+
+- Most powerful use: relay to ADCS Web Enrollment (ESC8) — relay a DC's authentication, get a certificate impersonating the DC, and DCSync straight to domain admin
 
 ## Quick Win
 
@@ -65,4 +69,8 @@ impacket-secretsdump $DOMAIN/user@$TARGET -hashes :NTLM_HASH
 
 ## Leads To
 
-Local admin relay on a workstation → dump SAM hashes → pass-the-hash across the subnet. ADCS ESC8 relay → DC certificate → certipy auth → NT hash of DC machine account → DCSync → domain-admin. Relay to multiple targets simultaneously with ntlmrelayx's default multi-target mode.
+- Local admin relay on a workstation → dump SAM hashes → `pass-the-hash` across the subnet
+
+- ADCS ESC8 relay → DC certificate → certipy auth → NT hash of DC machine account → DCSync → `domain-admin`
+
+- Relay to multiple targets simultaneously with ntlmrelayx's default multi-target mode
