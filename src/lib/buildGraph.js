@@ -126,17 +126,6 @@ export function buildGraph(techniqueNodes, writeups, activeTags, engagement = nu
 
     if (filterVisible) visible.add(node.id)
 
-    let engDismissed = false
-    if (engagement && engagement.discovered.size > 0) {
-      const nodeTags = node.tags ?? []
-      const discoveredSvcTags = nodeTags.filter(
-        t => ALL_SERVICE_TAGS.has(t) && engagement.discovered.has(t)
-      )
-      if (discoveredSvcTags.length > 0) {
-        engDismissed = discoveredSvcTags.every(t => engagement.dismissed.has(t))
-      }
-    }
-
     rfNodes.push({
       id:     node.id,
       type:   'techniqueNode',
@@ -144,13 +133,9 @@ export function buildGraph(techniqueNodes, writeups, activeTags, engagement = nu
       hidden,
       data: {
         ...node,
-        visited:      (visitCounts[node.id] ?? 0) > 0,
-        visitCount:   visitCounts[node.id] ?? 0,
-        dismissed:    engDismissed,
-        techStatus:   engagement?.techStatus?.get(node.id)?.status ?? 'untried',
-        sessionActive: engagement?.isActive ?? false,
-        onSetStatus:   engagement?.setNodeStatus,
-        onClearStatus: engagement?.clearNodeStatus,
+        visited:    (visitCounts[node.id] ?? 0) > 0,
+        visitCount: visitCounts[node.id] ?? 0,
+        techStatus: engagement?.techStatus?.get(node.id)?.status ?? 'untried',
       },
     })
   })

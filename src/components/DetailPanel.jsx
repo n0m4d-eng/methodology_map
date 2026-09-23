@@ -4,7 +4,7 @@ import { parseFrontmatter } from '@/lib/parseFrontmatter'
 
 marked.setOptions({ breaks: true })
 
-export function DetailPanel({ node, width, onClose, onOpenWriteup, onResizeStart, onNavigateToNode, currentStatus = 'untried', sheet = false }) {
+export function DetailPanel({ node, width, onClose, onOpenWriteup, onResizeStart, onNavigateToNode, onSetStatus, onClearStatus, currentStatus = 'untried', sessionActive = false, sheet = false }) {
   const d = node.data
   const [body,          setBody]          = useState(null)
   const [activeTab,     setActiveTab]     = useState('notes')
@@ -113,7 +113,12 @@ export function DetailPanel({ node, width, onClose, onOpenWriteup, onResizeStart
             )
           )}
         </div>
-        <StatusLabel status={currentStatus} />
+        <StatusControl
+          status={currentStatus}
+          sessionActive={sessionActive}
+          onSetStatus={s => onSetStatus?.(node.id, s)}
+          onClearStatus={() => onClearStatus?.(node.id)}
+        />
       </div>
     )
   }
@@ -165,19 +170,36 @@ export function DetailPanel({ node, width, onClose, onOpenWriteup, onResizeStart
           onNavigate={onNavigateToNode}
         />
       )}
-      <StatusLabel status={currentStatus} />
+      <StatusControl
+        status={currentStatus}
+        sessionActive={sessionActive}
+        onSetStatus={s => onSetStatus?.(node.id, s)}
+        onClearStatus={() => onClearStatus?.(node.id)}
+      />
     </div>
   )
 }
 
-function StatusLabel({ status }) {
-  if (status === 'untried') return null
-  const isSuccess = status === 'succeeded'
+function StatusControl({ status, sessionActive, onSetStatus, onClearStatus }) {
+  if (!sessionActive) return null
+
+  function handleChange(e) {
+    const value = e.target.value
+    if (value === 'untried') onClearStatus()
+    else onSetStatus(value)
+  }
+
   return (
     <div className="detail-status-bar">
-      <span className={`dsb-label ${isSuccess ? 'dsb-label--success' : 'dsb-label--fail'}`}>
-        {isSuccess ? '✓ It works' : '✗ Dead end'}
-      </span>
+      <select
+        className={`dsb-select dsb-select--${status}`}
+        value={status}
+        onChange={handleChange}
+      >
+        <option value="untried">status —</option>
+        <option value="tried-failed">dead end</option>
+        <option value="succeeded">it works</option>
+      </select>
     </div>
   )
 }

@@ -7,11 +7,7 @@ function makeEngagement(statusByNodeId, overrides = {}) {
   )
   return {
     discovered: new Set(),
-    dismissed:  new Map(),
     techStatus,
-    isActive: false,
-    setNodeStatus: () => {},
-    clearNodeStatus: () => {},
     ...overrides,
   }
 }
@@ -65,22 +61,21 @@ describe('buildGraph — path highlighting', () => {
   })
 })
 
-describe('buildGraph — node data for the status dropdown', () => {
-  it('attaches sessionActive and the status callbacks to every node', () => {
-    const setNodeStatus   = () => {}
-    const clearNodeStatus = () => {}
-    const engagement = makeEngagement({}, { isActive: true, setNodeStatus, clearNodeStatus })
+describe('buildGraph — node data', () => {
+  it('attaches techStatus to node data, independent of the status control (which lives in DetailPanel now)', () => {
+    const engagement = makeEngagement({ 'nmap-scan': 'succeeded' })
     const { nodes } = buildGraph(NODES, [], new Set(), engagement)
-    for (const n of nodes.filter(n => n.type === 'techniqueNode')) {
-      expect(n.data.sessionActive).toBe(true)
-      expect(n.data.onSetStatus).toBe(setNodeStatus)
-      expect(n.data.onClearStatus).toBe(clearNodeStatus)
-    }
+    const nmapNode = nodes.find(n => n.id === 'nmap-scan')
+    const webNode  = nodes.find(n => n.id === 'web-enum')
+    expect(nmapNode.data.techStatus).toBe('succeeded')
+    expect(webNode.data.techStatus).toBe('untried')
+    expect(nmapNode.data.sessionActive).toBeUndefined()
+    expect(nmapNode.data.onSetStatus).toBeUndefined()
   })
 
-  it('defaults sessionActive to false when there is no engagement', () => {
+  it('defaults techStatus to untried when there is no engagement', () => {
     const { nodes } = buildGraph(NODES, [], new Set(), null)
     const techNode = nodes.find(n => n.type === 'techniqueNode')
-    expect(techNode.data.sessionActive).toBe(false)
+    expect(techNode.data.techStatus).toBe('untried')
   })
 })

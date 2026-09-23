@@ -13,32 +13,16 @@ const SERVICE_GROUPS = [
 
 export function EngagementPanel({
   discovered,
-  dismissed,
   discoveredArray,
   addService,
   removeService,
-  dismissService,
-  undismissService,
   clearSession,
   isActive,
   suggestedNext = [],
   attemptedNodes = [],
   onSelectNode,
 }) {
-  const [open,          setOpen]          = useState(false)
-  const [dismissTarget, setDismissTarget] = useState(null)
-  const [dismissNote,   setDismissNote]   = useState('')
-
-  function handleDismissSubmit(svc) {
-    dismissService(svc, dismissNote.trim())
-    setDismissTarget(null)
-    setDismissNote('')
-  }
-
-  function handleDismissCancel() {
-    setDismissTarget(null)
-    setDismissNote('')
-  }
+  const [open, setOpen] = useState(false)
 
   return (
     <div className="engagement-widget">
@@ -107,17 +91,12 @@ export function EngagementPanel({
                 <div className="ep-chips">
                   {services.map(svc => {
                     const isDisc = discovered.has(svc)
-                    const isDism = dismissed.has(svc)
                     return (
                       <button
                         key={svc}
-                        className={[
-                          'ep-svc-chip',
-                          isDisc ? 'ep-svc-chip--discovered' : '',
-                          isDism ? 'ep-svc-chip--dismissed'  : '',
-                        ].filter(Boolean).join(' ')}
+                        className={`ep-svc-chip${isDisc ? ' ep-svc-chip--discovered' : ''}`}
                         onClick={() => isDisc ? removeService(svc) : addService(svc)}
-                        title={isDism ? `Dismissed: ${dismissed.get(svc) || '(no note)'}` : svc}
+                        title={svc}
                       >
                         {svc}
                       </button>
@@ -127,71 +106,6 @@ export function EngagementPanel({
               </div>
             ))}
           </div>
-
-          {discoveredArray.length > 0 && (
-            <div className="ep-section">
-              <div className="ep-section-label">SERVICE STATUS</div>
-              <div className="ep-service-list">
-                {discoveredArray.map(svc => {
-                  const isDism = dismissed.has(svc)
-                  const note   = dismissed.get(svc)
-
-                  if (dismissTarget === svc) {
-                    return (
-                      <div key={svc} className="ep-service-row ep-service-row--noting">
-                        <span className="ep-svc-name">{svc}</span>
-                        <input
-                          className="ep-dismiss-input"
-                          placeholder="note (optional)"
-                          value={dismissNote}
-                          onChange={e => setDismissNote(e.target.value)}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter')  handleDismissSubmit(svc)
-                            if (e.key === 'Escape') handleDismissCancel()
-                          }}
-                          autoFocus
-                        />
-                        <button className="ep-btn ep-btn--confirm" onClick={() => handleDismissSubmit(svc)}>✓</button>
-                        <button className="ep-btn ep-btn--cancel"  onClick={handleDismissCancel}>×</button>
-                      </div>
-                    )
-                  }
-
-                  return (
-                    <div
-                      key={svc}
-                      className={`ep-service-row${isDism ? ' ep-service-row--dismissed' : ''}`}
-                    >
-                      <span className="ep-svc-name">{svc}</span>
-                      {isDism && note && (
-                        <span className="ep-svc-note" title={note}>{note}</span>
-                      )}
-                      <div className="ep-svc-actions">
-                        {isDism ? (
-                          <button
-                            className="ep-btn ep-btn--undo"
-                            onClick={() => undismissService(svc)}
-                            title="Undo dismiss"
-                          >undo</button>
-                        ) : (
-                          <button
-                            className="ep-btn ep-btn--dismiss"
-                            onClick={() => { setDismissTarget(svc); setDismissNote('') }}
-                            title="Mark as dismissed"
-                          >dismiss</button>
-                        )}
-                        <button
-                          className="ep-btn ep-btn--remove"
-                          onClick={() => removeService(svc)}
-                          title="Remove from session"
-                        >✕</button>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
 
           <div className="ep-footer">
             <button

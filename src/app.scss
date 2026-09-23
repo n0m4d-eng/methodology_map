@@ -1161,74 +1161,6 @@ body {
     background: rgba(63,185,80,0.1);
     &:hover { background: rgba(63,185,80,0.18); }
   }
-
-  &--dismissed {
-    opacity: 0.5;
-    border-color: #f85149;
-    color: #f85149;
-    background: rgba(248,81,73,0.08);
-    text-decoration: line-through;
-  }
-}
-
-.ep-service-list { display: flex; flex-direction: column; gap: 4px; }
-
-.ep-service-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 8px;
-  background: var(--card);
-  border-radius: 5px;
-  border: 1px solid transparent;
-  min-height: 30px;
-
-  &--dismissed {
-    opacity: 0.65;
-    border-color: rgba(248,81,73,0.25);
-    background: rgba(248,81,73,0.05);
-  }
-
-  &--noting { flex-wrap: wrap; }
-}
-
-.ep-svc-name {
-  font-size: var(--text-xs);
-  color: var(--text);
-  min-width: 44px;
-  flex-shrink: 0;
-
-  .ep-service-row--dismissed & {
-    text-decoration: line-through;
-    color: var(--text-dim);
-  }
-}
-
-.ep-svc-note {
-  font-size: var(--text-xxs);
-  color: var(--text-dim);
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-style: italic;
-}
-
-.ep-svc-actions { display: flex; gap: 4px; margin-left: auto; flex-shrink: 0; }
-
-.ep-dismiss-input {
-  flex: 1;
-  min-width: 0;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  color: var(--text);
-  font-family: inherit;
-  font-size: var(--text-xs);
-  padding: 3px 8px;
-  outline: none;
-  &:focus { border-color: var(--accent); }
-  &::placeholder { color: var(--text-dim); }
 }
 
 .ep-btn {
@@ -1245,34 +1177,6 @@ body {
   transition: color 0.1s, border-color 0.1s, background 0.1s;
 
   &:hover { color: var(--text); border-color: var(--text-dim); }
-
-  &--dismiss {
-    color: var(--warning);
-    border-color: rgba(210,153,34,0.4);
-    &:hover { background: rgba(210,153,34,0.1); border-color: var(--warning); }
-  }
-
-  &--undo {
-    color: var(--accent);
-    border-color: rgba(88,166,255,0.3);
-    &:hover { background: rgba(88,166,255,0.1); border-color: var(--accent); }
-  }
-
-  &--remove {
-    color: var(--danger);
-    border-color: rgba(248,81,73,0.3);
-    &:hover { background: rgba(248,81,73,0.1); border-color: var(--danger); }
-  }
-
-  &--confirm {
-    color: var(--success);
-    border-color: rgba(63,185,80,0.4);
-    &:hover { background: rgba(63,185,80,0.1); border-color: var(--success); }
-  }
-
-  &--cancel {
-    &:hover { color: var(--danger); border-color: rgba(248,81,73,0.3); }
-  }
 
   &--clear {
     width: 100%;
@@ -1314,20 +1218,23 @@ body {
   flex-shrink: 0;
 }
 
-.dsb-label {
-  padding: 5px 10px;
+.dsb-select {
+  flex: 1;
+  padding: 6px 10px;
   border-radius: 6px;
   border: 1px solid var(--border);
   background: var(--card);
+  color: var(--text-dim);
+  font-family: inherit;
   font-size: var(--text-xs);
-  white-space: nowrap;
+  cursor: pointer;
 
-  &--success {
+  &--succeeded {
     background: rgba(63,185,80,0.12);
     border-color: var(--success);
     color: var(--success);
   }
-  &--fail {
+  &--tried-failed {
     background: rgba(248,81,73,0.12);
     border-color: #f85149;
     color: #f85149;
@@ -1448,45 +1355,6 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-/* ── Node status dropdown (session mode, on-card) ────────────────────────── */
-.node-status-select {
-  display: block;
-  width: 100%;
-  margin-bottom: 7px;
-  padding: 3px 6px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  color: var(--text-dim);
-  font-family: inherit;
-  font-size: var(--text-xxs);
-  cursor: pointer;
-
-  &--succeeded {
-    background: rgba(63,185,80,0.12);
-    border-color: var(--success);
-    color: var(--success);
-  }
-  &--tried-failed {
-    background: rgba(248,81,73,0.12);
-    border-color: #f85149;
-    color: #f85149;
-  }
-}
-
-/* ── Dismissed technique node ─────────────────────────────────────────────── */
-.technique-node.dismissed {
-  border-color: rgba(248,81,73,0.5) !important;
-  box-shadow: 0 0 0 1px rgba(248,81,73,0.15);
-  .node-title { color: var(--text-dim); }
-}
-
-.node-dismissed-mark {
-  color: #f85149;
-  font-size: var(--text-xxs);
-  margin-right: 2px;
 }
 
 /* ── About page ──────────────────────────────────────────────────────────── */

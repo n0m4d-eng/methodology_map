@@ -105,14 +105,10 @@ export default function App() {
 
   const graphData = useMemo(
     () => buildGraph(techniqueNodes, writeups, activeTags, {
-      discovered:      engagement.discovered,
-      dismissed:       engagement.dismissed,
-      techStatus:      engagement.techStatus,
-      isActive:        engagement.isActive,
-      setNodeStatus:   engagement.setNodeStatus,
-      clearNodeStatus: engagement.clearNodeStatus,
+      discovered: engagement.discovered,
+      techStatus: engagement.techStatus,
     }),
-    [techniqueNodes, writeups, activeTags, engagement.discovered, engagement.dismissed, engagement.techStatus, engagement.isActive, engagement.setNodeStatus, engagement.clearNodeStatus]
+    [techniqueNodes, writeups, activeTags, engagement.discovered, engagement.techStatus]
   )
 
   const suggestedNext = useMemo(() => {
@@ -451,12 +447,9 @@ export default function App() {
 
             <EngagementPanel
               discovered={engagement.discovered}
-              dismissed={engagement.dismissed}
               discoveredArray={engagement.discoveredArray}
               addService={engagement.addService}
               removeService={engagement.removeService}
-              dismissService={engagement.dismissService}
-              undismissService={engagement.undismissService}
               clearSession={engagement.clearSession}
               isActive={engagement.isActive}
               suggestedNext={suggestedNext}
@@ -480,7 +473,10 @@ export default function App() {
                   onClose={() => setPanelOpen(false)}
                   onOpenWriteup={handleOpenWriteup}
                   onNavigateToNode={handleNavigateToNode}
+                  onSetStatus={engagement.setNodeStatus}
+                  onClearStatus={engagement.clearNodeStatus}
                   currentStatus={engagement.techStatus.get(selected.id)?.status ?? 'untried'}
+                  sessionActive={engagement.isActive}
                   sheet
                 />
               </>
@@ -496,7 +492,10 @@ export default function App() {
               onOpenWriteup={handleOpenWriteup}
               onResizeStart={startResize}
               onNavigateToNode={handleNavigateToNode}
+              onSetStatus={engagement.setNodeStatus}
+              onClearStatus={engagement.clearNodeStatus}
               currentStatus={engagement.techStatus.get(selected.id)?.status ?? 'untried'}
+              sessionActive={engagement.isActive}
             />
           )}
         </div>
