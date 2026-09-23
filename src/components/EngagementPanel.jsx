@@ -22,6 +22,7 @@ export function EngagementPanel({
   clearSession,
   isActive,
   suggestedNext = [],
+  attemptedNodes = [],
   onSelectNode,
 }) {
   const [open,          setOpen]          = useState(false)
@@ -73,6 +74,25 @@ export function EngagementPanel({
                     <span className="ep-suggest-stage">{node.stage}</span>
                     <span className="ep-suggest-name">{node.title}</span>
                     <span className="ep-suggest-arrow">→</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {attemptedNodes.length > 0 && (
+            <div className="ep-section ep-section--attempted">
+              <div className="ep-section-label">ATTEMPTED</div>
+              <div className="ep-attempt-list">
+                {attemptedNodes.map(n => (
+                  <button
+                    key={n.id}
+                    className={`ep-attempt-row ep-attempt-row--${n.status === 'succeeded' ? 'success' : 'fail'}`}
+                    onClick={() => { onSelectNode?.(n.id); setOpen(false) }}
+                  >
+                    <span className="ep-attempt-icon">{n.status === 'succeeded' ? '✓' : '✗'}</span>
+                    <span className="ep-attempt-stage">{n.stage}</span>
+                    <span className="ep-attempt-name">{n.title}</span>
                   </button>
                 ))}
               </div>

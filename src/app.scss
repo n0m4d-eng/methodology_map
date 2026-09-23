@@ -694,25 +694,6 @@ body {
   text-align: center;
 }
 
-/* ── Writeup cards ───────────────────────────────────────────────────────── */
-.writeup-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 8px 10px;
-  margin-bottom: 6px;
-  transition: border-color 0.12s;
-
-  &:last-child { margin-bottom: 0; }
-  &:hover { border-color: rgba(88,166,255,0.4); }
-}
-
-.writeup-title { font-size: var(--text-xs); color: var(--text); margin-bottom: 4px; }
-.writeup-meta  { font-size: var(--text-xxs); color: var(--text-dim); display: flex; gap: 8px; }
-.writeup-plat  { color: var(--purple); }
-.writeup-diff  { color: var(--warning); }
-.writeup-path  { font-size: var(--text-xxs); color: rgba(88,166,255,0.35); margin-top: 5px; line-height: 1.5; word-break: break-all; }
-
 /* ── Reference links ─────────────────────────────────────────────────────── */
 .ref-link {
   display: block;
@@ -727,26 +708,6 @@ body {
   transition: opacity 0.12s;
 
   &:hover { opacity: 1; text-decoration: underline; }
-}
-
-/* ── Writeup list scroll container ───────────────────────────────────────── */
-.writeup-card-list {
-  max-height: 380px;
-  overflow-y: auto;
-}
-
-.writeup-card-clickable {
-  cursor: pointer;
-
-  .writeup-card-cta {
-    font-size: var(--text-xxs);
-    color: var(--accent);
-    margin-top: 6px;
-    opacity: 0.7;
-    transition: opacity 0.12s;
-  }
-
-  &:hover .writeup-card-cta { opacity: 1; }
 }
 
 /* ── Attack path ─────────────────────────────────────────────────────────── */
@@ -1436,6 +1397,68 @@ body {
   color: var(--success);
   font-size: var(--text-xs);
   flex-shrink: 0;
+}
+
+/* ── Attempted techniques (engagement panel) ─────────────────────────────── */
+.ep-section--attempted {
+  border-bottom: 1px solid var(--border);
+}
+
+.ep-attempt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ep-attempt-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  border: 1px solid transparent;
+  background: transparent;
+  transition: background 0.12s, border-color 0.12s;
+
+  &--success {
+    background: rgba(63,185,80,0.06);
+    border-color: rgba(63,185,80,0.2);
+    &:hover { background: rgba(63,185,80,0.12); border-color: rgba(63,185,80,0.4); }
+    .ep-attempt-icon { color: var(--success); }
+  }
+
+  &--fail {
+    background: rgba(248,81,73,0.06);
+    border-color: rgba(248,81,73,0.2);
+    &:hover { background: rgba(248,81,73,0.12); border-color: rgba(248,81,73,0.4); }
+    .ep-attempt-icon { color: #f85149; }
+  }
+}
+
+.ep-attempt-icon {
+  font-size: var(--text-xs);
+  flex-shrink: 0;
+}
+
+.ep-attempt-stage {
+  font-size: var(--text-xxs);
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.ep-attempt-name {
+  font-size: var(--text-xs);
+  color: var(--text);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ── Node right-click context menu ───────────────────────────────────────── */

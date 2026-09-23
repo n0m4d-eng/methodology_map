@@ -49,15 +49,6 @@ export function buildGraph(techniqueNodes, writeups, activeTags, engagement = nu
     })
   })
 
-  // which writeups reference a given node id
-  const writeupsByNode = {}
-  writeups.forEach(w => {
-    ;(w.attack_path ?? []).forEach(id => {
-      if (!writeupsByNode[id]) writeupsByNode[id] = []
-      writeupsByNode[id].push(w)
-    })
-  })
-
   // group by stage so we can assign y positions
   const byStage = {}
   techniqueNodes.forEach(n => {
@@ -137,7 +128,6 @@ export function buildGraph(techniqueNodes, writeups, activeTags, engagement = nu
         ...node,
         visited:    (visitCounts[node.id] ?? 0) > 0,
         visitCount: visitCounts[node.id] ?? 0,
-        relatedWriteups: writeupsByNode[node.id] ?? [],
         dismissed:  engDismissed,
         techStatus: engagement?.techStatus?.get(node.id)?.status ?? 'untried',
       },

@@ -80,25 +80,7 @@ export function DetailPanel({ node, width, onClose, onOpenWriteup, onResizeStart
                   ))}
                 </div>
               )}
-              {d.relatedWriteups?.length > 0 && (
-                <div className="sheet-group">
-                  <div className="detail-section-title">Writeups ({d.relatedWriteups.length})</div>
-                  <div className="writeup-card-list">
-                    {d.relatedWriteups.map(w => (
-                      <div key={w.id} className="writeup-card writeup-card-clickable" onClick={() => onOpenWriteup?.(w)}>
-                        <div className="writeup-title">{w.title}</div>
-                        <div className="writeup-meta">
-                          <span className="writeup-plat">{w.platform}</span>
-                          <span className="writeup-diff">{w.difficulty}</span>
-                        </div>
-                        <div className="writeup-path">{w.attack_path.join(' → ')}</div>
-                        <div className="writeup-card-cta">view writeup →</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {!d.references?.length && !d.relatedWriteups?.length && (
+              {!d.references?.length && (
                 <div className="body-loading">no links</div>
               )}
             </div>
@@ -157,28 +139,6 @@ export function DetailPanel({ node, width, onClose, onOpenWriteup, onResizeStart
               ↗ {url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
             </a>
           ))}
-        </Section>
-      )}
-
-      {d.relatedWriteups?.length > 0 && (
-        <Section title={`Writeups (${d.relatedWriteups.length})`}>
-          <div className="writeup-card-list">
-            {d.relatedWriteups.map(w => (
-              <div
-                key={w.id}
-                className="writeup-card writeup-card-clickable"
-                onClick={() => onOpenWriteup?.(w)}
-              >
-                <div className="writeup-title">{w.title}</div>
-                <div className="writeup-meta">
-                  <span className="writeup-plat">{w.platform}</span>
-                  <span className="writeup-diff">{w.difficulty}</span>
-                </div>
-                <div className="writeup-path">{w.attack_path.join(' → ')}</div>
-                <div className="writeup-card-cta">view writeup →</div>
-              </div>
-            ))}
-          </div>
         </Section>
       )}
 

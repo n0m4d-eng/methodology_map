@@ -134,6 +134,16 @@ export default function App() {
       .filter(Boolean)
   }, [techniqueNodes, engagement.techniques])
 
+  const attemptedNodes = useMemo(() => {
+    return Object.entries(engagement.techniques)
+      .map(([id, v]) => {
+        const node = techniqueNodes.find(n => n.id === id)
+        return node ? { id, title: node.title, stage: node.stage, status: v.status, ts: v.ts } : null
+      })
+      .filter(Boolean)
+      .sort((a, b) => (a.status === b.status ? b.ts - a.ts : a.status === 'succeeded' ? -1 : 1))
+  }, [techniqueNodes, engagement.techniques])
+
   const effectiveEdges = useMemo(() => {
     if (!selected) return graphData.edges.map(e => ({ ...e, hidden: true }))
 
@@ -445,6 +455,7 @@ export default function App() {
               clearSession={engagement.clearSession}
               isActive={engagement.isActive}
               suggestedNext={suggestedNext}
+              attemptedNodes={attemptedNodes}
               onSelectNode={handleNavigateToNode}
             />
 
