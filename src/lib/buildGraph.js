@@ -1,5 +1,13 @@
 import { MarkerType } from '@xyflow/react'
-import { computeEdgePathState } from './pathState'
+
+// Determines whether a leads_to edge (source -> target) should be highlighted
+// as part of the session path: 'success' if both ends succeeded, 'dead-end' if
+// the source succeeded but the target was tried and failed, null otherwise.
+function computeEdgePathState(sourceStatus, targetStatus) {
+  return sourceStatus === 'succeeded' && targetStatus
+    ? (targetStatus === 'succeeded' ? 'success' : 'dead-end')
+    : null
+}
 
 export const ALL_SERVICE_TAGS = new Set([
   'ssh', 'rdp', 'winrm', 'vnc', 'telnet',

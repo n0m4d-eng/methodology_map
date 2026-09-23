@@ -116,8 +116,7 @@ export function DetailPanel({ node, width, onClose, onOpenWriteup, onResizeStart
         <StatusControl
           status={currentStatus}
           sessionActive={sessionActive}
-          onSetStatus={s => onSetStatus?.(node.id, s)}
-          onClearStatus={() => onClearStatus?.(node.id)}
+          onChange={s => s === 'untried' ? onClearStatus?.(node.id) : onSetStatus?.(node.id, s)}
         />
       </div>
     )
@@ -173,28 +172,21 @@ export function DetailPanel({ node, width, onClose, onOpenWriteup, onResizeStart
       <StatusControl
         status={currentStatus}
         sessionActive={sessionActive}
-        onSetStatus={s => onSetStatus?.(node.id, s)}
-        onClearStatus={() => onClearStatus?.(node.id)}
+        onChange={s => s === 'untried' ? onClearStatus?.(node.id) : onSetStatus?.(node.id, s)}
       />
     </div>
   )
 }
 
-function StatusControl({ status, sessionActive, onSetStatus, onClearStatus }) {
+function StatusControl({ status, sessionActive, onChange }) {
   if (!sessionActive) return null
-
-  function handleChange(e) {
-    const value = e.target.value
-    if (value === 'untried') onClearStatus()
-    else onSetStatus(value)
-  }
 
   return (
     <div className="detail-status-bar">
       <select
         className={`dsb-select dsb-select--${status}`}
         value={status}
-        onChange={handleChange}
+        onChange={e => onChange(e.target.value)}
       >
         <option value="untried">status —</option>
         <option value="tried-failed">dead end</option>
