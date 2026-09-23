@@ -24,7 +24,6 @@ import { WriteupsPage }      from '@/components/WriteupsPage'
 import { AboutPage }         from '@/components/AboutPage'
 import { KeyboardHints }     from '@/components/KeyboardHints'
 import { EngagementPanel }   from '@/components/EngagementPanel'
-import { NodeContextMenu }   from '@/components/NodeContextMenu'
 
 const NODE_TYPES = {
   techniqueNode: TechniqueNode,
@@ -47,6 +46,7 @@ function setHash(pg, writeupId = null) {
 const ALL_TAGS    = new Set(MAP_CHIPS.map(c => c.id))
 const MIN_PANEL_W = 290
 const ACID_GREEN  = '#7fff00'
+const PATH_STATE_COLORS = { success: '#3fb950', 'dead-end': '#f85149' }
 
 function FlowController({ selected, nodesLoaded, keyboardNavCount, fitViewRef }) {
   const { fitView } = useReactFlow()
@@ -100,17 +100,19 @@ export default function App() {
   const [showIncoming,    setShowIncoming]    = useState(true)
   const [hintsOpen,       setHintsOpen]       = useState(false)
   const [keyboardNavCount, setKeyboardNavCount] = useState(0)
-  const [contextMenu,     setContextMenu]     = useState(null) // { node, x, y }
   const isResizing = useRef(false)
   const engagement = useEngagement()
 
   const graphData = useMemo(
     () => buildGraph(techniqueNodes, writeups, activeTags, {
-      discovered: engagement.discovered,
-      dismissed:  engagement.dismissed,
-      techStatus: engagement.techStatus,
+      discovered:      engagement.discovered,
+      dismissed:       engagement.dismissed,
+      techStatus:      engagement.techStatus,
+      isActive:        engagement.isActive,
+      setNodeStatus:   engagement.setNodeStatus,
+      clearNodeStatus: engagement.clearNodeStatus,
     }),
-    [techniqueNodes, writeups, activeTags, engagement.discovered, engagement.dismissed, engagement.techStatus]
+    [techniqueNodes, writeups, activeTags, engagement.discovered, engagement.dismissed, engagement.techStatus, engagement.isActive, engagement.setNodeStatus, engagement.clearNodeStatus]
   )
 
   const suggestedNext = useMemo(() => {
@@ -145,13 +147,24 @@ export default function App() {
   }, [techniqueNodes, engagement.techniques])
 
   const effectiveEdges = useMemo(() => {
-    if (!selected) return graphData.edges.map(e => ({ ...e, hidden: true }))
-
     return graphData.edges.map(e => {
-      const isOut     = e.source === selected.id
-      const isIn      = e.target === selected.id
-      const visible   = (isOut && showOutgoing) || (isIn && showIncoming)
-      const hidden    = e.hidden || !visible
+      const pathState = e.data?.pathState
+      if (pathState && engagement.isActive) {
+        const color = PATH_STATE_COLORS[pathState]
+        return {
+          ...e,
+          hidden: false,
+          style:     { stroke: color, strokeWidth: 2 },
+          markerEnd: { type: 'arrowclosed', color, width: 14, height: 14 },
+        }
+      }
+
+      if (!selected) return { ...e, hidden: true }
+
+      const isOut   = e.source === selected.id
+      const isIn    = e.target === selected.id
+      const visible = (isOut && showOutgoing) || (isIn && showIncoming)
+      const hidden  = e.hidden || !visible
       if (!visible) return { ...e, hidden }
 
       const color = isOut ? ACID_GREEN : '#58a6ff'
@@ -163,7 +176,7 @@ export default function App() {
         pathOptions: { borderRadius: 12 },
       }
     })
-  }, [graphData.edges, selected, showOutgoing, showIncoming])
+  }, [graphData.edges, selected, showOutgoing, showIncoming, engagement.isActive])
 
   const connectedNodeIds = useMemo(() => {
     if (!selected) return null
@@ -304,13 +317,6 @@ export default function App() {
 
   const onPaneClick = useCallback(() => {
     setPanelOpen(false)
-    setContextMenu(null)
-  }, [])
-
-  const onNodeContextMenu = useCallback((e, node) => {
-    if (node.type === 'laneHeader') return
-    e.preventDefault()
-    setContextMenu({ node, x: e.clientX, y: e.clientY })
   }, [])
 
   function toggleTag(tag) {
@@ -424,7 +430,6 @@ export default function App() {
               onEdgesChange={onEdgesChange}
               onNodeClick={onNodeClick}
               onPaneClick={onPaneClick}
-              onNodeContextMenu={onNodeContextMenu}
               nodeTypes={NODE_TYPES}
               fitView
               fitViewOptions={{ padding: 0.15 }}
@@ -459,18 +464,6 @@ export default function App() {
               onSelectNode={handleNavigateToNode}
             />
 
-            {contextMenu && (
-              <NodeContextMenu
-                node={contextMenu.node}
-                x={contextMenu.x}
-                y={contextMenu.y}
-                techStatus={engagement.techStatus}
-                onSetStatus={engagement.setNodeStatus}
-                onClearStatus={engagement.clearNodeStatus}
-                onClose={() => setContextMenu(null)}
-              />
-            )}
-
             {/* Fit-to-view button — touch affordance, hidden on desktop via CSS */}
             <button
               className="fitview-btn"
@@ -487,8 +480,6 @@ export default function App() {
                   onClose={() => setPanelOpen(false)}
                   onOpenWriteup={handleOpenWriteup}
                   onNavigateToNode={handleNavigateToNode}
-                  onSetStatus={engagement.setNodeStatus}
-                  onClearStatus={engagement.clearNodeStatus}
                   currentStatus={engagement.techStatus.get(selected.id)?.status ?? 'untried'}
                   sheet
                 />
@@ -505,8 +496,6 @@ export default function App() {
               onOpenWriteup={handleOpenWriteup}
               onResizeStart={startResize}
               onNavigateToNode={handleNavigateToNode}
-              onSetStatus={engagement.setNodeStatus}
-              onClearStatus={engagement.clearNodeStatus}
               currentStatus={engagement.techStatus.get(selected.id)?.status ?? 'untried'}
             />
           )}

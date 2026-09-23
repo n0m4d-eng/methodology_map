@@ -80,6 +80,6 @@ export function useEngagement() {
     setNodeStatus,
     clearNodeStatus,
     clearSession,
-    isActive: session.discovered.length > 0,
+    isActive: session.discovered.length > 0 || Object.keys(session.techniques).length > 0,
   }
 }

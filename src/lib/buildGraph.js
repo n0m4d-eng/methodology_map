@@ -1,4 +1,5 @@
 import { MarkerType } from '@xyflow/react'
+import { computeEdgePathState } from './pathState'
 
 export const ALL_SERVICE_TAGS = new Set([
   'ssh', 'rdp', 'winrm', 'vnc', 'telnet',
@@ -96,6 +97,22 @@ export function buildGraph(techniqueNodes, writeups, activeTags, engagement = nu
     })
   })
 
+  // Path-touched nodes/edges: computed from session status, independent of filters.
+  const pathEdgeStates = new Map() // edgeId -> 'success' | 'dead-end'
+  const pathTouchedIds  = new Set()
+  techniqueNodes.forEach(node => {
+    const sourceStatus = engagement?.techStatus?.get(node.id)?.status
+    ;(node.leads_to ?? []).forEach(targetId => {
+      const targetStatus = engagement?.techStatus?.get(targetId)?.status
+      const state = computeEdgePathState(sourceStatus, targetStatus)
+      if (state) {
+        pathEdgeStates.set(`${node.id}→${targetId}`, state)
+        pathTouchedIds.add(node.id)
+        pathTouchedIds.add(targetId)
+      }
+    })
+  })
+
   // Technique nodes
   const visible = new Set()
   techniqueNodes.forEach(node => {
@@ -104,9 +121,10 @@ export function buildGraph(techniqueNodes, writeups, activeTags, engagement = nu
     const yIdx   = stageList.findIndex(n => n.id === node.id)
     const x      = START_X + col * (COL_WIDTH + COL_GAP)
     const y      = NODE_Y + yIdx * (NODE_H + NODE_GAP)
-    const hidden = !isVisible(node)
+    const filterVisible = isVisible(node)
+    const hidden = !filterVisible && !pathTouchedIds.has(node.id)
 
-    if (!hidden) visible.add(node.id)
+    if (filterVisible) visible.add(node.id)
 
     let engDismissed = false
     if (engagement && engagement.discovered.size > 0) {
@@ -126,10 +144,13 @@ export function buildGraph(techniqueNodes, writeups, activeTags, engagement = nu
       hidden,
       data: {
         ...node,
-        visited:    (visitCounts[node.id] ?? 0) > 0,
-        visitCount: visitCounts[node.id] ?? 0,
-        dismissed:  engDismissed,
-        techStatus: engagement?.techStatus?.get(node.id)?.status ?? 'untried',
+        visited:      (visitCounts[node.id] ?? 0) > 0,
+        visitCount:   visitCounts[node.id] ?? 0,
+        dismissed:    engDismissed,
+        techStatus:   engagement?.techStatus?.get(node.id)?.status ?? 'untried',
+        sessionActive: engagement?.isActive ?? false,
+        onSetStatus:   engagement?.setNodeStatus,
+        onClearStatus: engagement?.clearNodeStatus,
       },
     })
   })
@@ -138,14 +159,18 @@ export function buildGraph(techniqueNodes, writeups, activeTags, engagement = nu
   const rfEdges = []
   techniqueNodes.forEach(node => {
     ;(node.leads_to ?? []).forEach(targetId => {
+      const edgeId    = `${node.id}→${targetId}`
+      const pathState = pathEdgeStates.get(edgeId) ?? null
       const bothVisible = visible.has(node.id) && visible.has(targetId)
+      const hidden = pathState ? false : !bothVisible
 
       rfEdges.push({
-        id:     `${node.id}→${targetId}`,
+        id:     edgeId,
         source: node.id,
         target: targetId,
         type:   'smoothstep',
-        hidden: !bothVisible,
+        hidden,
+        data:   { pathState },
         style: {
           stroke:      '#30363d',
           strokeWidth: 1,

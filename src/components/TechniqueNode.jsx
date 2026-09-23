@@ -1,6 +1,6 @@
 import { Handle, Position } from '@xyflow/react'
 
-export function TechniqueNode({ data, selected }) {
+export function TechniqueNode({ id, data, selected }) {
   const isDismissed = data.dismissed === true
   const techStatus  = data.techStatus ?? 'untried'
 
@@ -18,10 +18,30 @@ export function TechniqueNode({ data, selected }) {
     pointerEvents: data.dimmed ? 'none' : 'auto',
   }
 
+  function handleStatusChange(e) {
+    const value = e.target.value
+    if (value === 'untried') data.onClearStatus?.(id)
+    else data.onSetStatus?.(id, value)
+  }
+
   return (
     <div className={cls} style={style}>
       <Handle type="target" position={Position.Left}  id="in"  />
       <Handle type="source" position={Position.Right} id="out" />
+
+      {data.sessionActive && (
+        <select
+          className={`node-status-select node-status-select--${techStatus}`}
+          value={techStatus}
+          onChange={handleStatusChange}
+          onClick={e => e.stopPropagation()}
+          onMouseDown={e => e.stopPropagation()}
+        >
+          <option value="untried">status —</option>
+          <option value="tried-failed">dead end</option>
+          <option value="succeeded">it works</option>
+        </select>
+      )}
 
       <div className="node-title">
         {isDismissed && <span className="node-dismissed-mark" aria-hidden="true">✗ </span>}

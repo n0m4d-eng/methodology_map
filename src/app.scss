@@ -1314,34 +1314,23 @@ body {
   flex-shrink: 0;
 }
 
-.dsb-btn {
-  flex: 1;
-  padding: 6px 10px;
+.dsb-label {
+  padding: 5px 10px;
   border-radius: 6px;
   border: 1px solid var(--border);
   background: var(--card);
-  color: var(--text-dim);
-  font-family: inherit;
   font-size: var(--text-xs);
-  cursor: pointer;
-  transition: border-color 0.12s, color 0.12s, background 0.12s;
   white-space: nowrap;
 
-  &:hover { color: var(--text); border-color: var(--text-dim); }
-
-  &--success.dsb-btn--active {
+  &--success {
     background: rgba(63,185,80,0.12);
     border-color: var(--success);
     color: var(--success);
   }
-  &--fail.dsb-btn--active {
+  &--fail {
     background: rgba(248,81,73,0.12);
     border-color: #f85149;
     color: #f85149;
-  }
-  &--clear {
-    flex: 0 0 auto;
-    padding: 6px 10px;
   }
 }
 
@@ -1461,54 +1450,30 @@ body {
   white-space: nowrap;
 }
 
-/* ── Node right-click context menu ───────────────────────────────────────── */
-.node-ctx-menu {
-  position: fixed;
-  z-index: 9999;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 4px;
-  min-width: 180px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-  backdrop-filter: blur(8px);
-}
-
-.node-ctx-title {
-  font-size: var(--text-xxs);
-  letter-spacing: 1px;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  padding: 6px 10px 4px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.node-ctx-item {
+/* ── Node status dropdown (session mode, on-card) ────────────────────────── */
+.node-status-select {
   display: block;
   width: 100%;
-  padding: 7px 10px;
-  border: none;
-  border-radius: 5px;
-  background: none;
+  margin-bottom: 7px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--card);
   color: var(--text-dim);
   font-family: inherit;
-  font-size: var(--text-xs);
-  text-align: left;
+  font-size: var(--text-xxs);
   cursor: pointer;
-  transition: background 0.1s, color 0.1s;
 
-  &:hover { background: var(--card); color: var(--text); }
-
-  &--success.active { color: var(--success); }
-  &--fail.active    { color: #f85149; }
-
-  &--success:hover { color: var(--success); }
-  &--fail:hover    { color: #f85149; }
-  &--clear:hover   { color: var(--text); }
+  &--succeeded {
+    background: rgba(63,185,80,0.12);
+    border-color: var(--success);
+    color: var(--success);
+  }
+  &--tried-failed {
+    background: rgba(248,81,73,0.12);
+    border-color: #f85149;
+    color: #f85149;
+  }
 }
 
 /* ── Dismissed technique node ─────────────────────────────────────────────── */
